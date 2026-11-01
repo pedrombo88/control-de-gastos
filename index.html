@@ -81,7 +81,7 @@
         <label class="field">Método<select name="method"><option value="card">Tarjeta</option><option value="cash">Efectivo</option><option value="other">Otro</option></select></label>
         <label class="field field-wide rec-switch"><input name="active" type="checkbox" checked> Regla activa</label>
       </div>
-      <p class="footnote">Las reglas generan movimientos cuando abres la aplicación. Los movimientos históricos no se modifican.</p>
+      <p class="footnote">La fecha de inicio marca la periodicidad. Se generan cargos desde el día en que guardas la regla, nunca anteriores. Los movimientos ya registrados se conservan.</p>
       <div id="rec-error" class="form-error" role="alert" hidden></div>
       <div class="sheet-actions"><button id="rec-delete" type="button" class="danger-text" hidden>Eliminar regla</button><button class="primary-btn" type="submit">Guardar regla</button></div>
     </form>
@@ -172,7 +172,7 @@
       const ids=new Set();
       for(const r of raw.recurring){
         if(!r||typeof r.id!=='string'||!r.id||r.id.length>=100||ids.has(r.id)||!['expense','income'].includes(r.type)||!isRealDate(r.start)||!Number.isSafeInteger(r.amount)||r.amount<=0||r.amount>9999999999||typeof r.title!=='string'||!r.title.trim()||!['daily','weekly','monthly','yearly'].includes(r.frequency)||!CAT.some(c=>c.id===r.category&&c.type===r.type))throw new Error('Regla recurrente no válida');
-        ids.add(r.id);clean.recurring.push({id:r.id,type:r.type,start:r.start,amount:r.amount,title:r.title.trim().slice(0,90),category:r.category,frequency:r.frequency,method:['card','cash','other'].includes(r.method)?r.method:'other',active:r.active!==false});
+        ids.add(r.id);clean.recurring.push({id:r.id,type:r.type,start:r.start,amount:r.amount,title:r.title.trim().slice(0,90),category:r.category,frequency:r.frequency,method:['card','cash','other'].includes(r.method)?r.method:'other',active:r.active!==false,from:isRealDate(r.from)?r.from:r.start});
       }
     }
     if(Array.isArray(raw.recurringSkips))clean.recurringSkips=raw.recurringSkips.filter(x=>typeof x==='string'&&x.length<150).slice(0,5000);
@@ -417,7 +417,7 @@
   document.querySelectorAll('.nav-icon').forEach(el=>{el.innerHTML=`<svg viewBox="0 0 24 24" aria-hidden="true">${icons[el.dataset.icon]}</svg>`;});
   recurring.sync();
   render();
-  /* La versión monofichero no requiere service worker. */
+  /* El service worker gestiona las actualizaciones y el uso sin conexión. */
 })();
 
 </script>
