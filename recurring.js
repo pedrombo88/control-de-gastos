@@ -47,7 +47,7 @@ function build(ctx){
     +'<button class="primary-btn rec-new" type="button" data-rec-new>＋ Nuevo movimiento recurrente</button>'
     +'<div class="section-heading"><h2>Mis reglas ('+items.length+')</h2></div>'
     +'<section class="card rec-list">'+(rows||'<div class="empty"><div class="empty-icon">🔁</div><strong>Sin movimientos recurrentes</strong><p>Crea una regla para registrar automáticamente la nómina, alquiler o suscripciones cuando llegue su fecha.</p></div>')+'</section>'
-    +'<p class="footnote">*Estimación mensual: 30 días por mes y 52 semanas al año. Los movimientos vencidos se registran al abrir esta aplicación; no se ejecutan en segundo plano. Puedes pausar o editar una regla sin modificar los movimientos anteriores.</p>';
+    +'<p class="footnote">*Estimación mensual: 30 días por mes y 52 semanas al año. Los vencimientos desde el día en que creas o editas una regla se registran al abrir la aplicación; no se ejecutan en segundo plano. Editar o pausar una regla no modifica los movimientos anteriores.</p>';
  };
  function changeType(type,selected){
    form.dataset.type=type;
@@ -99,7 +99,7 @@ function build(ctx){
      for(;n<max;n++){
        const date=dateFor(rule,n);
        if(date>today)break;
-       if(date<firstAllowed)continue;
+       if(date<firstAllowed || date<(rule.from||rule.start))continue;
        const key=rule.id+"|"+date;
        if(keys.has(key)||skips.has(key))continue;
        const item={id:uid(),type:rule.type,amount:rule.amount,date,title:rule.title,category:rule.category,method:rule.method,note:"Movimiento recurrente",recurringId:rule.id,occurrenceDate:date};
@@ -121,7 +121,7 @@ function build(ctx){
    }
    const data=getData(),snapshot=data.recurring.slice();
    if(!editing&&data.recurring.length>=MAX_RULES){error.textContent="Has alcanzado el límite de 200 reglas.";error.hidden=false;return;}
-   const next={id:editing||uid(),title:title.slice(0,90),amount,type,start,category,frequency:form.elements.frequency.value,method:form.elements.method.value,active:form.elements.active.checked};
+   const next={id:editing||uid(),title:title.slice(0,90),amount,type,start,category,frequency:form.elements.frequency.value,method:form.elements.method.value,active:form.elements.active.checked,from:localDate()};
    if(editing){const pos=data.recurring.findIndex(x=>x.id===editing);if(pos<0)return;data.recurring[pos]=next;}
    else data.recurring.push(next);
    if(!save()){data.recurring=snapshot;return;}
