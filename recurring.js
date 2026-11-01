@@ -83,7 +83,19 @@ function build(ctx){
      if(!rule.active||rule.start>today)continue;
      // A la primera sincronización, por seguridad solo se generan dos años de histórico.
      let n=0;
-     const max=rule.frequency==="daily"?750:rule.frequency==="weekly"?110:rule.frequency==="monthly"?26:4;
+     // Saltar directamente a los últimos dos años, incluso si la regla comenzó hace décadas.
+     if(rule.start<firstAllowed){
+       const [y,m]=firstAllowed.split("-").map(Number);
+       const [sy,sm]=rule.start.split("-").map(Number);
+       const months=(y-sy)*12+(m-sm);
+       if(rule.frequency==="monthly")n=Math.max(0,months-1);
+       else if(rule.frequency==="yearly")n=Math.max(0,Math.floor(months/12)-1);
+       else {
+         const days=Math.floor((Date.parse(firstAllowed+"T12:00:00Z")-Date.parse(rule.start+"T12:00:00Z"))/86400000);
+         n=Math.max(0,Math.floor(days/(rule.frequency==="weekly"?7:1))-1);
+       }
+     }
+     const max=n+(rule.frequency==="daily"?750:rule.frequency==="weekly"?110:rule.frequency==="monthly"?26:4);
      for(;n<max;n++){
        const date=dateFor(rule,n);
        if(date>today)break;
