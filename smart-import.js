@@ -42,6 +42,38 @@ const guessCategory=(description,type)=>{
  ];
  return rules.find(([,rx])=>rx.test(description))?.[0]||"otros";
 };
+
+const NECESSITY=["pending","necessary","optional"];
+function parseReceiptItems(text){
+ const rows=[];
+ const skip=/\b(?:SUBTOTAL|TOTAL|IMPORTE|A PAGAR|PAGADO|EFECTIVO|TARJETA|CAMBIO|IVA|I\.V\.A|BASE IMPONIBLE|AHORRO|DESCUENTO|FECHA|HORA|CAJERO|CLIENTE|TICKET|FACTURA|OPERACI[OÓ]N|GRACIAS|PRECIO UNITARIO|UNIDADES|ART[IÍ]CULOS|REDONDEO|DEVOLUCI[OÓ]N|NIF|CIF|N[ÚU]MERO|SUMA|SALDO|C[OÓ]DIGO QR)\b/i;
+ for(const raw of String(text||"").split(/\r?\n/)){
+  const line=raw.replace(/\s+/g," ").trim();
+  if(!line||skip.test(line))continue;
+  // Solo líneas que terminan en importe con dos decimales; nunca inventar productos.
+  const match=line.match(/^(.{2,90}?)\s+(-?\d{1,6}[.,]\d{2})\s*€?$/);
+  if(!match)continue;
+  const amount=moneyToCents(match[2]);
+  if(!Number.isSafeInteger(amount)||amount<=0||amount>99999999)continue;
+  let name=match[1].replace(/^\s*\d+\s*[xX*]\s*/,"").trim();
+  // Algunos tickets incluyen códigos EAN o el precio unitario antes del nombre.
+  name=name.replace(/^\d{8,14}\s+/,"").replace(/\s+\d+[xX*]\s*[\d.,]+$/,"").trim();
+  if(!/[A-Za-zÁÉÍÓÚáéíóúÑñ]{2}/.test(name)||skip.test(name))continue;
+  rows.push({id:"p-"+rows.length,name:name.slice(0,90),amount,quantity:1,necessity:"pending"});
+  if(rows.length>=120)break;
+ }
+ return rows;
+}
+function receiptSummary(items,total){
+ let necessary=0,optional=0,pending=0;
+ for(const i of (Array.isArray(items)?items:[])){
+  if(!i||!Number.isSafeInteger(i.amount)||i.amount<=0)continue;
+  if(i.necessity==="necessary")necessary+=i.amount;
+  else if(i.necessity==="optional")optional+=i.amount;
+  else pending+=i.amount;
+ }
+ return {necessary,optional,pending,itemsTotal:necessary+optional+pending,difference:total-necessary-optional-pending};
+}
 function parseReceipt(text,now){
  const lines=String(text||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
  const year=+(now||new Date().toISOString().slice(0,10)).slice(0,4);
@@ -51,7 +83,7 @@ function parseReceipt(text,now){
  const total=totalCandidates.length?totalCandidates[totalCandidates.length-1]:null;
  const dateMatches=lines.flatMap(x=>[...x.matchAll(new RegExp(patterns.date.source,"g"))].map(m=>isoDate(m[0],year))).filter(Boolean);
  const merchant=lines.find(x=>/[a-záéíóúñ]{3}/i.test(x)&&!/\b(?:factura|ticket|fecha|hora|nif|cif|copia|venta|cliente|operaci[oó]n|direcci[oó]n|cajero)\b/i.test(x))||"Ticket";
- return [{date:dateMatches[0]||now||"",title:merchant.slice(0,90),amount:total,type:"expense",category:guessCategory(merchant,"expense"),note:"Importado de ticket",confidence:total?"media":"baja"}];
+ return [{date:dateMatches[0]||now||"",title:merchant.slice(0,90),amount:total,type:"expense",category:guessCategory(merchant,"expense"),note:"Importado de ticket",confidence:total?"media":"baja",items:parseReceiptItems(text)}];
 }
 function parseStatement(text,now){
  const year=+(now||new Date().toISOString().slice(0,10)).slice(0,4);
@@ -255,5 +287,5 @@ function build(ctx){
  });
  return {renderPage,handle,parseReceipt,parseStatement,parseCSV};
 }
-root.CGSmartImport={moneyToCents,isoDate,parseReceipt,parseStatement,parseCSV,fingerprint,guessCategory,build};
+root.CGSmartImport={moneyToCents,isoDate,parseReceipt,parseReceiptItems,receiptSummary,parseStatement,parseCSV,fingerprint,guessCategory,build};
 })(window);
