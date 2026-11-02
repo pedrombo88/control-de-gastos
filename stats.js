@@ -43,6 +43,53 @@
       })).sort((a,b)=>b.amount-a.amount || a.id.localeCompare(b.id))
     };
   }
+
+  /* Solo se cuenta el importe del movimiento; el desglose sirve para repartirlo.
+     Si el subtotal del ticket supera el total por descuentos, se prorratea
+     para que no se contabilice más dinero del realmente gastado. */
+  function summarizeNeeds(transactions, keys) {
+    const selected = new Set(keys);
+    const empty = month=>({month,necessary:0,optional:0,pending:0,unitemized:0,expenses:0,receipts:0,items:0,adjusted:0});
+    const map=new Map(keys.map(k=>[k,empty(k)]));
+    for (const tx of transactions) {
+      if (!tx||tx.type!=="expense"||!Number.isSafeInteger(tx.amount)||tx.amount<=0)continue;
+      const month=String(tx.date||"").slice(0,7);
+      if(!selected.has(month))continue;
+      const row=map.get(month);
+      row.expenses+=tx.amount;
+      const items=Array.isArray(tx.receiptItems)?tx.receiptItems.filter(x=>x&&Number.isSafeInteger(x.amount)&&x.amount>0):[];
+      if(!items.length){row.unitemized+=tx.amount;continue;}
+      row.receipts++;
+      row.items+=items.length;
+      const gross=items.reduce((a,x)=>a+x.amount,0);
+      let portions;
+      if (gross>tx.amount) {
+        row.adjusted++;
+        // Reparto proporcional usando restos mayores: los céntimos suman exactamente el total.
+        const parts=items.map((x,i)=>({i,raw:x.amount*tx.amount/gross}));
+        portions=parts.map(x=>Math.floor(x.raw));
+        let remain=tx.amount-portions.reduce((a,b)=>a+b,0);
+        for(const p of parts.slice().sort((a,b)=>(b.raw-Math.floor(b.raw))-(a.raw-Math.floor(a.raw))||a.i-b.i)){
+          if(remain--<=0)break;
+          portions[p.i]++;
+        }
+      } else {
+        portions=items.map(x=>x.amount);
+        row.unitemized+=tx.amount-gross;
+      }
+      items.forEach((item,i)=>{
+        const category=item.necessity==="necessary"?"necessary":item.necessity==="optional"?"optional":"pending";
+        row[category]+=portions[i];
+      });
+    }
+    const months=keys.map(k=>map.get(k));
+    const total=empty("total");
+    for(const m of months){
+      for(const k of ["necessary","optional","pending","unitemized","expenses","receipts","items","adjusted"])total[k]+=m[k];
+    }
+    return {months,total};
+  }
+
   function build(context) {
     const {getData, CAT, money, h, localDate, render} = context;
     let period=6;
@@ -63,6 +110,31 @@
       const max=Math.max(1,...series.flatMap(s=>[s.expense,s.income]));
       const catData=categoriesFor(tx,keys,kind,CAT);
       const topMonth=series.filter(s=>s.expense>0).sort((a,b)=>b.expense-a.expense)[0];
+
+      const needs=summarizeNeeds(tx,keys);
+      const nt=needs.total;
+      const known=nt.necessary+nt.optional;
+      const ratioOfKnown=known?Math.round(nt.optional/known*100):null;
+      const ratioOfAll=nt.expenses?Math.round(nt.optional/nt.expenses*100):null;
+      const classifications=[
+        ["necessary","Necesarios","#0fa38a"],
+        ["optional","No necesarios","#ed6f69"],
+        ["pending","Sin clasificar","#e3ac45"],
+        ["unitemized","Sin desglose","#9ba7b2"]
+      ];
+      const needsCards=classifications.map(([key,title,color])=>
+        '<div class="needs-kpi"><span class="needs-dot" style="background:'+color+'"></span><small>'+title+'</small><strong>'+h(money(nt[key]))+'</strong></div>'
+      ).join("");
+      const needsBars=needs.months.map(m=>{
+        const content=m.expenses?classifications.map(([key,title,color])=>{
+          const pct=m[key]/m.expenses*100;
+          return pct>0?'<span class="needs-segment" style="width:'+pct+'%;background:'+color+'" title="'+h(title+': '+money(m[key]))+'"></span>':'';
+        }).join(""):'<span class="needs-emptybar"></span>';
+        return '<div class="needs-month-row"><span class="needs-month-label">'+h(monthName(m.month))+'</span><div class="needs-stacked" role="img" aria-label="'+h(monthName(m.month)+': '+money(m.necessary)+' necesarios, '+money(m.optional)+' no necesarios, '+money(m.pending)+' sin clasificar y '+money(m.unitemized)+' sin desglose')+'">'+content+'</div><strong>'+h(money(m.expenses))+'</strong></div>';
+      }).join("");
+      const needsTable=needs.months.slice().reverse().map(m=>
+        '<tr><th scope="row">'+h(monthName(m.month))+'</th><td>'+h(money(m.necessary))+'</td><td>'+h(money(m.optional))+'</td><td>'+h(money(m.pending+m.unitemized))+'</td></tr>'
+      ).join("");
       const chart=series.map(s=>{
         const heightInc=Math.max(s.income?3:0, Math.round(s.income/max*100));
         const heightExp=Math.max(s.expense?3:0, Math.round(s.expense/max*100));
@@ -92,6 +164,17 @@
         +'<button type="button" data-stats-kind="income" aria-pressed="'+(kind==="income")+'" class="stats-filter'+(kind==="income"?' selected':'')+'">Ingresos</button></div>'
         +(cats || '<p class="muted stats-empty">No hay '+(kind==="expense"?'gastos':'ingresos')+' en este periodo.</p>')
         +'</section>'
+
+        +'<section class="card stats-panel needs-panel"><div class="section-heading"><h2>🧾 Necesarios y no necesarios</h2></div>'
+        +'<p class="muted">Clasificación de productos en tickets. Los importes proceden del gasto original, sin duplicarlos.</p>'
+        +'<div class="needs-kpis">'+needsCards+'</div>'
+        +'<div class="needs-insight">'+(ratioOfKnown===null?'Clasifica productos de un ticket para calcular tus compras prescindibles.'
+            :'<strong>'+ratioOfKnown+' %</strong> de los productos ya clasificados corresponde a compras no necesarias.')
+          + (ratioOfAll===null?'':' <small>Representan el '+ratioOfAll+' % de todos los gastos del periodo.</small>')+'</div>'
+        +'<div class="section-heading"><h2>Comparativa mensual</h2></div>'
+        +'<div class="needs-stack-list">'+needsBars+'</div>'
+        +'<div class="stats-table-scroll"><table class="stats-table needs-table"><thead><tr><th>Mes</th><th>Necesarios</th><th>No necesarios</th><th>Sin evaluar</th></tr></thead><tbody>'+needsTable+'</tbody></table></div>'
+        +'<p class="footnote">'+nt.receipts+' tickets con desglose · '+nt.items+' productos. Los importes «sin desglose» incluyen otros gastos y diferencias del ticket. '+(nt.adjusted?'En '+nt.adjusted+' tickets se prorratearon descuentos al superar los productos el importe final.':'')+'</p></section>'
         +'<section class="card stats-panel stats-table-panel"><div class="section-heading"><h2>Detalle por mes</h2></div>'
         +'<div class="stats-table-scroll"><table class="stats-table"><thead><tr><th>Mes</th><th>Ingresos</th><th>Gastos</th><th>Balance</th></tr></thead><tbody>'+table+'</tbody></table></div></section>'
         +'<p class="footnote">Datos de este dispositivo. Las cantidades están expresadas en euros y los periodos incluyen el mes actual. Los promedios incluyen meses sin movimientos.</p>';
@@ -111,5 +194,5 @@
     });
     return {renderPage:view,getPeriod:()=>period,getKind:()=>kind};
   }
-  root.CGStats={monthsFor,aggregate,categoriesFor,build};
+  root.CGStats={monthsFor,aggregate,categoriesFor,summarizeNeeds,build};
 })(window);
