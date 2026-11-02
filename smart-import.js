@@ -225,6 +225,20 @@ function build(ctx){
   finally{finish();}
  }
 
+
+ function savedReceiptHTML(t){
+  if(!Array.isArray(t.receiptItems))return "";
+  const sum=receiptSummary(t.receiptItems,t.amount);
+  const rows=t.receiptItems.map((item,j)=>{
+   const opts=[["pending","Sin clasificar"],["necessary","Necesario"],["optional","No necesario"]].map(([value,label])=>'<option value="'+value+'" '+(item.necessity===value?"selected":"")+'>'+label+'</option>').join("");
+   return '<div class="receipt-saved-row"><span>'+escape(item.name)+'</span><b>'+escape(money(item.amount))+'</b><select data-saved-product-necessity="'+j+'" data-saved-receipt-id="'+escape(t.id)+'" aria-label="Necesidad de '+escape(item.name)+'">'+opts+'</select></div>';
+  }).join("");
+  return '<section class="card receipt-saved-panel"><div class="section-heading"><h2>🧾 Productos de '+escape(t.title)+'</h2></div>'
+    +'<p class="receipt-hint">Total del ticket: '+escape(money(t.amount))+'. Los productos no se suman otra vez a tus gastos.</p>'
+    +rows
+    +'<div class="receipt-totals"><span>Necesarios: <b>'+escape(money(sum.necessary))+'</b></span><span>No necesarios: <b>'+escape(money(sum.optional))+'</b></span><span>Sin clasificar: <b>'+escape(money(sum.pending))+'</b></span>'
+    +(sum.difference?'<span class="receipt-difference">Sin desglosar: <b>'+escape(money(sum.difference))+'</b></span>':'')+'</div></section>';
+ }
  function receiptItemsHTML(r,index){
   if(!Array.isArray(r.items))return "";
   const sum=receiptSummary(r.items,r.amount||0);
@@ -317,10 +331,18 @@ function build(ctx){
    const mode=document.querySelector('input[name="smart-import-mode"]:checked')?.value||"ticket";
    handle(e.target.files?.[0],mode);e.target.value="";return;
   }
+  if(e.target.matches("[data-saved-product-necessity]")){
+   const tx=getData().transactions.find(t=>t.id===e.target.dataset.savedReceiptId);
+   const item=tx?.receiptItems?.[Number(e.target.dataset.savedProductNecessity)];
+   if(!item||!NECESSITY.includes(e.target.value))return;
+   const prev=item.necessity;item.necessity=e.target.value;
+   if(!save()){item.necessity=prev;return;}
+   render();toast("Producto clasificado");return;
+  }
   if(e.target.closest("[data-product-index]")&&e.target.dataset.receiptField){updateProduct(e.target);return;}
   if(e.target.closest("[data-import-row]"))updateRow(e.target);
  });
- return {renderPage,handle,parseReceipt,parseStatement,parseCSV};
+ return {renderPage,renderSavedReceipt:savedReceiptHTML,handle,parseReceipt,parseStatement,parseCSV};
 }
 root.CGSmartImport={moneyToCents,isoDate,parseReceipt,parseReceiptItems,receiptSummary,parseStatement,parseCSV,fingerprint,guessCategory,build};
 })(window);
