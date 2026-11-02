@@ -60,6 +60,34 @@
 .stats-table tbody th{font-size:11px;font-weight:650}
 @media(max-width:375px){.stats-kpi strong{font-size:17px}.stats-panel{padding:13px}.stats-table{font-size:10px}}
 
+
+/* V4 — avisos de presupuestos */
+.budget-alert-banner{display:flex;align-items:center;gap:11px;background:#fff8e7;border:1px solid #f2dfa6;border-radius:16px;padding:13px 12px;margin:14px 0;color:#805b13}
+.budget-alert-banner.is-critical{background:#fff0f0;border-color:#f1c5c5;color:#a5333e}
+.budget-alert-banner>span{font-size:21px}
+.budget-alert-banner>div{flex:1;min-width:0}
+.budget-alert-banner strong{font-size:12px}
+.budget-alert-banner p{margin:4px 0 0;font-size:11px;line-height:1.4;overflow-wrap:anywhere}
+.budget-alert-link{border:1px solid currentColor;border-radius:10px;padding:8px 10px;background:transparent;color:inherit;font-size:11px;font-weight:800}
+.budget-alert-panel{padding:16px;margin:14px 0}
+.budget-alert-panel .section-heading{margin:0 0 6px}
+.budget-alert-caption{font-size:11px;line-height:1.5;color:var(--muted);margin:4px 0 12px}
+.budget-alert-controls{display:flex;justify-content:space-between;align-items:center;gap:9px;flex-wrap:wrap;padding:10px 0 14px;border-bottom:1px solid var(--border)}
+.budget-alert-toggle{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:750}
+.budget-alert-toggle input{width:19px;height:19px;accent-color:var(--mint)}
+.budget-alert-threshold{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:750;color:var(--ink2)}
+.budget-alert-threshold select{border:1px solid var(--border);border-radius:10px;padding:7px 8px;background:#fff;font-size:12px}
+.budget-alert-item{display:flex;align-items:center;gap:9px;padding:13px 0}
+.budget-alert-item+.budget-alert-item{border-top:1px solid var(--border)}
+.budget-alert-icon{width:35px;height:35px;border-radius:10px;background:#f4f7f9;display:grid;place-items:center;font-size:19px}
+.budget-alert-copy{flex:1;min-width:0;display:grid;gap:4px}
+.budget-alert-copy strong{font-size:12px}
+.budget-alert-copy small{font-size:11px;color:var(--muted);line-height:1.4}
+.budget-alert-pill{border-radius:8px;padding:5px 7px;font-size:10px;font-weight:800}
+.budget-alert-pill.warn{background:#fff1ce;color:#97650e}
+.budget-alert-pill.danger{background:#ffebeb;color:#b43543}
+.budget-alert-empty{font-size:12px;color:var(--muted);line-height:1.5;margin:13px 0 0}
+
 </style>
   <title>Control de Gastos · Controla tu dinero</title>
 </head>
@@ -134,6 +162,7 @@
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="recurring.js"></script>
 <script src="stats.js"></script>
+<script src="budget-alerts.js"></script>
   <script>
 /* Control de Gastos — versión 2.0. Datos exclusivamente en este dispositivo. */
 (() => {
@@ -192,7 +221,7 @@
     return !Number.isNaN(date.getTime()) && localDate(date) === d && d >= '2000-01-01' && d <= '2100-12-31';
   };
   const catById = id => CAT.find(c=>c.id===id) || CAT.find(c=>c.id==='otros');
-  const defaults = () => ({version:2, transactions:[], budgets:{}, recurring:[], recurringSkips:[]});
+  const defaults = () => ({version:4, transactions:[], budgets:{}, recurring:[], recurringSkips:[],budgetAlerts:{enabled:true,warningAt:80}});
   const normalize = raw => {
     if(!raw || !Array.isArray(raw.transactions) || typeof raw!=='object') throw new Error('Copia de seguridad no válida');
     if(raw.transactions.length > 40000) throw new Error('El archivo tiene demasiados movimientos');
@@ -221,6 +250,7 @@
       }
     }
     if(Array.isArray(raw.recurringSkips))clean.recurringSkips=raw.recurringSkips.filter(x=>typeof x==='string'&&x.length<150).slice(0,5000);
+    clean.budgetAlerts=window.CGBudgetAlerts.normalizeConfig(raw.budgetAlerts);
     return clean;
   };
   let data = defaults();
@@ -262,6 +292,7 @@
   const txRow = t => {const cat=catById(t.category);return `<button type="button" class="transaction-row" data-edit-id="${h(t.id)}" aria-label="Editar ${h(t.title)}, ${h(money(t.amount))}">${categoryMark(cat)}<span class="transaction-main"><span class="transaction-title" style="display:block">${h(t.title)}</span><span class="transaction-sub" style="display:block">${h(cat.name)} · ${h(methodNames[t.method]||'Otro')}${t.recurringId?' · 🔁':''}</span></span><span class="transaction-amount ${t.type==='income'?'income':''}">${t.type==='income'?'+':'−'}${h(money(t.amount))}</span></button>`;};
   const sorted = items => [...items].sort((a,b)=>b.date.localeCompare(a.date)||b.id.localeCompare(a.id));
   const cardHeader = (title,action='',target='') => `<div class="section-heading"><h2>${title}</h2>${action?`<button type="button" class="text-link" data-action="${target}">${action} →</button>`:''}</div>`;
+  const budgetAlerts=window.CGBudgetAlerts.build({getData:()=>data,save,render:()=>render(),CAT,h,money,toast});
   const renderHome = () => {
     const tx=currentTx(), inc=total(tx,'income'), out=total(tx,'expense'), balance=inc-out;
     const byCat=CAT.filter(c=>c.type==='expense').map(c=>({...c,amount:total(tx.filter(x=>x.category===c.id),'expense')})).filter(x=>x.amount>0).sort((a,b)=>b.amount-a.amount);
@@ -280,6 +311,7 @@
     const tip=inc ? (out>inc?'<strong>Este mes has gastado más de lo ingresado.</strong><p>Revisa las categorías de gasto y define límites mensuales.</p>':`<strong>Has utilizado el ${spentRatio}% de tus ingresos.</strong><p>${inc-out>0?'Vas por buen camino. Puedes reservar parte de lo que queda para ahorrar.':'Tu balance está equilibrado.'}</p>`) : '<strong>Empieza por añadir tus ingresos.</strong><p>Así podrás ver el balance real y la parte que destinas a gastos.</p>';
     return `${heading('Tu resumen','VISTA GENERAL')}
       <section class="balance-card" aria-label="Resumen del mes"><div class="balance-title">Balance del mes</div><div class="balance-main">${h(money(balance))}</div><div class="balance-grid"><div class="balance-item"><span class="balance-icon" aria-hidden="true">↗</span><div><span class="balance-label">Ingresos</span><span class="balance-amount">${h(money(inc))}</span></div></div><div class="balance-item"><span class="balance-icon" aria-hidden="true">↘</span><div><span class="balance-label">Gastos</span><span class="balance-amount">${h(money(out))}</span></div></div></div></section>
+      ${budgetAlerts.renderHome(ui.month)}
       ${cardHeader('¿En qué has gastado?')}<section class="card" aria-label="Desglose de gastos">${chart}</section>
       <div class="tip-banner"><div class="tip-icon" aria-hidden="true">💡</div><div>${tip}</div></div>
       ${cardHeader('Evolución · 6 meses','Ver análisis','stats')}<section class="card">${renderTrend()}</section>
@@ -316,12 +348,13 @@
     const rows=cs=>cs.map(c=>{const limit=data.budgets[c.id]||0,spent=total(currentTx().filter(t=>t.category===c.id),'expense');return `<div class="budget-row">${categoryMark(c)}<div class="budget-details"><div class="transaction-title">${h(c.name)}</div><div class="budget-values">${h(shortMoney(spent))} <span class="secondary">${limit?'de '+h(shortMoney(limit))+' / mes':'gastados este mes'}</span></div>${limit?progress(spent/limit):''}</div><button type="button" class="small-action" data-budget-category="${c.id}" aria-label="${limit?'Editar':'Fijar'} límite de ${h(c.name)}">${limit?'Editar':'Fijar'}</button></div>`}).join('');
     return `${heading('Presupuestos','PLANIFICA TUS GASTOS')}
       <section class="card budget-overview"><div class="budget-top"><div><div class="balance-title" style="color:var(--muted)">Gastos con límite</div><div class="budget-amount">${h(money(configuredSpend))}</div></div><span class="total-badge">${configured.length} ${configured.length===1?'límite':'límites'}</span></div><p class="budget-sub">Presupuesto asignado: ${h(money(totalLimit))} / mes</p><div style="margin-top:15px">${progress(totalLimit?configuredSpend/totalLimit:0)}</div></section>
+      ${budgetAlerts.renderPanel(ui.month)}
       ${cardHeader('Categorías con presupuesto')}<section class="card">${configured.length?rows(configured):empty('🎯','Crea tu primer presupuesto','Define un límite de gasto mensual para alguna de las categorías de abajo.')}</section>
       ${cardHeader('Otras categorías')}<section class="card">${rows(remainder)||empty('✓','Todas configuradas','Has definido un presupuesto para todas las categorías.')}</section>
       <p class="footnote">Los límites son mensuales y se aplican automáticamente a todos los meses. Los gastos sin presupuesto no se incluyen en el total asignado.</p>`;
   };
   const settingsRow = (emoji,title,subtitle,action) => `<button type="button" class="settings-row" data-action="${action}"><span class="settings-emoji" aria-hidden="true">${emoji}</span><span class="content"><b>${title}</b><small>${subtitle}</small></span><span class="chevron" aria-hidden="true">›</span></button>`;
-  const renderSettings = () => `<div class="view-heading"><div><div class="eyebrow">PREFERENCIAS</div><h1 class="page-title">Ajustes</h1></div><span class="tag">v3.0</span></div>
+  const renderSettings = () => `<div class="view-heading"><div><div class="eyebrow">PREFERENCIAS</div><h1 class="page-title">Ajustes</h1></div><span class="tag">v4.0</span></div>
     ${cardHeader('Tus datos')}<section class="card settings-card">
     ${settingsRow('📦','Descargar copia de seguridad','Guarda un archivo .json con todos tus datos.','export-json')}
     ${settingsRow('📥','Restaurar copia','Recupera tus datos desde un archivo .json.','import-json')}
