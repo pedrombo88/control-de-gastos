@@ -268,7 +268,9 @@ function build(ctx){
    +'<label>Importe (€)<input type="text" inputmode="decimal" data-import-field="amount" value="'+(r.amount?escape((r.amount/100).toFixed(2).replace(".",",")):"")+'" placeholder="Revisar"></label>'
    +'<label>Tipo<select data-import-field="type"><option value="expense" '+(r.type==="expense"?"selected":"")+'>Gasto</option><option value="income" '+(r.type==="income"?"selected":"")+'>Ingreso</option></select></label>'
    +'<label class="smart-import-wide">Categoría<select data-import-field="category">'+opts+'</select></label></div>'
-   +(r.type==="expense"?receiptItemsHTML(r,i):"")+'</article>';
+   +(r.type==="expense"?receiptItemsHTML(r,i):"")
+   +'<button type="button" class="smart-import-confirm '+(r.selected&&!duplicateDisabled?'confirmed':'')+'" data-import-confirm="'+i+'" '+(duplicateDisabled||!isValid?'disabled':'')+'>'
+   +(r.selected&&!duplicateDisabled?'✓ Movimiento seleccionado · Quitar':'☑ Seleccionar este movimiento para guardar')+'</button></article>';
  }
  const renderPage=()=>{
   const dupes=duplicates();
@@ -279,7 +281,7 @@ function build(ctx){
   +'<div class="smart-import-actions"><button type="button" class="primary-btn" data-import-camera>📸 Hacer foto del ticket</button><button type="button" class="small-action" data-import-pick>📁 Subir foto, PDF o CSV</button></div>'
   +'<div class="smart-import-modes"><label><input type="radio" name="smart-import-mode" value="ticket" checked> Ticket de compra</label><label><input type="radio" name="smart-import-mode" value="statement"> Extracto bancario</label></div></section>'
   +'<p class="footnote">Las imágenes y los documentos se procesan en el iPhone. Para el reconocimiento de fotos se descarga una librería OCR externa. Los documentos no se suben a nuestros servidores. Comprueba importes y fechas: el reconocimiento automático puede equivocarse.</p>'
-  +(state.rows.length?'<section class="card smart-import-review"><div class="section-heading"><h2>Revisar '+state.rows.length+' movimientos</h2></div><p class="muted">Seleccionados: <strong>'+chosen.length+'</strong>. Los duplicados sospechosos se excluyen por defecto, salvo que confirmes que son compras diferentes.</p>'+rows+'<button type="button" class="primary-btn smart-import-save" data-import-save '+(chosen.length?"":"disabled")+'>Guardar '+chosen.length+' movimientos</button></section>':'<section class="card smart-import-empty"><strong>Tu importación aparecerá aquí</strong><p>Los tickets suelen crear un gasto por el total. Los extractos pueden contener varios movimientos.</p></section>');
+  +(state.rows.length?'<section class="card smart-import-review"><div class="section-heading"><h2>Revisar '+state.rows.length+' movimientos</h2></div><p class="muted">Seleccionados: <strong>'+chosen.length+'</strong>. Los duplicados sospechosos se excluyen por defecto, salvo que confirmes que son compras diferentes.</p>'+rows+'<p class="smart-import-confirm-help" role="status">'+(chosen.length?'✅ '+chosen.length+' movimiento(s) confirmado(s).':'☝️ Revisa los datos y pulsa «Seleccionar este movimiento para guardar» debajo del desglose.')+'</p><button type="button" class="primary-btn smart-import-save" data-import-save '+(chosen.length?"":"disabled")+'>Guardar '+chosen.length+' movimientos</button></section>':'<section class="card smart-import-empty"><strong>Tu importación aparecerá aquí</strong><p>Los tickets suelen crear un gasto por el total. Los extractos pueden contener varios movimientos.</p></section>');
  };
  const updateRow=(target)=>{
   const row=target.closest("[data-import-row]");if(!row)return;
@@ -324,7 +326,16 @@ function build(ctx){
  document.addEventListener("click",e=>{
   if(e.target.closest("[data-import-camera]")){openFile(true);return;}
   if(e.target.closest("[data-import-pick]")){openFile(false);return;}
-  if(e.target.closest("[data-import-save]"))saveSelected();
+  const confirmation=e.target.closest("[data-import-confirm]");
+  if(confirmation){
+    const index=Number(confirmation.dataset.importConfirm),row=state.rows[index];
+    if(!row||!valid(row))return;
+    if(duplicates().has(fingerprint(row))&&!row.allowDuplicate){toast("Posible duplicado: confirma antes que es un gasto distinto.");return;}
+    row.selected=!row.selected;
+    render();
+    return;
+  }
+  if(e.target.closest("[data-import-save]")){saveSelected();return;}
   const add=e.target.closest("[data-receipt-add]");
   if(add){const r=state.rows[Number(add.dataset.receiptAdd)];if(r&&Array.isArray(r.items)){r.items.push({id:"p-"+uid(),name:"Nuevo producto",amount:1,quantity:1,necessity:"pending"});render();}return;}
   const del=e.target.closest("[data-receipt-delete]");
