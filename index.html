@@ -378,7 +378,11 @@
     <div class="install-box"><h3>Para usarla como una app</h3><p>Abre la página publicada en Safari, toca el botón Compartir y elige «Añadir a pantalla de inicio». Después podrás abrirla desde su icono, incluso sin conexión tras la primera carga.</p><p>La aplicación instalada puede funcionar sin conexión tras guardar los recursos en caché. Haz copias de seguridad periódicas.</p></div>
     ${!storageOK?'<p class="form-error">No se ha podido acceder al almacenamiento local. Evita registrar datos hasta solucionarlo.</p>':''}`;
   const render = () => {
+    const selectedReceipt=ui.tab==='transactions'&&ui.receiptId?data.transactions.find(t=>t.id===ui.receiptId):null;
     shell.innerHTML = ({home:renderHome,transactions:renderTransactions,budgets:renderBudgets,recurring:recurring.renderPage,stats:stats.renderPage,'smart-import':smartImport.renderPage,settings:renderSettings})[ui.tab]();
+    if(selectedReceipt&&Array.isArray(selectedReceipt.receiptItems)){
+      shell.insertAdjacentHTML('afterbegin',smartImport.renderSavedReceipt(selectedReceipt));
+    }
     document.querySelectorAll('.nav-item').forEach(n=>{const active=n.dataset.tab===ui.tab;n.classList.toggle('is-active',active);if(active)n.setAttribute('aria-current','page');else n.removeAttribute('aria-current');});
   };
   const openTransaction = (id=null) => {
@@ -461,9 +465,11 @@
   document.addEventListener('click', e => {
     const close=e.target.closest('[data-close]');if(close){document.getElementById(close.dataset.close)?.close();return;}
     const type=e.target.closest('[data-entry-type]');if(type){setEntryType(type.dataset.entryType);return;}
-    const tab=e.target.closest('[data-tab]');if(tab){ui.tab=tab.dataset.tab;ui.query='';ui.filter='all';render();window.scrollTo({top:0,behavior:'instant'});return;}
+    const tab=e.target.closest('[data-tab]');if(tab){ui.tab=tab.dataset.tab;ui.receiptId=null;ui.query='';ui.filter='all';render();window.scrollTo({top:0,behavior:'instant'});return;}
     const month=e.target.closest('[data-month-shift]');if(month){monthShift(Number(month.dataset.monthShift));render();return;}
     const filter=e.target.closest('[data-filter]');if(filter){ui.filter=filter.dataset.filter;render();return;}
+    const receipt=e.target.closest('[data-open-receipt]');
+    if(receipt){ui.tab='transactions';ui.receiptId=receipt.dataset.openReceipt;render();return;}
     const edit=e.target.closest('[data-edit-id]');if(edit){openTransaction(edit.dataset.editId);return;}
     const budget=e.target.closest('[data-budget-category]');if(budget){openBudget(budget.dataset.budgetCategory);return;}
     const action=e.target.closest('[data-action]');if(action){handleAction(action.dataset.action);return;}
