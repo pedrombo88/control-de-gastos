@@ -335,6 +335,11 @@ function build(ctx){
    const mode=document.querySelector('input[name="smart-import-mode"]:checked')?.value||"ticket";
    handle(e.target.files?.[0],mode);e.target.value="";return;
   }
+  if(e.target.matches("[data-import-select]")){
+   const row=state.rows[Number(e.target.dataset.importSelect)];
+   if(!row)return;
+   row.selected=e.target.checked;render();return;
+  }
   if(e.target.matches("[data-import-allow-duplicate]")){
    const row=state.rows[Number(e.target.dataset.importAllowDuplicate)];
    if(!row)return;
