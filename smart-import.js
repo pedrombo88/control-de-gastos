@@ -224,6 +224,22 @@ function build(ctx){
   }catch(e){status.hidden=false;status.textContent="No se pudo leer: "+e.message;state.rows=[];render();}
   finally{finish();}
  }
+
+ function receiptItemsHTML(r,index){
+  if(!Array.isArray(r.items))return "";
+  const sum=receiptSummary(r.items,r.amount||0);
+  const productRows=r.items.map((item,j)=>{
+   const options=[["pending","Sin clasificar"],["necessary","Necesario"],["optional","No necesario"]].map(([v,label])=>'<option value="'+v+'" '+(item.necessity===v?"selected":"")+'>'+label+'</option>').join("");
+   return '<div class="receipt-product-row" data-product-index="'+j+'"><input aria-label="Nombre del producto" data-receipt-field="name" maxlength="90" value="'+escape(item.name)+'"><input aria-label="Precio del producto en euros" data-receipt-field="amount" inputmode="decimal" value="'+escape((item.amount/100).toFixed(2).replace(".",","))+'"><select aria-label="Clasificar necesidad" data-receipt-field="necessity">'+options+'</select><button type="button" data-receipt-delete="'+j+'" aria-label="Eliminar producto">✕</button></div>';
+  }).join("");
+  return '<details class="receipt-breakdown" '+(r.items.length?"open":"")+'><summary>🧾 Desglose de productos ('+r.items.length+')</summary>'
+    +'<p class="receipt-hint">Clasifica cada producto como necesario o no necesario. El balance contabiliza únicamente el total del ticket.</p>'
+    +'<div class="receipt-product-list">'+productRows+'</div>'
+    +'<button type="button" class="small-action" data-receipt-add="'+index+'">＋ Añadir producto</button>'
+    +'<div class="receipt-totals"><span>Necesarios: <b>'+escape(money(sum.necessary))+'</b></span><span>No necesarios: <b>'+escape(money(sum.optional))+'</b></span><span>Sin clasificar: <b>'+escape(money(sum.pending))+'</b></span>'
+    +(sum.difference?'<span class="receipt-difference">Diferencia sin desglosar: <b>'+escape(money(sum.difference))+'</b></span>':'')
+    +'</div></details>';
+ }
  function rowHTML(r,i,dupes){
   const duplicate=dupes.has(fingerprint(r));
   const isValid=valid(r);
@@ -233,7 +249,8 @@ function build(ctx){
    +'<div class="smart-import-fields"><label>Fecha<input type="date" data-import-field="date" value="'+escape(r.date)+'"></label><label>Concepto<input type="text" maxlength="90" data-import-field="title" value="'+escape(r.title)+'"></label>'
    +'<label>Importe (€)<input type="text" inputmode="decimal" data-import-field="amount" value="'+(r.amount?escape((r.amount/100).toFixed(2).replace(".",",")):"")+'" placeholder="Revisar"></label>'
    +'<label>Tipo<select data-import-field="type"><option value="expense" '+(r.type==="expense"?"selected":"")+'>Gasto</option><option value="income" '+(r.type==="income"?"selected":"")+'>Ingreso</option></select></label>'
-   +'<label class="smart-import-wide">Categoría<select data-import-field="category">'+opts+'</select></label></div></article>';
+   +'<label class="smart-import-wide">Categoría<select data-import-field="category">'+opts+'</select></label></div>'
+   +(r.type==="expense"?receiptItemsHTML(r,i):"")+'</article>';
  }
  const renderPage=()=>{
   const dupes=duplicates();
@@ -256,6 +273,19 @@ function build(ctx){
   else if(field)r[field]=target.value;
   if(field==="type"||field==="date"||field==="title"||field==="amount")render();
  };
+
+ function updateProduct(target){
+  const row=target.closest("[data-import-row]"),prod=target.closest("[data-product-index]");
+  if(!row||!prod)return;
+  const r=state.rows[Number(row.dataset.importRow)],i=Number(prod.dataset.productIndex);
+  if(!r||!Array.isArray(r.items)||!r.items[i])return;
+  const field=target.dataset.receiptField;
+  if(field==="name")r.items[i].name=target.value.slice(0,90);
+  if(field==="amount"){const cents=parseMoney(target.value);if(cents)r.items[i].amount=cents;}
+  if(field==="necessity"&&NECESSITY.includes(target.value))r.items[i].necessity=target.value;
+  // No repintar el campo mientras se escribe: se actualiza al salir del control.
+  if(field==="necessity"||field==="amount")render();
+ }
  function saveSelected(){
   const data=getData(),dupes=duplicates(),batch=new Set(),newTx=[];
   for(const r of state.rows){
@@ -263,7 +293,7 @@ function build(ctx){
    const key=fingerprint(r);
    if(dupes.has(key)||batch.has(key))continue;
    batch.add(key);
-   newTx.push({id:uid(),date:r.date,title:r.title.trim().slice(0,90),amount:r.amount,type:r.type,category:r.category,method:"card",note:r.note});
+   newTx.push({id:uid(),date:r.date,title:r.title.trim().slice(0,90),amount:r.amount,type:r.type,category:r.category,method:"card",note:r.note,...(Array.isArray(r.items)?{receiptItems:r.items.filter(item=>item&&String(item.name||"").trim()&&Number.isSafeInteger(item.amount)&&item.amount>0).slice(0,120).map(item=>({name:item.name.trim().slice(0,90),amount:item.amount,quantity:1,necessity:NECESSITY.includes(item.necessity)?item.necessity:"pending"}))}:{})});
   }
   if(!newTx.length){toast("No hay movimientos nuevos válidos para guardar");return;}
   const old=data.transactions;
@@ -277,12 +307,17 @@ function build(ctx){
   if(e.target.closest("[data-import-camera]")){openFile(true);return;}
   if(e.target.closest("[data-import-pick]")){openFile(false);return;}
   if(e.target.closest("[data-import-save]"))saveSelected();
+  const add=e.target.closest("[data-receipt-add]");
+  if(add){const r=state.rows[Number(add.dataset.receiptAdd)];if(r&&Array.isArray(r.items)){r.items.push({id:"p-"+uid(),name:"Nuevo producto",amount:1,quantity:1,necessity:"pending"});render();}return;}
+  const del=e.target.closest("[data-receipt-delete]");
+  if(del){const row=del.closest("[data-import-row]");const r=state.rows[Number(row?.dataset.importRow)];if(r&&Array.isArray(r.items)){r.items.splice(Number(del.dataset.receiptDelete),1);render();}return;}
  });
  document.addEventListener("change",e=>{
   if(e.target===fileInput||e.target===cameraInput){
    const mode=document.querySelector('input[name="smart-import-mode"]:checked')?.value||"ticket";
    handle(e.target.files?.[0],mode);e.target.value="";return;
   }
+  if(e.target.closest("[data-product-index]")&&e.target.dataset.receiptField){updateProduct(e.target);return;}
   if(e.target.closest("[data-import-row]"))updateRow(e.target);
  });
  return {renderPage,handle,parseReceipt,parseStatement,parseCSV};
