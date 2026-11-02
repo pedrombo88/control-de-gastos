@@ -155,7 +155,19 @@ function build(ctx){
     if(!lines.has(key))lines.set(key,[]);
     lines.get(key).push({x,text:item.str});
    }
-   const text=[...lines.entries()].sort((a,b)=>b[0]-a[0]).map(([,items])=>items.sort((a,b)=>a.x-b.x).map(t=>t.text).join(" ")).join("\n");
+   let text=[...lines.entries()].sort((a,b)=>b[0]-a[0]).map(([,items])=>items.sort((a,b)=>a.x-b.x).map(t=>t.text).join(" ")).join("\n");
+   if(text.trim().length<25){
+     if(doc.numPages>10)throw new Error("El PDF escaneado supera las 10 páginas admitidas para OCR. Divídelo en varios archivos.");
+     await script("https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js",()=>!!root.Tesseract?.createWorker);
+     const viewport=page.getViewport({scale:1.5});
+     const canvas=document.createElement("canvas");
+     canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);
+     const context=canvas.getContext("2d",{willReadFrequently:true});
+     await page.render({canvasContext:context,viewport}).promise;
+     status.textContent="Reconociendo página escaneada "+n+" de "+doc.numPages;
+     const worker=await root.Tesseract.createWorker("spa");
+     try{const result=await worker.recognize(canvas);text=result.data.text||"";}finally{await worker.terminate();canvas.width=0;canvas.height=0;}
+   }
    pages.push(text);
   }
   return pages.join("\n");
@@ -171,7 +183,7 @@ function build(ctx){
     text=await recognizeImage(file);
    }else if(type==="application/pdf"||name.endsWith(".pdf")){
     text=await pdfText(file);
-    if(text.trim().length<20)throw new Error("Este PDF parece escaneado y no contiene texto. Exporta una imagen de sus páginas para utilizar OCR.");
+    if(text.trim().length<20)throw new Error("No se ha podido extraer texto legible del PDF, ni mediante OCR.");
    }else if(/\.(csv|txt)$/i.test(name)||type.includes("csv")||type==="text/plain"){
     text=await file.text();kind=name.endsWith(".csv")?"csv":kind;
    }else throw new Error("Formato no admitido. Usa JPG, PNG, PDF con texto, CSV o TXT.");
