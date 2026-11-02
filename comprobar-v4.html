@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="es">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Diagnóstico de Control de Gastos V4</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f2f6f8;color:#143046;font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:20px 16px}
+main{max-width:570px;margin:0 auto}h1{font-size:26px;margin:8px 0 12px}h2{font-size:17px}p{font-size:14px;line-height:1.6}
+.panel{border:1px solid #dfebf1;border-radius:17px;padding:18px;margin:16px 0;background:#fff;box-shadow:0 4px 20px #1630470e}
+.banner{background:#fff1c5;border:1px solid #edd387;border-radius:11px;padding:11px 15px;font-weight:800;font-size:13px}
+.row{padding:11px 0;border-top:1px solid #e8edf1;display:flex;align-items:center;justify-content:space-between;gap:16px;font-size:13px}
+.row strong{white-space:nowrap}.ok{color:#0e8b75}.bad{color:#b43b43}.wait{color:#ab7717}
+a.button,button{display:block;width:100%;border:0;border-radius:12px;background:#0b957b;color:#fff;text-align:center;text-decoration:none;font:inherit;font-weight:800;padding:14px 11px;margin:12px 0;cursor:pointer}
+button.alt{background:#e7eef2;color:#164056}.muted{font-size:12px;color:#5a7180}
+</style></head><body><main>
+<div class="banner">🧪 DIAGNÓSTICO — CONTROL DE GASTOS V4</div>
+<h1>Comprobación de publicación</h1>
+<p>Esta página es independiente de la aplicación. <b>No accede a tus movimientos ni los modifica.</b></p>
+<section class="panel"><h2>Archivos necesarios</h2><div id="results"><p>Comprobando disponibilidad…</p></div><p id="summary" class="muted">Si se queda en «Comprobando», envíame una captura.</p></section>
+<a class="button" href="./pruebas-v4/index.html?diagnostico=20261102-1">Abrir V4 en Safari</a>
+<button class="alt" type="button" id="retry">↻ Repetir diagnóstico</button>
+<section class="panel"><h2>¿Sigue saliendo una pantalla vacía?</h2><p>Abre este enlace directamente en <b>Safari</b>, no dentro de ChatGPT. Si falla, envíame una captura de esta página y lo que aparece al pulsar «Abrir V4».</p></section>
+</main>
+<script>
+const items=[["Página de pruebas","pruebas-v4/index.html","control-de-gastos-PRUEBAS-V4-2026"],["Motor de importación","pruebas-v4/smart-import.js","CGSmartImport"],["Estadísticas","pruebas-v4/stats.js","CGStats"],["Gastos recurrentes","recurring.js","CGRecurring"]];
+async function check(){
+ const root=document.getElementById("results");root.innerHTML="";
+ let passed=0;
+ for(const [title,path,expected] of items){
+  const line=document.createElement("div");line.className="row";
+  const label=document.createElement("span");label.textContent=title;
+  const result=document.createElement("strong");result.className="wait";result.textContent="…";
+  line.append(label,result);root.appendChild(line);
+  try{
+   const response=await fetch("./"+path+"?v="+Date.now(),{cache:"no-store"});
+   const body=await response.text();
+   const good=response.ok&&body.includes(expected);
+   result.textContent=good?"✅ Disponible":"❌ Error "+response.status;
+   result.className=good?"ok":"bad";if(good)passed++;
+  }catch(e){result.textContent="❌ Sin conexión";result.className="bad";}
+ }
+ document.getElementById("summary").textContent=passed===items.length?"✅ Todo publicado. Abre la V4 desde el botón superior.":"⚠️ "+(items.length-passed)+" archivos no están disponibles. Haz una captura de esta pantalla.";
+}
+document.getElementById("retry").addEventListener("click",check);
+check();
+</script></body></html>
