@@ -94,6 +94,15 @@
 .receipt-difference{color:#b06400}
 @media(max-width:400px){.receipt-product-row{grid-template-columns:minmax(0,1fr) 65px 96px 24px}.receipt-product-row input,.receipt-product-row select{font-size:10px;padding:7px 3px}}
 
+
+.receipt-movement-wrap{background:#fff;border-bottom:1px solid var(--border)}
+.receipt-movement-wrap .transaction-row{border-bottom:0}
+.receipt-view-button{margin:0 12px 10px 58px;background:#eef8f5;border:0;color:#08796a;padding:8px 12px;border-radius:9px;font-size:11px;font-weight:800;text-align:left}
+.receipt-saved-panel{padding:16px;margin:10px 0 18px}
+.receipt-saved-row{display:grid;grid-template-columns:minmax(0,1fr) auto 110px;align-items:center;gap:7px;border-bottom:1px solid var(--border);padding:9px 0;font-size:11px}
+.receipt-saved-row span{overflow:hidden;text-overflow:ellipsis}
+.receipt-saved-row select{width:100%;font-size:11px;padding:6px 4px;border:1px solid var(--border);border-radius:8px;background:white}
+
 </style>
   <title>Control de Gastos · Controla tu dinero</title>
 </head>
@@ -299,6 +308,12 @@
   const empty = (symbol,title,subtitle) => `<div class="empty"><div class="empty-icon">${symbol}</div><strong>${title}</strong><p>${subtitle}</p></div>`;
   const categoryMark = cat => `<div class="category-mark" style="background:${cat.color}20;color:${cat.color}" aria-hidden="true">${cat.emoji}</div>`;
   const txRow = t => {const cat=catById(t.category);return `<button type="button" class="transaction-row" data-edit-id="${h(t.id)}" aria-label="Editar ${h(t.title)}, ${h(money(t.amount))}">${categoryMark(cat)}<span class="transaction-main"><span class="transaction-title" style="display:block">${h(t.title)}</span><span class="transaction-sub" style="display:block">${h(cat.name)} · ${h(methodNames[t.method]||'Otro')}${t.recurringId?' · 🔁':''}</span></span><span class="transaction-amount ${t.type==='income'?'income':''}">${t.type==='income'?'+':'−'}${h(money(t.amount))}</span></button>`;};
+
+  const txRowWithReceipt = t => {
+    const row=txRow(t);
+    if(!Array.isArray(t.receiptItems))return row;
+    return '<div class="receipt-movement-wrap">'+row+'<button type="button" class="receipt-view-button" data-open-receipt="'+h(t.id)+'">🧾 Ver productos y necesidades ('+t.receiptItems.length+')</button></div>';
+  };
   const sorted = items => [...items].sort((a,b)=>b.date.localeCompare(a.date)||b.id.localeCompare(a.id));
   const cardHeader = (title,action='',target='') => `<div class="section-heading"><h2>${title}</h2>${action?`<button type="button" class="text-link" data-action="${target}">${action} →</button>`:''}</div>`;
   const renderHome = () => {
@@ -325,7 +340,7 @@
       ${cardHeader('Gastos recurrentes','Gestionar','recurring')}<section class="card rec-home"><span>🔁</span><div><b>Automatiza tus gastos fijos</b><p>Alquiler, suministros y suscripciones.</p></div><button type="button" class="small-action" data-rec-new>Crear</button></section>
       ${setBudgets.length?`${cardHeader('Tus presupuestos','Ver todos','budgets')}<section class="card"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px"><b style="font-size:14px">${h(money(spentBudget))}</b><small class="muted">de ${h(money(budgetTotal))}</small></div><div class="budget-line">${progress(budgetFraction)}</div><div class="chip-line"><i></i>${setBudgets.length} ${setBudgets.length===1?'categoría con límite':'categorías con límite'}</div></section>`:''}
       ${cardHeader('Importación inteligente','Abrir','smart-import')}<section class="card rec-home"><span>📷</span><div><b>Fotos de tickets y extractos</b><p>Revisa los movimientos antes de guardarlos.</p></div><button type="button" class="small-action" data-action="smart-import">Importar</button></section>
-      ${cardHeader('Últimos movimientos','Ver todos','transactions')}<section class="card movement-list">${recent.length?recent.map(txRow).join(''):empty('🧾','Aún no hay movimientos','Pulsa el botón + para registrar tu primer gasto o ingreso.')}</section>`;
+      ${cardHeader('Últimos movimientos','Ver todos','transactions')}<section class="card movement-list">${recent.length?recent.map(txRowWithReceipt).join(''):empty('🧾','Aún no hay movimientos','Pulsa el botón + para registrar tu primer gasto o ingreso.')}</section>`;
   };
   const renderTrend = () => {
     const months=[];const [y,m]=ui.month.split('-').map(Number);
