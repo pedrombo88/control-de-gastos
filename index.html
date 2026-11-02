@@ -81,6 +81,19 @@
 .smart-import-fields label:nth-child(2),.smart-import-wide{grid-column:span 2}
 .smart-import-save{width:100%;margin-top:15px}
 
+
+/* V4: detalle de productos del ticket */
+.receipt-breakdown{border-top:1px solid var(--border);margin-top:14px;padding-top:12px}
+.receipt-breakdown summary{cursor:pointer;font-size:13px;font-weight:800;color:var(--ink)}
+.receipt-hint{font-size:11px;color:var(--muted);line-height:1.5}
+.receipt-product-list{display:flex;flex-direction:column;gap:7px;margin:10px 0}
+.receipt-product-row{display:grid;grid-template-columns:minmax(0,1fr) 74px 116px 27px;gap:5px;align-items:center}
+.receipt-product-row input,.receipt-product-row select{min-width:0;width:100%;border:1px solid var(--border);border-radius:8px;background:white;padding:8px 5px;font-size:11px;color:var(--ink)}
+.receipt-product-row button{border:0;background:#fff0f0;color:#a33;border-radius:7px;padding:8px 0}
+.receipt-totals{display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:12px;font-size:11px;color:var(--ink2)}
+.receipt-difference{color:#b06400}
+@media(max-width:400px){.receipt-product-row{grid-template-columns:minmax(0,1fr) 65px 96px 24px}.receipt-product-row input,.receipt-product-row select{font-size:10px;padding:7px 3px}}
+
 </style>
   <title>Control de Gastos · Controla tu dinero</title>
 </head>
@@ -229,7 +242,7 @@
       if(used.has(id)) id=uid();
       used.add(id);
       const originalCat = CAT.find(c=>c.id===item.category && c.type===item.type);
-      clean.transactions.push({id,type:item.type,amount:item.amount,date:item.date,title:item.title.trim().slice(0,90),category:originalCat?.id || (item.type==='income'?'otros-ingresos':'otros'),method:['card','cash','other'].includes(item.method)?item.method:'other',note:String(item.note ?? '').slice(0,200),...(typeof item.recurringId==='string'&&item.recurringId.length<100&&typeof item.occurrenceDate==='string'&&isRealDate(item.occurrenceDate)?{recurringId:item.recurringId,occurrenceDate:item.occurrenceDate}:{})});
+      clean.transactions.push({id,type:item.type,amount:item.amount,date:item.date,title:item.title.trim().slice(0,90),category:originalCat?.id || (item.type==='income'?'otros-ingresos':'otros'),method:['card','cash','other'].includes(item.method)?item.method:'other',note:String(item.note ?? '').slice(0,200),...(Array.isArray(item.receiptItems)?{receiptItems:item.receiptItems.slice(0,120).filter(p=>p&&typeof p.name==='string'&&p.name.trim()&&Number.isSafeInteger(p.amount)&&p.amount>0&&p.amount<=9999999999).map(p=>({name:p.name.trim().slice(0,90),amount:p.amount,quantity:1,necessity:['necessary','optional','pending'].includes(p.necessity)?p.necessity:'pending'}))}:{}),...(typeof item.recurringId==='string'&&item.recurringId.length<100&&typeof item.occurrenceDate==='string'&&isRealDate(item.occurrenceDate)?{recurringId:item.recurringId,occurrenceDate:item.occurrenceDate}:{})});
     }
     if(raw.budgets && typeof raw.budgets === 'object' && !Array.isArray(raw.budgets)){
       for (const c of CAT.filter(x=>x.type==='expense')){
@@ -464,7 +477,7 @@
     if(!amount || !title || !isRealDate(date) || !CAT.some(c=>c.id===category && c.type===type)){err.textContent='Revisa el importe, concepto, fecha y categoría. El importe debe ser mayor que cero.';err.hidden=false;return;}
     const t={id:editingTx||uid(),type,amount,title:title.slice(0,90),date,category,method:txForm.elements.method.value,note:txForm.elements.note.value.trim().slice(0,200)};
     const prev=data.transactions.slice();
-    if(editingTx){const pos=data.transactions.findIndex(x=>x.id===editingTx);if(pos<0)return;const old=data.transactions[pos];if(old.recurringId&&old.occurrenceDate){t.recurringId=old.recurringId;t.occurrenceDate=old.occurrenceDate;}data.transactions[pos]=t;}
+    if(editingTx){const pos=data.transactions.findIndex(x=>x.id===editingTx);if(pos<0)return;const old=data.transactions[pos];if(old.recurringId&&old.occurrenceDate){t.recurringId=old.recurringId;t.occurrenceDate=old.occurrenceDate;}if(Array.isArray(old.receiptItems)&&type==='expense')t.receiptItems=old.receiptItems;data.transactions[pos]=t;}
     else data.transactions.push(t);
     if(!save()){data.transactions=prev;return;}
     txDialog.close();ui.month=monthOf(date);render();toast(editingTx?'Movimiento actualizado':'Movimiento añadido');
