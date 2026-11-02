@@ -5,6 +5,9 @@
 "use strict";
 const moneyToCents=s=>{
  let t=String(s||"").replace(/[\s€]/g,"").replace(/[−–]/g,"-").replace(/^\+/,"");
+ const parens=/^\([\d.,]+\)$/.test(t),trailingMinus=/^[\d.,]+-$/.test(t);
+ if(parens)t="-"+t.slice(1,-1);
+ if(trailingMinus)t="-"+t.slice(0,-1);
  if(!/^-?[\d.,]+$/.test(t))return null;
  const comma=t.lastIndexOf(","),dot=t.lastIndexOf(".");
  if(comma>=0&&dot>=0){t=comma>dot?t.replace(/\./g,"").replace(",","."):t.replace(/,/g,"");}
@@ -105,7 +108,7 @@ function parseStatement(text,now){
   const prefix=rest.slice(0,chosen.index).trim().replace(/[;|]+$/,"").trim();
   const title=prefix.replace(/^[\d/\-. ]{2,12}\s+/,"").slice(0,90)||"Movimiento bancario";
   const type=amount<0?"expense":"income";
-  rows.push({date,title,amount:Math.abs(amount),type,category:guessCategory(title,type),note:"Importado de extracto",confidence:hasBalance?"baja":"media",raw:line});
+  rows.push({date,title,amount:Math.abs(amount),type,category:guessCategory(title,type),note:"Importado de extracto",confidence:"baja",raw:line});
  }
  return rows;
 }
@@ -156,7 +159,7 @@ function build(ctx){
   status.hidden=false;
   state.raw=String(text||"").slice(0,400000);
   state.source=source;
-  state.rows=(kind==="ticket"?parseReceipt(state.raw,localDate()):kind==="csv"?parseCSV(state.raw,localDate()):parseStatement(state.raw,localDate())).slice(0,500).map((r,i)=>({...r,id:"import-"+i,selected:!!valid(r)&&r.confidence!=="baja"}));
+  state.rows=(kind==="ticket"?parseReceipt(state.raw,localDate()):kind==="csv"?parseCSV(state.raw,localDate()):parseStatement(state.raw,localDate())).slice(0,500).map((r,i)=>({...r,id:"import-"+i,selected:!!valid(r)&&r.confidence==="alta",allowDuplicate:false}));
   status.textContent=state.rows.length?state.rows.length+" posibles movimientos detectados. Revisa cada uno antes de guardar.":"No se han identificado movimientos. Prueba otro archivo o revisa el texto.";
   render();
  };
@@ -257,9 +260,10 @@ function build(ctx){
  function rowHTML(r,i,dupes){
   const duplicate=dupes.has(fingerprint(r));
   const isValid=valid(r);
+  const duplicateDisabled=duplicate&&!r.allowDuplicate;
   const opts=CAT.filter(c=>c.type===r.type).map(c=>'<option value="'+escape(c.id)+'" '+(c.id===r.category?"selected":"")+'>'+escape(c.emoji+" "+c.name)+'</option>').join("");
-  return '<article class="smart-import-row" data-import-row="'+i+'"><label class="smart-import-select"><input type="checkbox" data-import-select="'+i+'" '+(r.selected&&!duplicate&&isValid?"checked":"")+' '+(duplicate||!isValid?"disabled":"")+'><span>'+escape(r.confidence==="baja"?"Revisión necesaria":r.confidence==="alta"?"Datos estructurados":"Revisa los datos")+'</span></label>'
-   +(duplicate?'<div class="smart-import-warning">Posible duplicado de un movimiento existente</div>':"")
+  return '<article class="smart-import-row" data-import-row="'+i+'"><label class="smart-import-select"><input type="checkbox" data-import-select="'+i+'" '+(r.selected&&!duplicateDisabled&&isValid?"checked":"")+' '+(duplicateDisabled||!isValid?"disabled":"")+'><span>'+escape(r.confidence==="baja"?"Revisión necesaria":r.confidence==="alta"?"Datos estructurados":"Revisa los datos")+'</span></label>'
+   +(duplicate?'<div class="smart-import-warning">Posible duplicado del historial. <label><input type="checkbox" data-import-allow-duplicate="'+i+'" '+(r.allowDuplicate?"checked":"")+'> Es una compra distinta: importar igualmente</label></div>':"")
    +'<div class="smart-import-fields"><label>Fecha<input type="date" data-import-field="date" value="'+escape(r.date)+'"></label><label>Concepto<input type="text" maxlength="90" data-import-field="title" value="'+escape(r.title)+'"></label>'
    +'<label>Importe (€)<input type="text" inputmode="decimal" data-import-field="amount" value="'+(r.amount?escape((r.amount/100).toFixed(2).replace(".",",")):"")+'" placeholder="Revisar"></label>'
    +'<label>Tipo<select data-import-field="type"><option value="expense" '+(r.type==="expense"?"selected":"")+'>Gasto</option><option value="income" '+(r.type==="income"?"selected":"")+'>Ingreso</option></select></label>'
@@ -269,13 +273,13 @@ function build(ctx){
  const renderPage=()=>{
   const dupes=duplicates();
   const rows=state.rows.map((r,i)=>rowHTML(r,i,dupes)).join("");
-  const chosen=state.rows.filter(r=>r.selected&&valid(r)&&!dupes.has(fingerprint(r)));
+  const chosen=state.rows.filter(r=>r.selected&&valid(r)&&(!dupes.has(fingerprint(r))||r.allowDuplicate));
   return '<div class="view-heading"><div><div class="eyebrow">LECTURA INTELIGENTE</div><h1 class="page-title">Importar gastos</h1></div><span class="tag">V4</span></div>'
-  +'<section class="card smart-import-intro"><strong>📷 Tickets y extractos bancarios</strong><p>Haz una foto, sube una imagen o selecciona un PDF o CSV. El sistema propone los movimientos y tú decides cuáles guardar.</p>'
+  +'<section class="card smart-import-intro"><strong>📷 Tickets y extractos bancarios</strong><p>Haz una foto, sube una imagen o selecciona un PDF o CSV. El sistema propone los movimientos y tú decides cuáles guardar. Revisa los cargos y abonos: algunos extractos no indican claramente el signo.</p>'
   +'<div class="smart-import-actions"><button type="button" class="primary-btn" data-import-camera>📸 Hacer foto del ticket</button><button type="button" class="small-action" data-import-pick>📁 Subir foto, PDF o CSV</button></div>'
   +'<div class="smart-import-modes"><label><input type="radio" name="smart-import-mode" value="ticket" checked> Ticket de compra</label><label><input type="radio" name="smart-import-mode" value="statement"> Extracto bancario</label></div></section>'
   +'<p class="footnote">Las imágenes y los documentos se procesan en el iPhone. Para el reconocimiento de fotos se descarga una librería OCR externa. Los documentos no se suben a nuestros servidores. Comprueba importes y fechas: el reconocimiento automático puede equivocarse.</p>'
-  +(state.rows.length?'<section class="card smart-import-review"><div class="section-heading"><h2>Revisar '+state.rows.length+' movimientos</h2></div><p class="muted">Seleccionados: <strong>'+chosen.length+'</strong>. Los duplicados detectados no se importarán.</p>'+rows+'<button type="button" class="primary-btn smart-import-save" data-import-save '+(chosen.length?"":"disabled")+'>Guardar '+chosen.length+' movimientos</button></section>':'<section class="card smart-import-empty"><strong>Tu importación aparecerá aquí</strong><p>Los tickets suelen crear un gasto por el total. Los extractos pueden contener varios movimientos.</p></section>');
+  +(state.rows.length?'<section class="card smart-import-review"><div class="section-heading"><h2>Revisar '+state.rows.length+' movimientos</h2></div><p class="muted">Seleccionados: <strong>'+chosen.length+'</strong>. Los duplicados sospechosos se excluyen por defecto, salvo que confirmes que son compras diferentes.</p>'+rows+'<button type="button" class="primary-btn smart-import-save" data-import-save '+(chosen.length?"":"disabled")+'>Guardar '+chosen.length+' movimientos</button></section>':'<section class="card smart-import-empty"><strong>Tu importación aparecerá aquí</strong><p>Los tickets suelen crear un gasto por el total. Los extractos pueden contener varios movimientos.</p></section>');
  };
  const updateRow=(target)=>{
   const row=target.closest("[data-import-row]");if(!row)return;
@@ -305,7 +309,7 @@ function build(ctx){
   for(const r of state.rows){
    if(!r.selected||!valid(r))continue;
    const key=fingerprint(r);
-   if(dupes.has(key)||batch.has(key))continue;
+   if((dupes.has(key)||batch.has(key))&&!r.allowDuplicate)continue;
    batch.add(key);
    newTx.push({id:uid(),date:r.date,title:r.title.trim().slice(0,90),amount:r.amount,type:r.type,category:r.category,method:"card",note:r.note,...(Array.isArray(r.items)?{receiptItems:r.items.filter(item=>item&&String(item.name||"").trim()&&Number.isSafeInteger(item.amount)&&item.amount>0).slice(0,120).map(item=>({name:item.name.trim().slice(0,90),amount:item.amount,quantity:1,necessity:NECESSITY.includes(item.necessity)?item.necessity:"pending"}))}:{})});
   }
@@ -330,6 +334,13 @@ function build(ctx){
   if(e.target===fileInput||e.target===cameraInput){
    const mode=document.querySelector('input[name="smart-import-mode"]:checked')?.value||"ticket";
    handle(e.target.files?.[0],mode);e.target.value="";return;
+  }
+  if(e.target.matches("[data-import-allow-duplicate]")){
+   const row=state.rows[Number(e.target.dataset.importAllowDuplicate)];
+   if(!row)return;
+   row.allowDuplicate=e.target.checked;
+   if(!row.allowDuplicate)row.selected=false;
+   render();return;
   }
   if(e.target.matches("[data-saved-product-necessity]")){
    const tx=getData().transactions.find(t=>t.id===e.target.dataset.savedReceiptId);
