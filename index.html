@@ -60,10 +60,34 @@
 .stats-table tbody th{font-size:11px;font-weight:650}
 @media(max-width:375px){.stats-kpi strong{font-size:17px}.stats-panel{padding:13px}.stats-table{font-size:10px}}
 
+
+/* V4: importación asistida */
+.smart-import-intro,.smart-import-review,.smart-import-empty{padding:18px;margin:12px 0}
+.smart-import-intro>strong,.smart-import-empty>strong{font-size:15px}
+.smart-import-intro p,.smart-import-empty p{font-size:12px;color:var(--muted);line-height:1.5}
+.smart-import-actions{display:grid;gap:9px;margin-top:15px}
+.smart-import-actions .small-action{min-height:45px}
+.smart-import-modes{display:flex;flex-wrap:wrap;gap:14px;margin-top:16px;font-size:12px;color:var(--ink2)}
+.smart-import-modes label{display:flex;gap:6px;align-items:center}
+.smart-import-modes input{accent-color:var(--mint)}
+.smart-import-status{font-size:12px;line-height:1.5;margin:14px 0;color:var(--ink2);padding:10px 13px;background:#edf7f4;border-radius:12px}
+.smart-import-row{padding:16px 0;border-top:1px solid var(--border)}
+.smart-import-select{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;margin-bottom:10px}
+.smart-import-select input{accent-color:var(--mint);width:19px;height:19px}
+.smart-import-warning{font-size:11px;color:#ae4b38;background:#fff3ed;padding:9px 10px;border-radius:9px;margin:9px 0}
+.smart-import-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.smart-import-fields label{display:grid;gap:5px;font-size:11px;color:var(--muted);font-weight:650}
+.smart-import-fields input,.smart-import-fields select{width:100%;min-width:0;padding:10px 8px;border-radius:9px;border:1px solid var(--border);background:#f8fafb;color:var(--ink);font-size:13px;min-height:41px}
+.smart-import-fields label:nth-child(2),.smart-import-wide{grid-column:span 2}
+.smart-import-save{width:100%;margin-top:15px}
+
 </style>
   <title>Control de Gastos · Controla tu dinero</title>
 </head>
 <body>
+  <input id="smart-import-file" type="file" accept="image/*,application/pdf,.pdf,.csv,text/csv,.txt,text/plain" hidden>
+  <input id="smart-import-camera" type="file" accept="image/*" capture="environment" hidden>
+  <div id="smart-import-status" class="smart-import-status" role="status" aria-live="polite" hidden></div>
   <div id="app" class="app-shell">
     <header class="site-header">
       <div class="brand-lockup"><div class="brand-mark" aria-hidden="true">CG</div><div><div class="brand-name">control de <span>gastos</span></div><div class="brand-caption">Tus finanzas en orden</div></div></div>
@@ -134,6 +158,7 @@
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="recurring.js"></script>
 <script src="stats.js"></script>
+<script src="smart-import.js"></script>
   <script>
 /* Control de Gastos — versión 2.0. Datos exclusivamente en este dispositivo. */
 (() => {
@@ -246,6 +271,7 @@
   };
   const recurring=window.CGRecurring.build({getData:()=>data,save,render:()=>render(),CAT,h,money,parseMoney,isRealDate,uid,toast,localDate});
   const stats=window.CGStats.build({getData:()=>data,CAT,money,h,localDate,render:()=>render()});
+  const smartImport=window.CGSmartImport.build({getData:()=>data,save,render:()=>render(),CAT,h,money,parseMoney,isRealDate,uid,toast,localDate});
   const currentTx = () => data.transactions.filter(t=>monthOf(t.date)===ui.month);
   const total = (list,type) => list.reduce((n,t)=>n+(!type||t.type===type?t.amount:0),0);
   const monthSelector = () => {
@@ -285,6 +311,7 @@
       ${cardHeader('Evolución · 6 meses','Ver análisis','stats')}<section class="card">${renderTrend()}</section>
       ${cardHeader('Gastos recurrentes','Gestionar','recurring')}<section class="card rec-home"><span>🔁</span><div><b>Automatiza tus gastos fijos</b><p>Alquiler, suministros y suscripciones.</p></div><button type="button" class="small-action" data-rec-new>Crear</button></section>
       ${setBudgets.length?`${cardHeader('Tus presupuestos','Ver todos','budgets')}<section class="card"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px"><b style="font-size:14px">${h(money(spentBudget))}</b><small class="muted">de ${h(money(budgetTotal))}</small></div><div class="budget-line">${progress(budgetFraction)}</div><div class="chip-line"><i></i>${setBudgets.length} ${setBudgets.length===1?'categoría con límite':'categorías con límite'}</div></section>`:''}
+      ${cardHeader('Importación inteligente','Abrir','smart-import')}<section class="card rec-home"><span>📷</span><div><b>Fotos de tickets y extractos</b><p>Revisa los movimientos antes de guardarlos.</p></div><button type="button" class="small-action" data-action="smart-import">Importar</button></section>
       ${cardHeader('Últimos movimientos','Ver todos','transactions')}<section class="card movement-list">${recent.length?recent.map(txRow).join(''):empty('🧾','Aún no hay movimientos','Pulsa el botón + para registrar tu primer gasto o ingreso.')}</section>`;
   };
   const renderTrend = () => {
@@ -321,12 +348,13 @@
       <p class="footnote">Los límites son mensuales y se aplican automáticamente a todos los meses. Los gastos sin presupuesto no se incluyen en el total asignado.</p>`;
   };
   const settingsRow = (emoji,title,subtitle,action) => `<button type="button" class="settings-row" data-action="${action}"><span class="settings-emoji" aria-hidden="true">${emoji}</span><span class="content"><b>${title}</b><small>${subtitle}</small></span><span class="chevron" aria-hidden="true">›</span></button>`;
-  const renderSettings = () => `<div class="view-heading"><div><div class="eyebrow">PREFERENCIAS</div><h1 class="page-title">Ajustes</h1></div><span class="tag">v3.0</span></div>
+  const renderSettings = () => `<div class="view-heading"><div><div class="eyebrow">PREFERENCIAS</div><h1 class="page-title">Ajustes</h1></div><span class="tag">v4.0</span></div>
     ${cardHeader('Tus datos')}<section class="card settings-card">
     ${settingsRow('📦','Descargar copia de seguridad','Guarda un archivo .json con todos tus datos.','export-json')}
     ${settingsRow('📥','Restaurar copia','Recupera tus datos desde un archivo .json.','import-json')}
     ${settingsRow('📊','Exportar movimientos a CSV','Para abrirlos en Excel o Numbers.','export-csv')}
     ${settingsRow('📈','Estadísticas avanzadas','Compara ingresos, gastos y categorías de los últimos 3, 6 o 12 meses.','stats')}
+    ${settingsRow('📷','Importar tickets y extractos','Haz fotos a tickets o importa PDF y CSV del banco.','smart-import')}
     </section>
     ${cardHeader('Aplicación')}<section class="card settings-card">
     ${settingsRow('🏡','Instalar en el iPhone','Añádela a la pantalla de inicio desde Safari.','install-info')}
@@ -337,7 +365,7 @@
     <div class="install-box"><h3>Para usarla como una app</h3><p>Abre la página publicada en Safari, toca el botón Compartir y elige «Añadir a pantalla de inicio». Después podrás abrirla desde su icono, incluso sin conexión tras la primera carga.</p><p>La aplicación instalada puede funcionar sin conexión tras guardar los recursos en caché. Haz copias de seguridad periódicas.</p></div>
     ${!storageOK?'<p class="form-error">No se ha podido acceder al almacenamiento local. Evita registrar datos hasta solucionarlo.</p>':''}`;
   const render = () => {
-    shell.innerHTML = ({home:renderHome,transactions:renderTransactions,budgets:renderBudgets,recurring:recurring.renderPage,stats:stats.renderPage,settings:renderSettings})[ui.tab]();
+    shell.innerHTML = ({home:renderHome,transactions:renderTransactions,budgets:renderBudgets,recurring:recurring.renderPage,stats:stats.renderPage,'smart-import':smartImport.renderPage,settings:renderSettings})[ui.tab]();
     document.querySelectorAll('.nav-item').forEach(n=>{const active=n.dataset.tab===ui.tab;n.classList.toggle('is-active',active);if(active)n.setAttribute('aria-current','page');else n.removeAttribute('aria-current');});
   };
   const openTransaction = (id=null) => {
@@ -405,7 +433,7 @@
     ui.tab='home';const previewMonth=new Date(y,m-1-(new Date().getDate()<10?1:0),1);ui.month=`${previewMonth.getFullYear()}-${String(previewMonth.getMonth()+1).padStart(2,'0')}`;render();toast('Datos de ejemplo cargados');
   };
   const handleAction = action => {
-    if(action==='transactions'||action==='budgets'||action==='recurring'||action==='stats'){ui.tab=action;ui.query='';render();return;}
+    if(action==='transactions'||action==='budgets'||action==='recurring'||action==='stats'||action==='smart-import'){ui.tab=action;ui.query='';render();return;}
     if(action==='export-json'){exportJson();return;}
     if(action==='export-csv'){exportCsv();return;}
     if(action==='import-json'){importFileInput.click();return;}
