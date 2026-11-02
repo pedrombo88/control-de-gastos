@@ -384,7 +384,7 @@
   const transactionListing = () => {
     const tx=filterTransactions();
     if(!tx.length)return `<section class="card list-empty">${empty('🔎','No encontramos movimientos','Prueba otros filtros o añade un nuevo movimiento para este mes.')}</section>`;
-    let date='';return `<div class="list-summary">${tx.length} ${tx.length===1?'movimiento':'movimientos'} · ${h(money(total(tx,'expense')))} en gastos · ${h(money(total(tx,'income')))} en ingresos</div>` + tx.map(t=>{let a='';if(t.date!==date){date=t.date;const [y,m,d]=t.date.split('-').map(Number);a=`<div class="list-day">${h(new Intl.DateTimeFormat('es-ES',{weekday:'long',day:'numeric',month:'long'}).format(new Date(y,m-1,d,12)))}</div>`;}return a+`<div class="card movement-list">${txRow(t)}</div>`;}).join('');
+    let date='';return `<div class="list-summary">${tx.length} ${tx.length===1?'movimiento':'movimientos'} · ${h(money(total(tx,'expense')))} en gastos · ${h(money(total(tx,'income')))} en ingresos</div>` + tx.map(t=>{let a='';if(t.date!==date){date=t.date;const [y,m,d]=t.date.split('-').map(Number);a=`<div class="list-day">${h(new Intl.DateTimeFormat('es-ES',{weekday:'long',day:'numeric',month:'long'}).format(new Date(y,m-1,d,12)))}</div>`;}return a+`<div class="card movement-list">${txRowWithReceipt(t)}</div>`;}).join('');
   };
   const renderTransactions = () => `${heading('Movimientos','HISTORIAL')}
     <div class="filter-bar" aria-label="Filtrar por tipo">${[['all','Todos'],['expense','Gastos'],['income','Ingresos']].map(([id,label])=>`<button type="button" data-filter="${id}" class="filter-pill ${ui.filter===id?'is-active':''}" aria-pressed="${ui.filter===id}">${label}</button>`).join('')}</div>
