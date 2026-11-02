@@ -114,16 +114,17 @@ function build(ctx){
  const fileInput=document.getElementById("smart-import-file");
  const cameraInput=document.getElementById("smart-import-camera");
  const status=document.getElementById("smart-import-status");
- const loading=message=>{state.busy=true;status.textContent=message;};
+ const loading=message=>{state.busy=true;status.hidden=false;status.textContent=message;};
  const finish=()=>{state.busy=false;};
  const valid=(r)=>r&&["income","expense"].includes(r.type)&&isRealDate(r.date)&&Number.isSafeInteger(r.amount)&&r.amount>0&&r.amount<=9999999999&&String(r.title||"").trim()&&CAT.some(c=>c.id===r.category&&c.type===r.type);
  const escape=(s)=>h(String(s||""));
  const duplicates=()=>new Set(getData().transactions.map(fingerprint));
  const openFile=(camera)=>{(camera?cameraInput:fileInput).click();};
  const processText=(text,kind,source)=>{
+  status.hidden=false;
   state.raw=String(text||"").slice(0,400000);
   state.source=source;
-  state.rows=(kind==="ticket"?parseReceipt(state.raw,localDate()):kind==="csv"?parseCSV(state.raw,localDate()):parseStatement(state.raw,localDate())).slice(0,500).map((r,i)=>({...r,id:"import-"+i,selected:!!valid(r)}));
+  state.rows=(kind==="ticket"?parseReceipt(state.raw,localDate()):kind==="csv"?parseCSV(state.raw,localDate()):parseStatement(state.raw,localDate())).slice(0,500).map((r,i)=>({...r,id:"import-"+i,selected:!!valid(r)&&r.confidence!=="baja"}));
   status.textContent=state.rows.length?state.rows.length+" posibles movimientos detectados. Revisa cada uno antes de guardar.":"No se han identificado movimientos. Prueba otro archivo o revisa el texto.";
   render();
  };
@@ -161,7 +162,7 @@ function build(ctx){
  }
  async function handle(file,mode){
   if(!file||state.busy)return;
-  if(file.size>15*1024*1024){status.textContent="El archivo supera el máximo de 15 MB.";return;}
+  if(file.size>15*1024*1024){status.hidden=false;status.textContent="El archivo supera el máximo de 15 MB.";return;}
   loading("Preparando "+file.name+"…");
   try{
    const type=file.type||"",name=file.name.toLowerCase();
@@ -176,7 +177,7 @@ function build(ctx){
    }else throw new Error("Formato no admitido. Usa JPG, PNG, PDF con texto, CSV o TXT.");
    if(!text.trim())throw new Error("No se ha encontrado texto legible.");
    processText(text,kind,file.name);
-  }catch(e){status.textContent="No se pudo leer: "+e.message;state.rows=[];render();}
+  }catch(e){status.hidden=false;status.textContent="No se pudo leer: "+e.message;state.rows=[];render();}
   finally{finish();}
  }
  function rowHTML(r,i,dupes){
@@ -224,7 +225,7 @@ function build(ctx){
   const old=data.transactions;
   data.transactions=[...old,...newTx];
   if(!save()){data.transactions=old;return;}
-  state.rows=[];state.raw="";
+  state.rows=[];state.raw="";status.hidden=false;status.textContent=newTx.length+" movimientos importados correctamente.";
   toast(newTx.length+" movimientos guardados");
   render();
  }
