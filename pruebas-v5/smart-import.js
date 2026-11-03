@@ -286,6 +286,7 @@ function build(ctx){
   +'<section class="card smart-import-intro"><strong>📷 Tickets y extractos bancarios</strong><p>Haz una foto, sube una imagen o selecciona un PDF o CSV. El sistema propone los movimientos y tú decides cuáles guardar. Revisa los cargos y abonos: algunos extractos no indican claramente el signo.</p>'
   +'<div class="smart-import-actions"><button type="button" class="primary-btn" data-import-camera>📸 Hacer foto del ticket</button><button type="button" class="small-action" data-import-pick>📁 Subir foto, PDF o CSV</button></div>'
   +'<div class="smart-import-modes"><label><input type="radio" name="smart-import-mode" value="ticket" checked> Ticket de compra</label><label><input type="radio" name="smart-import-mode" value="statement"> Extracto bancario</label></div></section>'
+  +'<section class="card v5-demo-help"><strong>🧪 Prueba de conciliación</strong><p>Primero guarda el cargo ficticio del banco. Después importa el ticket ficticio del mismo importe y vincúlalo al cargo. Solo debe quedar un gasto de 45,80 €.</p><button type="button" data-v5-demo-bank>1. Importar cargo del banco</button> <button type="button" data-v5-demo-ticket>2. Importar ticket</button></section>'
   +'<p class="footnote">Las imágenes y los documentos se procesan en el iPhone. Para el reconocimiento de fotos se descarga una librería OCR externa. Los documentos no se suben a nuestros servidores. Comprueba importes y fechas: el reconocimiento automático puede equivocarse.</p>'
   +(state.rows.length?'<section class="card smart-import-review"><div class="section-heading"><h2>Revisar '+state.rows.length+' movimientos</h2></div><p class="muted">Seleccionados: <strong>'+chosen.length+'</strong>. Los duplicados sospechosos se excluyen por defecto, salvo que confirmes que son compras diferentes.</p>'+rows+'<p class="smart-import-confirm-help" role="status">'+(chosen.length?'✅ '+chosen.length+' movimiento(s) confirmado(s).':'☝️ Revisa los datos y pulsa «Seleccionar este movimiento para guardar» debajo del desglose.')+'</p><button type="button" class="primary-btn smart-import-save" data-import-save '+(chosen.length?"":"disabled")+'>Guardar '+chosen.length+' movimientos</button></section>':'<section class="card smart-import-empty"><strong>Tu importación aparecerá aquí</strong><p>Los tickets suelen crear un gasto por el total. Los extractos pueden contener varios movimientos.</p></section>');
  };
@@ -335,6 +336,8 @@ function build(ctx){
   toast(newTx.length+" nuevos · "+updates.length+" conciliados");render();
  }
  document.addEventListener("click",e=>{
+  if(e.target.closest("[data-v5-demo-bank]")){processText("FECHA CONCEPTO IMPORTE SALDO\n03/11/2026 PAGO TARJETA MERCADONA -45,80 1.200,00","statement","Banco ficticio V5");return;}
+  if(e.target.closest("[data-v5-demo-ticket]")){processText("MERCADONA\n02/11/2026\nLECHE 1,25\nPAN 1,80\nPRODUCTOS VARIOS 42,75\nTOTAL 45,80","ticket","Ticket ficticio V5");return;}
   if(e.target.closest("[data-import-camera]")){openFile(true);return;}
   if(e.target.closest("[data-import-pick]")){openFile(false);return;}
   const confirmation=e.target.closest("[data-import-confirm]");
