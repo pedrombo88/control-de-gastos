@@ -1,17 +1,1 @@
-{
-  "name": "Control de Gastos V5 - Pruebas",
-  "short_name": "Gastos V5",
-  "start_url": "./",
-  "scope": "./",
-  "display": "standalone",
-  "lang": "es-ES",
-  "theme_color": "#0c766b",
-  "background_color": "#f5f7f8",
-  "icons": [
-    {
-      "src": "../icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml"
-    }
-  ]
-}
+{"id":"./","name":"Control de Gastos — Pruebas V5","short_name":"Gastos V5 Test","start_url":"./","scope":"./","display":"standalone","background_color":"#f4f7f9","theme_color":"#12263a","lang":"es-ES","icons":[{"src":"../icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any"}]}
