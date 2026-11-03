@@ -146,11 +146,18 @@
 .v5-match-warning p{font-size:11px;line-height:1.5;margin:8px 0}
 .v5-match-warning label{display:block;font-size:11px;font-weight:700}
 .v5-match-warning select{width:100%;margin-top:7px;border:1px solid #c8e4da;border-radius:9px;padding:10px 6px;background:white;font-size:12px}
-.v5-demo-help{padding:14px;border:1px solid #f2d99d;background:#fff8e5;border-radius:12px;margin:12px 0;font-size:12px}.v5-demo-help p{font-size:11px;line-height:1.5}.v5-demo-help button{padding:10px;border-radius:9px;background:#126d63;color:white;border:0;font-weight:700}
+
+.v5-test-banner{z-index:30;position:relative;background:#fff4ce;color:#4b360f;padding:12px 15px;border-bottom:2px solid #ad811e;font-family:system-ui,-apple-system,sans-serif}
+.v5-test-banner strong{display:block;font-size:14px}.v5-test-banner p{font-size:12px;line-height:1.4;margin:5px 0 9px}
+.v5-test-banner .v5-actions{display:flex;flex-wrap:wrap;gap:8px}.v5-test-banner button{border:1px solid #987227;background:#fffefa;border-radius:9px;padding:9px 12px;font-weight:750;color:#523808;font-size:12px;cursor:pointer}
+.v5-test-banner button:first-child{background:#533e17;color:white}
 </style>
-  <title>Control de Gastos V5 · PRUEBAS</title>
+  <title>Pruebas V5 · Control de Gastos</title>
 </head>
-<body><div style="background:#fff0b4;color:#624b00;padding:12px;text-align:center;font:700 13px sans-serif">🧪 V5 EN PRUEBAS — Datos separados de tu aplicación habitual</div>
+<body>
+<div class="v5-test-banner" role="region" aria-label="Entorno de pruebas V5"><strong>🧪 ENTORNO DE PRUEBAS V5 · PLAN DE AHORRO</strong>
+<p>Datos ficticios de seis meses, aislados de tu aplicación habitual y de la V4. Puedes modificarlos sin afectar a tus gastos reales.</p>
+<div class="v5-actions"><button type="button" data-action="stats">📊 Abrir Plan de ahorro</button><button type="button" id="v5-reset-demo">↻ Recuperar datos de ejemplo</button></div></div>
   <input id="smart-import-file" type="file" accept="image/*,application/pdf,.pdf,.csv,text/csv,.txt,text/plain" hidden>
   <input id="smart-import-camera" type="file" accept="image/*" capture="environment" hidden>
   <div id="smart-import-status" class="smart-import-status" role="status" aria-live="polite" hidden></div>
@@ -222,7 +229,52 @@
   </dialog>
   <input id="backup-import" type="file" accept="application/json,.json" hidden>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="../recurring.js"></script>
+  <script>
+(function(){
+'use strict';
+const KEY='control-de-gastos-PRUEBAS-V5-2026';
+const two=n=>String(n).padStart(2,'0');
+const total=items=>items.reduce((sum,x)=>sum+x.amount,0);
+function seed(force){
+ try{
+  if(!force&&localStorage.getItem(KEY))return;
+  const tx=[],today=new Date(),year=today.getFullYear(),month=today.getMonth();
+  for(let offset=5;offset>=0;offset--){
+   const d=new Date(year,month-offset,1),prefix=d.getFullYear()+'-'+two(d.getMonth()+1)+'-',ix=5-offset;
+   function add(type,category,title,amount,day,receiptItems){
+    const record={id:'v5-demo-'+offset+'-'+tx.length,type,category,title,amount,date:prefix+two(day),method:'card',note:'DATO FICTICIO · PRUEBAS V5'};
+    if(receiptItems)record.receiptItems=receiptItems.map(p=>({...p,quantity:1}));
+    tx.push(record);
+   }
+   const food=[
+    {name:'Fruta y verdura',amount:680+ix*25,necessity:'necessary'},
+    {name:'Leche',amount:165,necessity:'necessary'},
+    {name:'Pan',amount:240,necessity:'necessary'},
+    {name:'Chocolate',amount:480+ix*35,necessity:'optional'},
+    {name:'Refrescos',amount:430+ix*20,necessity:'optional'},
+    {name:'Patatas fritas',amount:220,necessity:'optional'}];
+   const tech=[
+    {name:'Auriculares',amount:1490+ix*160,necessity:'optional'},
+    {name:'Pilas',amount:390,necessity:'necessary'},
+    {name:'Funda de móvil',amount:550+ix*40,necessity:'optional'}];
+   add('income','nomina','Nómina (ejemplo)',230000+ix*1500,1);
+   add('expense','hogar','Alquiler (ejemplo)',78000,1);
+   add('expense','alimentacion','Supermercado (ejemplo)',total(food),2,food);
+   add('expense','compras','Compras (ejemplo)',total(tech),offset===0?2:15,tech);
+   add('expense','transporte','Gasolina (ejemplo)',6300+ix*250,2);
+  }
+  localStorage.setItem(KEY,JSON.stringify({version:2,transactions:tx,budgets:{},recurring:[],recurringSkips:[]}));
+ }catch(e){console.warn('Error en datos ficticios V5:',e);}
+}
+seed(false);
+document.addEventListener('click',e=>{
+ if(!e.target.closest('#v5-reset-demo'))return;
+ if(!confirm('¿Restablecer solamente los datos ficticios de Pruebas V5?'))return;
+ seed(true);location.reload();
+});
+})();
+</script>
+<script src="recurring.js"></script>
 <script src="stats.js"></script>
 <script src="reconcile.js"></script>
 <script src="smart-import.js"></script>
@@ -230,7 +282,7 @@
 /* Control de Gastos — versión 2.0. Datos exclusivamente en este dispositivo. */
 (() => {
   'use strict';
-  const STORAGE_KEY = 'control-gastos-v5-pruebas-aisladas';
+  const STORAGE_KEY = 'control-de-gastos-PRUEBAS-V5-2026';
   const fmtEUR = new Intl.NumberFormat('es-ES', {style:'currency',currency:'EUR'});
   const fmtDate = new Intl.DateTimeFormat('es-ES', {day:'numeric',month:'short'});
   const fmtMonth = new Intl.DateTimeFormat('es-ES', {month:'long',year:'numeric'});
