@@ -90,10 +90,60 @@
     return {months,total};
   }
 
+
+  /** Simulador: NO supone ahorro real. Solo utiliza productos marcados "No necesario".
+      Se aplica el mismo reparto proporcional de descuentos que en summarizeNeeds. */
+  function analyzeSavings(transactions, keys, categories, reductionPercent=25) {
+    const selected = new Set(keys);
+    const pct = Number.isFinite(reductionPercent)?Math.max(0,Math.min(100,Math.round(reductionPercent))):25;
+    const names = new Map();
+    const groups = new Map();
+    const categoryNames = new Map((categories||[]).filter(c=>c.type==="expense").map(c=>[c.id,c.name]));
+    for(const tx of transactions||[]){
+      if(!tx||tx.type!=="expense"||!Number.isSafeInteger(tx.amount)||tx.amount<=0||
+          !selected.has(String(tx.date||"").slice(0,7))||!Array.isArray(tx.receiptItems))continue;
+      const items=tx.receiptItems.filter(x=>x&&Number.isSafeInteger(x.amount)&&x.amount>0);
+      if(!items.length)continue;
+      const gross=items.reduce((n,item)=>n+item.amount,0);
+      if(!gross)continue;
+      let values;
+      if(gross>tx.amount){
+        const parts=items.map((item,i)=>({i,raw:item.amount*tx.amount/gross}));
+        values=parts.map(p=>Math.floor(p.raw));
+        let left=tx.amount-values.reduce((a,b)=>a+b,0);
+        for(const p of parts.slice().sort((a,b)=>(b.raw-Math.floor(b.raw))-(a.raw-Math.floor(a.raw))||a.i-b.i)){
+          if(left--<=0)break;
+          values[p.i]++;
+        }
+      }else values=items.map(x=>x.amount);
+      items.forEach((item,i)=>{
+        if(item.necessity!=="optional"||!values[i])return;
+        const name=String(item.name||"Producto sin nombre").trim().slice(0,90)||"Producto sin nombre";
+        const id=name.toLocaleLowerCase("es").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g," ");
+        const prev=names.get(id)||{name,amount:0,count:0};
+        prev.amount+=values[i];prev.count++;names.set(id,prev);
+        const cat=categoryNames.get(tx.category)||"Otros gastos";
+        groups.set(cat,(groups.get(cat)||0)+values[i]);
+      });
+    }
+    const optional=summarizeNeeds(transactions,keys).total.optional;
+    const reduction=Math.round(optional*pct/100);
+    return {
+      percent:pct,
+      optional,
+      reduction,
+      averageMonthly:Math.round(reduction/Math.max(1,keys.length)),
+      annualProjection:Math.round((optional*pct/100)*12/Math.max(1,keys.length)),
+      products:[...names.values()].sort((a,b)=>b.amount-a.amount||a.name.localeCompare(b.name,"es")).slice(0,8),
+      categories:[...groups].map(([name,amount])=>({name,amount})).sort((a,b)=>b.amount-a.amount||a.name.localeCompare(b.name,"es")).slice(0,8)
+    };
+  }
+
   function build(context) {
     const {getData, CAT, money, h, localDate, render} = context;
     let period=6;
     let kind="expense";
+    let savingCut=25;
     const fmtMonth = new Intl.DateTimeFormat("es-ES",{month:"short",year:"2-digit"});
     const monthName = key => {
       const [y,m]=key.split("-").map(Number);
@@ -112,6 +162,7 @@
       const topMonth=series.filter(s=>s.expense>0).sort((a,b)=>b.expense-a.expense)[0];
 
       const needs=summarizeNeeds(tx,keys);
+      const savingsPlan=analyzeSavings(tx,keys,CAT,savingCut);
       const nt=needs.total;
       const known=nt.necessary+nt.optional;
       const ratioOfKnown=known?Math.round(nt.optional/known*100):null;
@@ -134,6 +185,15 @@
       }).join("");
       const needsTable=needs.months.slice().reverse().map(m=>
         '<tr><th scope="row">'+h(monthName(m.month))+'</th><td>'+h(money(m.necessary))+'</td><td>'+h(money(m.optional))+'</td><td>'+h(money(m.pending+m.unitemized))+'</td></tr>'
+      ).join("");
+
+      const savingChoices=[10,25,50,75,100];
+      const planOptions=savingChoices.map(n=>'<button type="button" data-savings-cut="'+n+'" class="stats-filter'+(savingCut===n?' selected':'')+'" aria-pressed="'+(savingCut===n)+'">'+n+' %</button>').join("");
+      const planProducts=savingsPlan.products.map((p,i)=>
+        '<div class="saving-leaderboard-row"><span class="saving-position">'+(i+1)+'</span><div><strong>'+h(p.name)+'</strong><small>'+p.count+' '+(p.count===1?'compra':'compras')+'</small></div><b>'+h(money(p.amount))+'</b></div>'
+      ).join("");
+      const planCats=savingsPlan.categories.map((cat,i)=>
+        '<div class="saving-leaderboard-row"><span class="saving-position">'+(i+1)+'</span><div><strong>'+h(cat.name)+'</strong></div><b>'+h(money(cat.amount))+'</b></div>'
       ).join("");
       const chart=series.map(s=>{
         const heightInc=Math.max(s.income?3:0, Math.round(s.income/max*100));
@@ -175,13 +235,31 @@
         +'<div class="needs-stack-list">'+needsBars+'</div>'
         +'<div class="stats-table-scroll"><table class="stats-table needs-table"><thead><tr><th>Mes</th><th>Necesarios</th><th>No necesarios</th><th>Sin evaluar</th></tr></thead><tbody>'+needsTable+'</tbody></table></div>'
         +'<p class="footnote">'+nt.receipts+' tickets con desglose · '+nt.items+' productos. Los importes «sin desglose» incluyen otros gastos y diferencias del ticket. '+(nt.adjusted?'En '+nt.adjusted+' tickets se prorratearon descuentos al superar los productos el importe final.':'')+'</p></section>'
+
+        +'<section class="card stats-panel saving-plan"><div class="section-heading"><h2>💰 Plan de ahorro</h2></div>'
+        +'<p class="muted">Simula cuánto podrías ahorrar reduciendo compras que has marcado como «No necesario». El cálculo no modifica tus movimientos.</p>'
+        +'<div class="saving-current"><small>Compras prescindibles detectadas en '+period+' meses</small><strong>'+h(money(savingsPlan.optional))+'</strong></div>'
+        +'<p class="saving-slider-label">¿Qué porcentaje de esas compras reducirías?</p>'
+        +'<div class="saving-choices" role="group" aria-label="Porcentaje de reducción simulado">'+planOptions+'</div>'
+        +'<div class="saving-results"><div><small>Ahorro simulado / mes*</small><strong>'+h(money(savingsPlan.averageMonthly))+'</strong></div><div><small>Proyección anual*</small><strong>'+h(money(savingsPlan.annualProjection))+'</strong></div></div>'
+        +'<div class="saving-total">Reducción total en este periodo: <b>'+h(money(savingsPlan.reduction))+'</b></div>'
+        +'<div class="section-heading"><h2>Productos prescindibles más caros</h2></div>'
+        +(planProducts||'<p class="muted">Todavía no has clasificado productos como «No necesario».</p>')
+        +'<div class="section-heading saving-secondary-heading"><h2>Categorías con más compras prescindibles</h2></div>'
+        +(planCats||'<p class="muted">Esta información aparecerá cuando clasifiques productos de tus tickets.</p>')
+        +'<p class="footnote">*Proyección orientativa: promedio de los '+period+' meses seleccionados, incluido el actual, multiplicado por 12. No representa dinero ahorrado realmente ni predice gastos futuros. Los productos pendientes y los gastos sin desglose quedan fuera de esta simulación.</p></section>'
         +'<section class="card stats-panel stats-table-panel"><div class="section-heading"><h2>Detalle por mes</h2></div>'
         +'<div class="stats-table-scroll"><table class="stats-table"><thead><tr><th>Mes</th><th>Ingresos</th><th>Gastos</th><th>Balance</th></tr></thead><tbody>'+table+'</tbody></table></div></section>'
         +'<p class="footnote">Datos de este dispositivo. Las cantidades están expresadas en euros y los periodos incluyen el mes actual. Los promedios incluyen meses sin movimientos.</p>';
     };
     document.addEventListener("click",event=>{
-      const button=event.target.closest("[data-stats-period],[data-stats-kind]");
+      const button=event.target.closest("[data-stats-period],[data-stats-kind],[data-savings-cut]");
       if (!button) return;
+      if(button.hasAttribute("data-savings-cut")){
+        const next=Number(button.dataset.savingsCut);
+        if(![10,25,50,75,100].includes(next)||next===savingCut)return;
+        savingCut=next;render();return;
+      }
       if (button.hasAttribute("data-stats-period")) {
         const next=Number(button.dataset.statsPeriod);
         if (![3,6,12].includes(next) || next===period) return;
@@ -194,5 +272,5 @@
     });
     return {renderPage:view,getPeriod:()=>period,getKind:()=>kind};
   }
-  root.CGStats={monthsFor,aggregate,categoriesFor,summarizeNeeds,build};
+  root.CGStats={monthsFor,aggregate,categoriesFor,summarizeNeeds,analyzeSavings,build};
 })(window);
