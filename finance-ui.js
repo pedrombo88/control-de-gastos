@@ -2,10 +2,10 @@
 (function(root){
 "use strict";
 const KEY="finance-ui-preferences-v1";
-const THEMES=["light","dark","ocean","sand"];
+const THEMES=["black-yellow","black-purple","white-blue","white-red"];
 const LANGS=["es","en"];
-let state={theme:"light",language:"es"};
-try{const p=JSON.parse(localStorage.getItem(KEY)||"{}");if(THEMES.includes(p.theme))state.theme=p.theme;if(LANGS.includes(p.language))state.language=p.language;}catch(e){}
+let state={theme:"black-yellow",language:"es"};
+try{const p=JSON.parse(localStorage.getItem(KEY)||"{}");if(THEMES.includes(p.theme))state.theme=p.theme;else if(p.theme==="dark")state.theme="black-purple";else if(p.theme==="light"||p.theme==="ocean")state.theme="white-blue";else if(p.theme==="sand")state.theme="white-red";if(LANGS.includes(p.language))state.language=p.language;}catch(e){}
 const dictionary={
 "Ajustes":"Settings","Inicio":"Home","Movimientos":"Transactions","Presupuestos":"Budgets","Recurrentes":"Recurring","Estadísticas":"Analytics",
 "Nuevo movimiento":"New transaction","Gasto":"Expense","Ingreso":"Income","Gastos":"Expenses","Ingresos":"Income","Guardar":"Save","Cancelar":"Cancel",
@@ -44,7 +44,7 @@ function localize(container){
 function apply(){
  document.documentElement.dataset.financeTheme=state.theme;
  document.documentElement.lang=state.language==="en"?"en":"es";
- document.querySelector('meta[name="theme-color"]')?.setAttribute("content",state.theme==="dark"?"#0c1624":state.theme==="ocean"?"#0b4055":state.theme==="sand"?"#705439":"#102f41");
+ document.querySelector('meta[name="theme-color"]')?.setAttribute("content",state.theme.startsWith("black")?"#090b10":"#f7f9fc");
  const panel=document.querySelector("#finance-preferences");
  if(panel)panel.innerHTML=renderControls();
  localize(document.getElementById("page-content"));
@@ -55,10 +55,10 @@ function setTheme(v){if(!THEMES.includes(v))return false;state.theme=v;persist()
 function setLanguage(v){if(!LANGS.includes(v))return false;state.language=v;persist();return true;}
 function renderControls(){
  const en=state.language==="en";
- const themes=[["light",en?"Light":"Claro","☀️"],["dark",en?"Dark":"Oscuro","🌙"],["ocean",en?"Ocean":"Océano","🌊"],["sand",en?"Sand":"Arena","🏜️"]];
+ const themes=[["black-yellow",en?"Black & Yellow":"Negro y Amarillo","●"],["black-purple",en?"Black & Purple":"Negro y Morado","●"],["white-blue",en?"White & Blue":"Blanco y Azul","●"],["white-red",en?"White & Red":"Blanco y Rojo","●"]];
  return '<div class="finance-pref-head"><span class="finance-pref-symbol">✦</span><div><strong>'+(en?"Appearance & language":"Apariencia e idioma")+'</strong><small>'+(en?"Personalise your Finance experience":"Personaliza tu experiencia en Finance")+'</small></div></div>'+
  '<div class="finance-pref-label">'+(en?"Display theme":"Tema de visualización")+'</div>'+
- '<div class="finance-theme-grid" role="group" aria-label="'+(en?"Display theme":"Tema de visualización")+'">'+themes.map(([id,label,emoji])=>'<button type="button" class="finance-theme-choice'+(state.theme===id?' selected':'')+'" data-finance-theme="'+id+'" aria-pressed="'+(state.theme===id)+'"><span class="finance-theme-icon">'+emoji+'</span><span>'+label+'</span><span class="finance-theme-check">'+(state.theme===id?"✓":"")+'</span></button>').join("")+'</div>'+
+ '<div class="finance-theme-grid" role="group" aria-label="'+(en?"Display theme":"Tema de visualización")+'">'+themes.map(([id,label,emoji])=>'<button type="button" class="finance-theme-choice'+(state.theme===id?' selected':'')+'" data-finance-theme="'+id+'" aria-pressed="'+(state.theme===id)+'"><span class="finance-theme-icon finance-swatch finance-swatch-'+id+'">'+emoji+'</span><span>'+label+'</span><span class="finance-theme-check">'+(state.theme===id?"✓":"")+'</span></button>').join("")+'</div>'+
  '<label class="finance-pref-label" for="finance-language">'+(en?"Language":"Idioma")+'</label>'+
  '<select id="finance-language" class="finance-language-select" data-finance-language><option value="es"'+(state.language==="es"?" selected":"")+'>Español</option><option value="en"'+(state.language==="en"?" selected":"")+'>English</option></select>'+
  '<p class="finance-pref-note">'+(en?"Your preference is saved on this device. Transaction data is never changed. Some import formats and specialised screens still use Spanish.":"Tu preferencia se guarda en este dispositivo. No modifica los movimientos. Algunos formatos de importación y pantallas especializadas siguen en español.")+'</p>';
