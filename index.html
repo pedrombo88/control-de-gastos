@@ -178,6 +178,39 @@ html[data-finance-theme="dark"] .saving-current,html[data-finance-theme="dark"] 
 html[data-finance-theme="dark"] .v5-match-warning select{background:var(--white);color:var(--ink)}
 html[data-finance-theme="dark"] .sheet-card,html[data-finance-theme="dark"] .sheet-dialog{color:var(--ink)}
 
+
+/* FINANCE — Premium theme system, inspired by approved visual direction */
+html[data-finance-theme="black-yellow"]{color-scheme:dark;--ink:#f7f8fa;--ink2:#b8bdc8;--muted:#8e949f;--bg:#08090d;--white:#17191f;--mint:#ffd21f;--mint2:#3d340f;--blue:#ffd21f;--red:#ff617a;--border:#2b2d35;--shadow:0 14px 34px rgba(0,0,0,.24)}
+html[data-finance-theme="black-purple"]{color-scheme:dark;--ink:#f7f5ff;--ink2:#c6bbd7;--muted:#9a8fac;--bg:#0c0913;--white:#201728;--mint:#c455ff;--mint2:#392046;--blue:#bb74ff;--red:#ff729b;--border:#392e43;--shadow:0 14px 34px rgba(0,0,0,.25)}
+html[data-finance-theme="white-blue"]{color-scheme:light;--ink:#101d34;--ink2:#53637c;--muted:#8290a4;--bg:#f4f7fc;--white:#ffffff;--mint:#1478ff;--mint2:#e4f0ff;--blue:#1478ff;--red:#ef526a;--border:#e1e8f2;--shadow:0 12px 34px rgba(30,78,150,.07)}
+html[data-finance-theme="white-red"]{color-scheme:light;--ink:#261921;--ink2:#665962;--muted:#92858d;--bg:#faf7f8;--white:#ffffff;--mint:#ed274d;--mint2:#ffebef;--blue:#ed274d;--red:#ed274d;--border:#f0e3e8;--shadow:0 12px 34px rgba(130,20,50,.06)}
+html[data-finance-theme] body{background:var(--bg);color:var(--ink)}
+html[data-finance-theme] .app-shell{background:var(--bg)}
+html[data-finance-theme] .site-header{background:var(--bg);border-color:var(--border)}
+html[data-finance-theme] .brand-mark{background:var(--mint)!important;color:var(--bg)!important;box-shadow:0 5px 22px color-mix(in srgb,var(--mint) 22%,transparent)}
+html[data-finance-theme] .brand-name span{color:var(--mint)}
+html[data-finance-theme] .card{background:var(--white);color:var(--ink);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow)}
+html[data-finance-theme] .page-title{font-weight:800;letter-spacing:-.055em}
+html[data-finance-theme] .header-add{background:var(--mint);color:var(--bg);box-shadow:0 8px 22px color-mix(in srgb,var(--mint) 22%,transparent)}
+html[data-finance-theme] .finance-theme-choice{background:var(--white);color:var(--ink);border-color:var(--border)}
+html[data-finance-theme] .finance-theme-choice.selected{border-color:var(--mint);background:var(--mint2)}
+html[data-finance-theme] .finance-theme-check{color:var(--mint)}
+html[data-finance-theme] .finance-pref-symbol{background:var(--mint2);color:var(--mint)}
+html[data-finance-theme] .finance-language-select{background:var(--white);color:var(--ink);border-color:var(--border)}
+html[data-finance-theme^="black"] input,html[data-finance-theme^="black"] select,html[data-finance-theme^="black"] textarea{background:var(--white);color:var(--ink);border-color:var(--border)}
+html[data-finance-theme^="black"] .saving-current,html[data-finance-theme^="black"] .saving-position,html[data-finance-theme^="black"] .v5-match-warning{background:var(--mint2);color:var(--ink)}
+html[data-finance-theme^="black"] .v5-match-warning select{background:var(--white);color:var(--ink)}
+html[data-finance-theme^="black"] .sheet-card{background:var(--white);color:var(--ink)}
+html[data-finance-theme^="black"] .bottom-nav{background:var(--white);border-color:var(--border)}
+html[data-finance-theme] .nav-item[aria-current="page"]{color:var(--mint)}
+html[data-finance-theme] .finance-theme-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.finance-swatch{width:24px;height:24px;flex:0 0 24px;display:inline-grid;place-items:center;border-radius:50%;font-size:0!important;border:1px solid rgba(128,128,128,.24)}
+.finance-swatch-black-yellow{background:linear-gradient(135deg,#0b0b10 50%,#ffd21f 50%)}
+.finance-swatch-black-purple{background:linear-gradient(135deg,#0b0b10 50%,#bd4cff 50%)}
+.finance-swatch-white-blue{background:linear-gradient(135deg,#fff 50%,#1478ff 50%)}
+.finance-swatch-white-red{background:linear-gradient(135deg,#fff 50%,#ed274d 50%)}
+@media(prefers-reduced-motion:no-preference){html[data-finance-theme] .card,html[data-finance-theme] button{transition:background-color .18s,border-color .18s,color .18s,box-shadow .18s}}
+
 </style>
   <title>Finance · Tu dinero, más claro</title>
 </head>
