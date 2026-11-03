@@ -154,6 +154,10 @@ function build(ctx){
  const valid=(r)=>r&&["income","expense"].includes(r.type)&&isRealDate(r.date)&&Number.isSafeInteger(r.amount)&&r.amount>0&&r.amount<=9999999999&&String(r.title||"").trim()&&CAT.some(c=>c.id===r.category&&c.type===r.type);
  const escape=(s)=>h(String(s||""));
  const duplicates=()=>new Set(getData().transactions.map(fingerprint));
+ const reconciliation=root.CGReconcile;
+ const makeTx=r=>({id:uid(),date:r.date,title:r.title.trim().slice(0,90),amount:r.amount,type:r.type,category:r.category,method:"card",note:r.note||"",importSource:Array.isArray(r.items)?"ticket":"bank",...(Array.isArray(r.items)?{receiptItems:r.items.filter(item=>item&&String(item.name||"").trim()&&Number.isSafeInteger(item.amount)&&item.amount>0).slice(0,120).map(item=>({name:item.name.trim().slice(0,90),amount:item.amount,quantity:1,necessity:NECESSITY.includes(item.necessity)?item.necessity:"pending"}))}:{})});
+ const matchFor=r=>reconciliation&&valid(r)?reconciliation.candidates({...makeTx(r),id:r.id},getData().transactions):[];
+ const linkedTo=r=>matchFor(r).find(tx=>tx.id===r.linkTo)||null;
  const openFile=(camera)=>{(camera?cameraInput:fileInput).click();};
  const processText=(text,kind,source)=>{
   status.hidden=false;
@@ -260,9 +264,11 @@ function build(ctx){
  function rowHTML(r,i,dupes){
   const duplicate=dupes.has(fingerprint(r));
   const isValid=valid(r);
-  const duplicateDisabled=duplicate&&!r.allowDuplicate;
+  const matches=matchFor(r),linked=linkedTo(r);
+  const duplicateDisabled=duplicate&&!r.allowDuplicate&&!linked;
   const opts=CAT.filter(c=>c.type===r.type).map(c=>'<option value="'+escape(c.id)+'" '+(c.id===r.category?"selected":"")+'>'+escape(c.emoji+" "+c.name)+'</option>').join("");
   return '<article class="smart-import-row" data-import-row="'+i+'"><label class="smart-import-select"><input type="checkbox" data-import-select="'+i+'" '+(r.selected&&!duplicateDisabled&&isValid?"checked":"")+' '+(duplicateDisabled||!isValid?"disabled":"")+'><span>'+escape(r.confidence==="baja"?"Revisión necesaria":r.confidence==="alta"?"Datos estructurados":"Revisa los datos")+'</span></label>'
+   +(matches.length?'<div class="smart-import-warning v5-match-warning"><strong>🔗 Posible compra ya registrada</strong><p>Si el ticket y el cargo del banco son la misma compra, vincúlalos: solo contará una vez.</p><label>Vincular con movimiento existente<select data-import-link="'+i+'"><option value="">No vincular</option>'+matches.map(tx=>'<option value="'+escape(tx.id)+'" '+(r.linkTo===tx.id?'selected':'')+'>'+escape(tx.date+' · '+tx.title+' · '+money(tx.amount)+' · '+(tx.matchStrength==="alta"?"comercio coincidente":"revisar coincidencia"))+'</option>').join("")+'</select></label></div>':"")
    +(duplicate?'<div class="smart-import-warning">Posible duplicado del historial. <label><input type="checkbox" data-import-allow-duplicate="'+i+'" '+(r.allowDuplicate?"checked":"")+'> Es una compra distinta: importar igualmente</label></div>':"")
    +'<div class="smart-import-fields"><label>Fecha<input type="date" data-import-field="date" value="'+escape(r.date)+'"></label><label>Concepto<input type="text" maxlength="90" data-import-field="title" value="'+escape(r.title)+'"></label>'
    +'<label>Importe (€)<input type="text" inputmode="decimal" data-import-field="amount" value="'+(r.amount?escape((r.amount/100).toFixed(2).replace(".",",")):"")+'" placeholder="Revisar"></label>'
@@ -275,7 +281,7 @@ function build(ctx){
  const renderPage=()=>{
   const dupes=duplicates();
   const rows=state.rows.map((r,i)=>rowHTML(r,i,dupes)).join("");
-  const chosen=state.rows.filter(r=>r.selected&&valid(r)&&(!dupes.has(fingerprint(r))||r.allowDuplicate));
+  const chosen=state.rows.filter(r=>r.selected&&valid(r)&&(!dupes.has(fingerprint(r))||r.allowDuplicate||linkedTo(r)));
   return '<div class="view-heading"><div><div class="eyebrow">LECTURA INTELIGENTE</div><h1 class="page-title">Importar gastos</h1></div><span class="tag">V4</span></div>'
   +'<section class="card smart-import-intro"><strong>📷 Tickets y extractos bancarios</strong><p>Haz una foto, sube una imagen o selecciona un PDF o CSV. El sistema propone los movimientos y tú decides cuáles guardar. Revisa los cargos y abonos: algunos extractos no indican claramente el signo.</p>'
   +'<div class="smart-import-actions"><button type="button" class="primary-btn" data-import-camera>📸 Hacer foto del ticket</button><button type="button" class="small-action" data-import-pick>📁 Subir foto, PDF o CSV</button></div>'
@@ -307,21 +313,26 @@ function build(ctx){
   if(field==="necessity"||field==="amount")render();
  }
  function saveSelected(){
-  const data=getData(),dupes=duplicates(),batch=new Set(),newTx=[];
+  const data=getData(),dupes=duplicates(),batch=new Set(),newTx=[],updates=[],usedLinks=new Set();
   for(const r of state.rows){
    if(!r.selected||!valid(r))continue;
-   const key=fingerprint(r);
+   const key=fingerprint(r),linked=linkedTo(r);
+   if(linked){
+    if(usedLinks.has(linked.id)){toast("Dos movimientos intentan vincularse al mismo gasto. Revísalos.");return;}
+    usedLinks.add(linked.id);
+    try{updates.push({id:linked.id,tx:reconciliation.reconcile(linked,makeTx(r))});}
+    catch(error){toast(error.message);return;}
+    continue;
+   }
    if((dupes.has(key)||batch.has(key))&&!r.allowDuplicate)continue;
-   batch.add(key);
-   newTx.push({id:uid(),date:r.date,title:r.title.trim().slice(0,90),amount:r.amount,type:r.type,category:r.category,method:"card",note:r.note,...(Array.isArray(r.items)?{receiptItems:r.items.filter(item=>item&&String(item.name||"").trim()&&Number.isSafeInteger(item.amount)&&item.amount>0).slice(0,120).map(item=>({name:item.name.trim().slice(0,90),amount:item.amount,quantity:1,necessity:NECESSITY.includes(item.necessity)?item.necessity:"pending"}))}:{})});
+   batch.add(key);newTx.push(makeTx(r));
   }
-  if(!newTx.length){toast("No hay movimientos nuevos válidos para guardar");return;}
+  if(!newTx.length&&!updates.length){toast("No hay movimientos nuevos válidos para guardar");return;}
   const old=data.transactions;
-  data.transactions=[...old,...newTx];
+  data.transactions=[...old.map(tx=>updates.find(u=>u.id===tx.id)?.tx||tx),...newTx];
   if(!save()){data.transactions=old;return;}
-  state.rows=[];state.raw="";status.hidden=false;status.textContent=newTx.length+" movimientos importados correctamente.";
-  toast(newTx.length+" movimientos guardados");
-  render();
+  state.rows=[];state.raw="";status.hidden=false;status.textContent=newTx.length+" movimientos nuevos y "+updates.length+" vinculados a gastos existentes.";
+  toast(newTx.length+" nuevos · "+updates.length+" conciliados");render();
  }
  document.addEventListener("click",e=>{
   if(e.target.closest("[data-import-camera]")){openFile(true);return;}
@@ -330,7 +341,7 @@ function build(ctx){
   if(confirmation){
     const index=Number(confirmation.dataset.importConfirm),row=state.rows[index];
     if(!row||!valid(row))return;
-    if(duplicates().has(fingerprint(row))&&!row.allowDuplicate){toast("Posible duplicado: confirma antes que es un gasto distinto.");return;}
+    if(duplicates().has(fingerprint(row))&&!row.allowDuplicate&&!linkedTo(row)){toast("Posible duplicado: confirma antes que es un gasto distinto.");return;}
     row.selected=!row.selected;
     render();
     return;
@@ -345,6 +356,13 @@ function build(ctx){
   if(e.target===fileInput||e.target===cameraInput){
    const mode=document.querySelector('input[name="smart-import-mode"]:checked')?.value||"ticket";
    handle(e.target.files?.[0],mode);e.target.value="";return;
+  }
+  if(e.target.matches("[data-import-link]")){
+   const row=state.rows[Number(e.target.dataset.importLink)];
+   if(!row)return;
+   row.linkTo=e.target.value||null;
+   if(row.linkTo)row.selected=true;
+   render();return;
   }
   if(e.target.matches("[data-import-select]")){
    const row=state.rows[Number(e.target.dataset.importSelect)];
