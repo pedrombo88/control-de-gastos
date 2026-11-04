@@ -167,20 +167,32 @@ function build(ctx){
   status.textContent=state.rows.length?state.rows.length+" posibles movimientos detectados. Revisa cada uno antes de guardar.":"No se han identificado movimientos. Prueba otro archivo o revisa el texto.";
   render();
  };
+ const vendorURL=p=>new URL("./vendor/"+p,document.baseURI).href;
  const script=(url,check)=>new Promise((resolve,reject)=>{
-  if(check())return resolve();
-  const el=document.createElement("script");el.src=url;el.async=true;el.onload=()=>check()?resolve():reject(new Error("La librería no se ha cargado."));el.onerror=()=>reject(new Error("No se pudo descargar la librería. Comprueba la conexión."));document.head.appendChild(el);
+   if(check())return resolve();
+   const element=document.createElement("script");element.src=url;element.async=true;
+   element.onload=()=>check()?resolve():reject(Error("No se pudo iniciar la biblioteca local."));
+   element.onerror=()=>reject(Error("No se pudo cargar la biblioteca local. Actualiza Budviva."));
+   document.head.appendChild(element);
  });
+ const createOCR=async logger=>{
+   await script(vendorURL("ocr/tesseract.min.js"),()=>!!root.Tesseract?.createWorker);
+   return root.Tesseract.createWorker("spa",1,{workerPath:vendorURL("ocr/worker.min.js"),
+      corePath:vendorURL("core"),langPath:vendorURL("lang"),workerBlobURL:false,
+      ...(logger?{logger}:{})});
+ };
  async function recognizeImage(file){
-  await script("https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js",()=>!!root.Tesseract?.createWorker);
-  status.textContent="Leyendo imagen. Puede tardar unos segundos…";
-  const worker=await root.Tesseract.createWorker("spa",1,{logger:msg=>{if(msg.status==="recognizing text")status.textContent="Reconociendo texto: "+Math.round((msg.progress||0)*100)+" %";}});
-  try{const result=await worker.recognize(file);return result.data.text||"";}finally{await worker.terminate();}
+   const worker=await createOCR(msg=>{
+     if(msg.status==="recognizing text")status.textContent="Reconociendo texto: "+Math.round((msg.progress||0)*100)+" %";
+   });
+   try{const result=await worker.recognize(file);return result.data.text||"";}
+   finally{await worker.terminate();}
  }
  async function pdfText(file){
-  await script("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js",()=>!!root.pdfjsLib?.getDocument);
-  root.pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-  const bytes=await file.arrayBuffer();const doc=await root.pdfjsLib.getDocument({data:bytes,isEvalSupported:false}).promise;
+   const pdfjs=await import(vendorURL("pdf/pdf.mjs"));
+   pdfjs.GlobalWorkerOptions.workerSrc=vendorURL("pdf/pdf.worker.mjs");
+   const bytes=await file.arrayBuffer();
+   const doc=await pdfjs.getDocument({data:bytes,isEvalSupported:false}).promise;
   if(doc.numPages>30)throw new Error("Por seguridad, se admiten PDF de hasta 30 páginas.");
   const pages=[];
   for(let n=1;n<=doc.numPages;n++){
@@ -197,14 +209,13 @@ function build(ctx){
    let text=[...lines.entries()].sort((a,b)=>b[0]-a[0]).map(([,items])=>items.sort((a,b)=>a.x-b.x).map(t=>t.text).join(" ")).join("\n");
    if(text.trim().length<25){
      if(doc.numPages>10)throw new Error("El PDF escaneado supera las 10 páginas admitidas para OCR. Divídelo en varios archivos.");
-     await script("https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js",()=>!!root.Tesseract?.createWorker);
      const viewport=page.getViewport({scale:1.5});
      const canvas=document.createElement("canvas");
      canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);
      const context=canvas.getContext("2d",{willReadFrequently:true});
      await page.render({canvasContext:context,viewport}).promise;
      status.textContent="Reconociendo página escaneada "+n+" de "+doc.numPages;
-     const worker=await root.Tesseract.createWorker("spa");
+     const worker=await createOCR();
      try{const result=await worker.recognize(canvas);text=result.data.text||"";}finally{await worker.terminate();canvas.width=0;canvas.height=0;}
    }
    pages.push(text);
@@ -288,7 +299,7 @@ function build(ctx){
   +'<section class="card smart-import-intro"><strong>Tickets y extractos bancarios</strong><p>Haz una foto, sube una imagen o selecciona un PDF o CSV. El sistema propone los movimientos y tú decides cuáles guardar. Revisa los cargos y abonos: algunos extractos no indican claramente el signo.</p>'
   +'<div class="smart-import-actions"><button type="button" class="primary-btn" data-import-camera>Hacer foto de ticket</button><button type="button" class="small-action" data-import-pick>Seleccionar foto, PDF o CSV</button></div>'
   +'<div class="smart-import-modes"><label><input type="radio" name="smart-import-mode" value="ticket" checked> Ticket de compra</label><label><input type="radio" name="smart-import-mode" value="statement"> Extracto bancario</label></div></section>'
-  +'<p class="footnote">Las imágenes y los documentos se procesan en el iPhone. Para el reconocimiento de fotos se descarga una librería OCR externa. Los documentos no se suben a nuestros servidores. Comprueba importes y fechas: el reconocimiento automático puede equivocarse.</p>'
+  +'<p class="footnote">Las imágenes y los documentos se procesan en el iPhone. Las bibliotecas OCR y PDF se sirven desde Budviva y se almacenan en el navegador cuando se utilizan. Los documentos no se suben a nuestros servidores. Comprueba importes y fechas: el reconocimiento automático puede equivocarse.</p>'
   +(state.rows.length?'<section class="card smart-import-review"><div class="section-heading"><h2>Revisar '+state.rows.length+' movimientos</h2></div><p class="muted">Seleccionados: <strong>'+chosen.length+'</strong>. Los duplicados sospechosos se excluyen por defecto, salvo que confirmes que son compras diferentes.</p>'+rows+'<p class="smart-import-confirm-help" role="status">'+(chosen.length?''+chosen.length+' movimiento(s) confirmado(s).':'Revisa los datos y pulsa «Seleccionar este movimiento para guardar» debajo del desglose.')+'</p><button type="button" class="primary-btn smart-import-save" data-import-save '+(chosen.length?"":"disabled")+'>Guardar '+chosen.length+' movimientos</button></section>':'<section class="card smart-import-empty"><strong>Tu importación aparecerá aquí</strong><p>Los tickets suelen crear un gasto por el total. Los extractos pueden contener varios movimientos.</p></section>');
  };
  const updateRow=(target)=>{
