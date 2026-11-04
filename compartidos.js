@@ -6,7 +6,7 @@ const $=id=>document.getElementById(id);
 const authKey='budviva-shared-session-v1';
 const enc=encodeURIComponent;
 let session=null, user=null, household=null, members=[], expenses=[], settlements=[], inviteCode='';
-let draftApplied=false;
+let draftApplied=false, loadGeneration=0;
 const fmt=new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR'});
 const euro=n=>fmt.format(n/100);
 const esc=x=>String(x??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
@@ -47,8 +47,13 @@ function persist(){if(session)localStorage.setItem(authKey,JSON.stringify(sessio
 async function ensureSession(){
   if(!session)throw Error('Necesitas iniciar sesión.');
   if(Date.now()+60000<(session.expires_at||0)*1000)return;
-  const body=await request('/auth/v1/token?grant_type=refresh_token',{method:'POST',data:{refresh_token:session.refresh_token},authenticated:false});
-  session=body;persist();
+  try{
+    const body=await request('/auth/v1/token?grant_type=refresh_token',{method:'POST',data:{refresh_token:session.refresh_token},authenticated:false});
+    if(!body.access_token||!body.refresh_token)throw Error('La sesión no se ha renovado.');
+    session=body;persist();
+  }catch(e){
+    session=null;persist();const error=new Error('Tu sesión ha caducado. Vuelve a iniciar sesión.');error.status=401;throw error;
+  }
 }
 async function sendCode(email){
   await request('/auth/v1/otp',{method:'POST',authenticated:false,data:{email,create_user:true}});
@@ -59,8 +64,11 @@ async function verifyCode(email,token){
   session=body;user=body.user;persist();
 }
 async function logout(){
+  loadGeneration++;
   if(session){try{await request('/auth/v1/logout',{method:'POST'});}catch(_){}}
-  session=null;user=null;household=null;members=[];expenses=[];settlements=[];persist();renderRoot();
+  session=null;user=null;household=null;members=[];expenses=[];settlements=[];persist();
+  try{sessionStorage.removeItem('budviva-share-draft-v1');}catch(_){}
+  renderRoot();
 }
 async function readRows(table,select,query=''){
   const result=await request('/rest/v1/'+table+'?select='+enc(select)+query);
@@ -80,12 +88,16 @@ async function rpc(name,data){
   return request('/rest/v1/rpc/'+name,{method:'POST',data});
 }
 async function load(){
+  const generation=++loadGeneration;
   if(!session)return renderRoot();
   try{
     await ensureSession();
+    if(generation!==loadGeneration||!session)return;
     const who=await request('/auth/v1/user');
+    if(generation!==loadGeneration||!session)return;
     user=who;
     const own=await readRows('bv_members','household_id,user_id,display_name','&user_id=eq.'+enc(user.id)+'&limit=1');
+    if(generation!==loadGeneration||!session)return;
     if(!own.length){household=null;members=[];renderRoot();return;}
     const id=own[0].household_id;
     const [homes,people,bills,payments]=await Promise.all([
@@ -94,10 +106,13 @@ async function load(){
       readAllRows('bv_expenses','id,author_id,payer_id,title,category,amount_cents,share_basis_points_a,spent_on,created_at','&household_id=eq.'+id+'&order=spent_on.desc,id.desc'),
       readAllRows('bv_settlements','id,payer_id,receiver_id,amount_cents,status,created_at','&household_id=eq.'+id+'&order=created_at.desc,id.desc')
     ]);
+    if(generation!==loadGeneration||!session)return;
     household=homes[0]||null;members=people;expenses=bills;settlements=payments;
     if(!household)throw Error('No se puede acceder al hogar.');
     renderRoot();
+    $('last-sync').textContent='Actualizado a las '+new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
   }catch(e){
+    if(generation!==loadGeneration)return;
     if(e?.status===401){session=null;user=null;household=null;members=[];expenses=[];settlements=[];persist();renderRoot();}
     fail(e);
   }
