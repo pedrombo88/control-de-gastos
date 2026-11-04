@@ -11,6 +11,9 @@ on:
       - 'ios-native/**'
       - '.github/workflows/ios-build.yml'
   workflow_dispatch:
+concurrency:
+  group: budviva-ios-${{ github.ref }}
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:
