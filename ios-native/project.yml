@@ -35,7 +35,17 @@ targets:
           - UIInterfaceOrientationLandscapeLeft
           - UIInterfaceOrientationLandscapeRight
         UILaunchScreen: {}
-        ITSAppUsesNonExemptEncryption: false
+  BudvivaTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: Tests
+    dependencies:
+      - target: Budviva
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.budviva.tests
+        GENERATE_INFOPLIST_FILE: YES
 schemes:
   Budviva:
     build:
@@ -43,3 +53,6 @@ schemes:
         Budviva: all
     run:
       config: Debug
+    test:
+      targets:
+        - BudvivaTests
