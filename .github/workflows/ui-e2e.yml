@@ -1,0 +1,43 @@
+name: Pruebas de interfaz móvil
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'recurring.js'
+      - 'stats.js'
+      - 'smart-import.js'
+      - 'documents.js'
+      - 'backup-crypto.js'
+      - 'tests/**'
+      - 'playwright.config.cjs'
+      - '.github/workflows/ui-e2e.yml'
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  mobile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Instalar Playwright
+        run: |
+          npm install --no-save --no-package-lock @playwright/test@1.57.0
+          npx playwright install --with-deps chromium
+      - name: Probar navegación y funcionalidades móviles
+        run: npx playwright test --config=playwright.config.cjs
+      - name: Guardar capturas e informe en errores
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: budviva-mobile-test-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
