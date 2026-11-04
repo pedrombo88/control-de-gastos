@@ -146,6 +146,23 @@
 .v5-match-warning p{font-size:11px;line-height:1.5;margin:8px 0}
 .v5-match-warning label{display:block;font-size:11px;font-weight:700}
 .v5-match-warning select{width:100%;margin-top:7px;border:1px solid #c8e4da;border-radius:9px;padding:10px 6px;background:white;font-size:12px}
+
+/* V6: temas visuales accesibles y adaptados al iPhone */
+:root[data-cg-theme="dark"]{--ink:#f0f5fc;--ink2:#c4d0e1;--muted:#a0b1c6;--bg:#101926;--white:#1b293a;--mint:#55d5bd;--mint2:#24483f;--blue:#8baeff;--red:#ff8991;--border:#344558;--shadow:0 10px 30px #0004;color-scheme:dark}
+:root[data-cg-theme="premium"]{--ink:#f6eeda;--ink2:#d5cbb3;--muted:#b2a78e;--bg:#101a2d;--white:#1b2a42;--mint:#d7b66c;--mint2:#3e382e;--blue:#d7b66c;--red:#f28b8b;--border:#40506a;--shadow:0 12px 32px #0004;color-scheme:dark}
+:root[data-cg-theme="natural"]{--ink:#253c31;--ink2:#536b5d;--muted:#6c8575;--bg:#e8efe5;--white:#fafbf6;--mint:#4e9674;--mint2:#d5e8d7;--blue:#739c86;--red:#bd6967;--border:#d4e0d1;--shadow:0 9px 30px #25402c12;color-scheme:light}
+:root[data-cg-theme="dark"] .brand-mark,:root[data-cg-theme="premium"] .brand-mark{background:var(--mint2);color:var(--ink)}
+:root[data-cg-theme="dark"] input,:root[data-cg-theme="dark"] select,:root[data-cg-theme="dark"] textarea,:root[data-cg-theme="premium"] input,:root[data-cg-theme="premium"] select,:root[data-cg-theme="premium"] textarea{background:var(--white);color:var(--ink);border-color:var(--border)}
+:root[data-cg-theme="dark"] .bottom-nav,:root[data-cg-theme="premium"] .bottom-nav{background:var(--white);border-color:var(--border)}
+.cg-personalize{display:grid;gap:12px}.cg-personalize h2{margin:0;font-size:17px}.cg-personalize>label{font-size:13px;font-weight:750}.cg-personalize>select{width:100%;padding:12px;border:1px solid var(--border);border-radius:12px;background:var(--white);color:var(--ink)}
+.cg-theme-previews{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.cg-theme-choice{display:flex;flex-direction:column;align-items:center;gap:6px;padding:7px 2px;background:transparent;border:2px solid transparent;border-radius:12px;color:var(--ink)}
+.cg-theme-choice.is-selected{border-color:var(--mint)}.cg-theme-choice small{font-size:10px;overflow-wrap:anywhere}
+.cg-theme-swatch{width:100%;height:44px;border-radius:8px;padding:7px;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:7px 1fr;gap:4px;border:1px solid #8995a044}
+.cg-theme-swatch i{display:block;border-radius:3px;background:#fff9}.cg-theme-swatch i:first-child{grid-column:span 2;width:70%;background:#46b9a7}
+.cg-swatch-auto{background:linear-gradient(120deg,#edf4f8 50%,#1c2a3b 50%)}.cg-swatch-light{background:#edf4f8}.cg-swatch-dark{background:#172637}.cg-swatch-premium{background:#15243e}.cg-swatch-premium i:first-child{background:#d7b66c}.cg-swatch-natural{background:#dce9d8}.cg-swatch-natural i:first-child{background:#579477}
+@media(max-width:360px){.cg-theme-choice small{font-size:9px}.cg-theme-swatch{height:38px}}
+
 </style>
   <title>Control de Gastos · Controla tu dinero</title>
 </head>
@@ -221,7 +238,8 @@
   </dialog>
   <input id="backup-import" type="file" accept="application/json,.json" hidden>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="recurring.js"></script>
+  <script src="preferences.js"></script>
+<script src="recurring.js"></script>
 <script src="stats.js"></script>
 <script src="reconcile.js"></script>
 <script src="smart-import.js"></script>
@@ -421,6 +439,7 @@
   };
   const settingsRow = (emoji,title,subtitle,action) => `<button type="button" class="settings-row" data-action="${action}"><span class="settings-emoji" aria-hidden="true">${emoji}</span><span class="content"><b>${title}</b><small>${subtitle}</small></span><span class="chevron" aria-hidden="true">›</span></button>`;
   const renderSettings = () => `<div class="view-heading"><div><div class="eyebrow">PREFERENCIAS</div><h1 class="page-title">Ajustes</h1></div><span class="tag">v5.0 pruebas</span></div>
+    ${window.CGPreferences.controls()}
     ${cardHeader('Tus datos')}<section class="card settings-card">
     ${settingsRow('📦','Descargar copia de seguridad','Guarda un archivo .json con todos tus datos.','export-json')}
     ${settingsRow('📥','Restaurar copia','Recupera tus datos desde un archivo .json.','import-json')}
@@ -442,6 +461,8 @@
     if(selectedReceipt&&Array.isArray(selectedReceipt.receiptItems)){
       shell.insertAdjacentHTML('afterbegin',smartImport.renderSavedReceipt(selectedReceipt));
     }
+    window.CGPreferences.translate(shell);
+    window.CGPreferences.translate(document.querySelector('.bottom-nav'));
     document.querySelectorAll('.nav-item').forEach(n=>{const active=n.dataset.tab===ui.tab;n.classList.toggle('is-active',active);if(active)n.setAttribute('aria-current','page');else n.removeAttribute('aria-current');});
   };
   const openTransaction = (id=null) => {
@@ -569,6 +590,9 @@
   importFileInput.addEventListener('change',async e=>{await importJson(e.target.files[0]);e.target.value='';});
   document.querySelectorAll('.nav-icon').forEach(el=>{el.innerHTML=`<svg viewBox="0 0 24 24" aria-hidden="true">${icons[el.dataset.icon]}</svg>`;});
   recurring.sync();
+  window.CGPreferences.apply();
+  window.CGPreferences.translate(document.querySelector('.site-header'));
+  window.CGPreferences.translate(document.querySelector('.bottom-nav'));
   render();
   /* El service worker gestiona las actualizaciones y el uso sin conexión. */
 })();
