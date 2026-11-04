@@ -429,70 +429,67 @@ final class FinanceStore: ObservableObject {
     func restoreBackup(_ backup:Data) throws {
         guard backup.count <= 110*1024*1024 else {throw LocalFinanceError.invalidBackup}
         let incoming=try JSONDecoder().decode(FinanceData.self,from:backup)
-        guard incoming.transactions.count <= 40000,incoming.savingsGoals.count<=60,
+        guard incoming.transactions.count<=40000,incoming.savingsGoals.count<=60,
               incoming.transactions.allSatisfy({$0.amount>0 && $0.amount<=9_999_999_999}),
-              incoming.savingsGoals.allSatisfy({$0.target>0}) else{throw LocalFinanceError.invalidBackup}
-        let docs=incoming.attachments
-        var stagedURL:URL?
-        var previousFiles:URL?
-        let fm=FileManager.default
-        if let docs {
-            guard docs.count<=200,docs.reduce(0,{$0+$1.size})<=75*1024*1024 else {
-                throw LocalFinanceError.invalidBackup
-            }
-            let ids=Set(docs.map(\.id))
-            guard ids.count==docs.count,
-                  incoming.transactions.flatMap({$0.sourceDocumentIds ?? []}).allSatisfy({ids.contains($0)}) else{
-                throw LocalFinanceError.invalidBackup
-            }
-            let folder=supportURL.appendingPathComponent("stage-"+UUID().uuidString,isDirectory:true)
-            try fm.createDirectory(at:folder,withIntermediateDirectories:true)
-            stagedURL=folder
-            do {
-                for item in docs {
-                    guard item.size > 0,item.size <= 15*1024*1024,
-                          item.id.range(of:#"^[a-zA-Z0-9_-]{1,150}$"#,options:.regularExpression) != nil,
-                          let original=Data(base64Encoded:item.base64),original.count==item.size else{
-                        throw LocalFinanceError.invalidBackup
-                    }
-                    try original.write(to:folder.appendingPathComponent(item.id),options:[.atomic,.completeFileProtection])
-                }
-            }catch{try? fm.removeItem(at:folder);throw error}
+              incoming.savingsGoals.allSatisfy({$0.target>0}) else{
+            throw LocalFinanceError.invalidBackup
         }
-        var next=incoming;next.attachments=nil
+        let docs=incoming.attachments ?? []
+        let hasOriginals=incoming.attachments != nil
+        guard docs.count<=200,docs.allSatisfy({
+              $0.size>0 && $0.size<=15*1024*1024 &&
+              $0.id.range(of:#"^[a-zA-Z0-9_-]{1,150}$"#,options:.regularExpression) != nil
+        }),docs.reduce(0,{$0+$1.size})<=75*1024*1024 else{
+            throw LocalFinanceError.invalidBackup
+        }
+
+        var next=incoming
+        next.attachments=nil
+        if !hasOriginals {
+            // Las copias antiguas no tienen originales: evitar referencias huérfanas.
+            for i in next.transactions.indices {next.transactions[i].sourceDocumentIds=nil}
+        }
+        let ids=Set(docs.map(\.id))
+        guard ids.count==docs.count,
+              next.transactions.flatMap({$0.sourceDocumentIds ?? []}).allSatisfy({ids.contains($0)}) else {
+            throw LocalFinanceError.invalidBackup
+        }
+        let fm=FileManager.default
+        let stage=supportURL.appendingPathComponent("stage-"+UUID().uuidString,isDirectory:true)
+        let oldFolder=supportURL.appendingPathComponent("old-"+UUID().uuidString,isDirectory:true)
+        try fm.createDirectory(at:stage,withIntermediateDirectories:true)
+        defer {if fm.fileExists(atPath:stage.path){try? fm.removeItem(at:stage)}}
+        for item in docs {
+            guard let original=Data(base64Encoded:item.base64),original.count==item.size else {
+                throw LocalFinanceError.invalidBackup
+            }
+            try original.write(to:stage.appendingPathComponent(item.id),options:[.atomic,.completeFileProtection])
+        }
+
         let encoded=try JSONEncoder().encode(next)
+        let metadata=docs.map { d in
+            OriginalDocument(id:d.id,name:d.name,type:d.type,size:d.size,
+                createdAt:d.createdAt,transactionIds:d.transactionIds,base64:"")
+        }
+        let metadataJSON=try JSONEncoder().encode(metadata)
         let oldMetadata=try? Data(contentsOf:originalMetadataURL)
         let oldFinance=try? Data(contentsOf:dataURL)
         let oldData=data,oldCorrupt=isCorrupt
-        let oldFolder=supportURL.appendingPathComponent("old-"+UUID().uuidString,isDirectory:true)
+        var movedOld=false,movedNew=false
         do {
-            if let stagedURL {
-                if fm.fileExists(atPath:filesURL.path) {
-                    try fm.moveItem(at:filesURL,to:oldFolder)
-                    previousFiles=oldFolder
-                }
-                try fm.moveItem(at:stagedURL,to:filesURL)
+            if fm.fileExists(atPath:filesURL.path) {
+                try fm.moveItem(at:filesURL,to:oldFolder)
+                movedOld=true
             }
-            if let docs {
-                let metadata=docs.map { d in
-                    OriginalDocument(id:d.id,name:d.name,type:d.type,size:d.size,
-                        createdAt:d.createdAt,transactionIds:d.transactionIds,base64:"")
-                }
-                let metadataJSON=try JSONEncoder().encode(metadata)
-                try metadataJSON.write(to:originalMetadataURL,options:[.atomic,.completeFileProtection])
-            }
+            try fm.moveItem(at:stage,to:filesURL)
+            movedNew=true
+            try metadataJSON.write(to:originalMetadataURL,options:[.atomic,.completeFileProtection])
             try encoded.write(to:dataURL,options:[.atomic,.completeFileProtection])
-            data=next;isCorrupt=false
-            objectWillChange.send()
-            if let previousFiles {try? fm.removeItem(at:previousFiles)}
+            data=next;isCorrupt=false;objectWillChange.send()
+            if movedOld {try? fm.removeItem(at:oldFolder)}
         }catch{
-            if let stagedURL {
-                if fm.fileExists(atPath:filesURL.path) {try? fm.removeItem(at:filesURL)}
-                if let previousFiles, fm.fileExists(atPath:previousFiles.path) {
-                    try? fm.moveItem(at:previousFiles,to:filesURL)
-                }
-                if fm.fileExists(atPath:stagedURL.path) {try? fm.removeItem(at:stagedURL)}
-            }
+            if movedNew {try? fm.removeItem(at:filesURL)}
+            if movedOld {try? fm.moveItem(at:oldFolder,to:filesURL)}
             if let oldMetadata {try? oldMetadata.write(to:originalMetadataURL,options:[.atomic,.completeFileProtection])}
             else {try? fm.removeItem(at:originalMetadataURL)}
             if let oldFinance {try? oldFinance.write(to:dataURL,options:[.atomic,.completeFileProtection])}
