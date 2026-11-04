@@ -1,33 +1,55 @@
-# Control de Gastos — prototipo móvil v1
+# Budviva — Tu dinero, más claro
 
-**Objetivo:** aplicación de gestión personal de gastos e ingresos para iPhone y futura comercialización.
+**Estado:** versión web instalable (PWA) **5.8 beta**, en preparación para una futura versión iOS comercial. **No publicada en App Store.**
 
-## Estado
+[Probar Budviva](https://pedrombo88.github.io/control-de-gastos/) · [Privacidad](https://pedrombo88.github.io/control-de-gastos/privacidad.html) · [Ayuda](https://pedrombo88.github.io/control-de-gastos/soporte.html) · [Auditoría para publicación](./AUDITORIA_BUDVIVA_2026-11-04.md)
 
-- Prototipo web instalable (PWA), **todavía no es una app publicada en la App Store**.
-- Gestión de movimientos, categorías, presupuestos, gráficos, búsqueda, exportación CSV e importación/exportación JSON.
-- No hay transferencias entre cuentas (requisito del producto).
-- Los datos personales permanecen en `localStorage` del navegador del dispositivo; no existe sincronización ni cuenta en nube. La copia de seguridad manual es importante. Cambiar de navegador, dominio o borrar datos del sitio puede dejar inaccesibles los registros de ese origen.
-- Se mantiene la clave heredada `saldo-diario-data-v1` para evitar pérdida de datos al actualizar el nombre en el **mismo origen web**. No renombrar esa clave sin migración.
+## Interfaz principal
 
-## Probar desde iPhone
+- **Inicio:** balance del mes, acceso a gasto/ticket, avisos de presupuesto, avance del ahorro y últimas operaciones.
+- **Movimientos:** historial, filtros, buscador y accesos a **Importar**, **Recurrentes** y **Estadísticas**.
+- **Presupuestos:** límites y alertas con umbrales configurables.
+- **Ahorro:** vistas independientes **Analizar compras** (simulación de ahorro potencial) y **Mis objetivos** (aportaciones reales y progreso).
+- **Ajustes:** copias JSON, CSV, temas, actualización, privacidad, ayuda y borrado de datos.
 
-1. Subir **los archivos de esta carpeta** a la raíz de un repositorio público `control-de-gastos`.
-2. En GitHub: Settings → Pages → Build and deployment → Deploy from a branch → `main` / `(root)` → Save.
-3. Abrir `https://USUARIO.github.io/control-de-gastos/` con Safari.
-4. Compartir → Añadir a pantalla de inicio. El icono se mostrará como Control de Gastos.
-5. Hacer varios movimientos de prueba y exportar una copia de seguridad.
+La importación admite tickets en imagen y documentos PDF/CSV/TXT con revisión previa. La extracción puede equivocarse. En esta versión **no se guardan los archivos originales de los tickets y PDF**, solo los datos extraídos.
 
-## Antes de comercializar
+## Datos y privacidad
 
-- Verificar disponibilidad del nombre y posibles marcas en la OEPM y en el App Store.
-- Realizar pruebas en dispositivos físicos, seguridad, privacidad, accesibilidad, compatibilidad y política de recuperación de datos.
-- Definir modelo comercial, soporte y documentación de protección de datos.
-- Desarrollar una aplicación iOS con experiencia suficientemente nativa (por ejemplo con Expo/React Native) para cumplir los requisitos de App Review. Una PWA no aparece por sí misma en la App Store.
-- Preparar cuenta Apple Developer, capturas, política de privacidad y ficha de la tienda.
+Los movimientos, objetivos y reglas se guardan en el almacenamiento local del navegador y no se sincronizan automáticamente. Las aportaciones a objetivos no son movimientos bancarios y no modifican el balance. Haz copias JSON periódicas.
 
-## Privacidad y publicación del código
+**Compatibilidad importante:** se mantiene la clave histórica `saldo-diario-data-v1` para conservar registros al actualizar en el mismo origen web. No cambiar la clave ni el ID PWA sin una migración.
 
-GitHub Pages del plan gratuito normalmente requiere publicar el sitio desde un repositorio **público** (el código se puede ver). Para reservar el código como propietario, mantener una copia en repositorio privado y elegir otro mecanismo de previsualización/despliegue antes del lanzamiento.
+El módulo de OCR y PDF puede descargar bibliotecas externas cuando se activa; consulta [privacidad](./privacidad.html). No introduzcas claves bancarias.
 
-**Licencia:** No se concede aquí ninguna licencia para reutilizar ni redistribuir el código. No contiene credenciales.
+## Instalación de la PWA en iPhone
+
+1. Abre [Budviva](https://pedrombo88.github.io/control-de-gastos/) desde **Safari**.
+2. Pulsa Compartir → **Añadir a pantalla de inicio**.
+3. Si no aparece la versión actual, usa **Ajustes → Comprobar actualizaciones**.
+4. No borres los datos de Safari sin exportar antes una copia de seguridad.
+
+## Estructura y mantenimiento
+
+- `index.html`: entrada PWA y módulos de ahorro integrados para asegurar la actualización en Safari.
+- `recurring.js`: reglas de movimientos periódicos.
+- `stats.js`: estadística y cálculos de necesidad/ahorro.
+- `smart-import.js`: lectura de imágenes, tickets y extractos.
+- `reconcile.js`: conciliación y detección de posibles duplicados.
+- `sw.js`: caché y actualización de la PWA.
+- `manifest.webmanifest`: identidad de instalación de la app.
+- `privacidad.html` y `soporte.html`: páginas informativas públicas.
+- `goals.js`, `savings.js` y `savings.css`: copias históricas de módulos que deben retirarse **solo tras comprobar compatibilidad con instalaciones antiguas**.
+- `pruebas-v4`, `pruebas-v5`, `pruebas-v6` y `comprobar-v4.html`: pruebas antiguas fuera de la navegación principal.
+
+El proyecto funciona sin proceso de compilación: se publica desde la rama `main` mediante GitHub Pages.
+
+## Preparación para comercializar
+
+Lee la [auditoría completa](./AUDITORIA_BUDVIVA_2026-11-04.md) para conocer los bloqueos de seguridad, fiabilidad, protección de datos, almacenamiento de documentos originales, QA y publicación iOS.
+
+Antes de enviar a App Store se requiere una compilación de iOS preparada para revisión y una política y soporte definitivos. La PWA por sí misma **no se presenta directamente en App Store**.
+
+## Licencia y distribución
+
+Repositorio público de pruebas de un producto de software. Este README no concede ninguna licencia de reutilización o redistribución del código. No deben añadirse a este repositorio credenciales, extractos bancarios reales ni copias de seguridad.
