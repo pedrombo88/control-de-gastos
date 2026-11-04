@@ -393,6 +393,15 @@ html[data-app-theme="noche"] .saving-kpi-necessary strong{color:#56d0b8}
 .goal-dialog-form .form-grid{margin:11px 0}
 .goal-dialog-form .field input{min-height:43px}
 
+
+/* Budviva V5.8 — navegación simplificada */
+.transaction-tools{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 19px}
+.transaction-tools button{min-width:0;min-height:65px;padding:9px 4px;background:var(--white);border:1px solid var(--border);border-radius:14px;color:var(--ink);font-size:11px;font-weight:800;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+.transaction-tools button .ui-pictogram{color:var(--design-accent)}
+.transaction-tools button:active{transform:translateY(1px)}
+.settings-row[href]{text-decoration:none;color:inherit}
+.settings-row[href]:focus-visible,.transaction-tools button:focus-visible{outline:3px solid var(--design-accent);outline-offset:2px}
+
 </style>
   <title>Budviva · Tu dinero, más claro</title>
 </head>
@@ -402,7 +411,7 @@ html[data-app-theme="noche"] .saving-kpi-necessary strong{color:#56d0b8}
   <div id="smart-import-status" class="smart-import-status" role="status" aria-live="polite" hidden></div>
   <div id="app" class="app-shell">
     <header class="site-header">
-      <div class="brand-lockup"><div class="brand-mark" aria-hidden="true">B<i class="brand-mark-dot"></i></div><div><div class="brand-name">bud<span>viva</span></div><div class="brand-caption">Tu dinero, más claro <span class="header-version">V5.7</span></div></div></div>
+      <div class="brand-lockup"><div class="brand-mark" aria-hidden="true">B<i class="brand-mark-dot"></i></div><div><div class="brand-name">bud<span>viva</span></div><div class="brand-caption">Tu dinero, más claro </div></div></div>
       <button id="quick-add-top" class="header-add" type="button" aria-label="Añadir movimiento" title="Añadir movimiento">+</button>
     </header>
     <main id="page-content" tabindex="-1" aria-live="polite"></main>
@@ -727,7 +736,7 @@ root.BudvivaGoals={build,total,status};
 
 </script>
   <script>
-/* Budviva — versión 5.7. Datos exclusivamente en este dispositivo. */
+/* Budviva — versión 5.8. Datos exclusivamente en este dispositivo. */
 (() => {
   'use strict';
   const STORAGE_KEY = 'saldo-diario-data-v1';
@@ -760,7 +769,7 @@ root.BudvivaGoals={build,total,status};
   };
   const visualIcons = {"alimentacion":"<path d=\"M3 4h2l2.4 11h11l2-8H6\"/><circle cx=\"9\" cy=\"20\" r=\"1\"/><circle cx=\"18\" cy=\"20\" r=\"1\"/>","hogar":"<path d=\"m3 10 9-7 9 7v10H3z\"/><path d=\"M9 20v-7h6v7\"/>","transporte":"<path d=\"m5 17-1 2H2v-5l3-7h14l3 7v5h-2l-1-2H5Z\"/><circle cx=\"7\" cy=\"16\" r=\"1\"/><circle cx=\"17\" cy=\"16\" r=\"1\"/><path d=\"M4 12h16\"/>","compras":"<path d=\"M4 8h16l-1 13H5L4 8Z\"/><path d=\"M9 9V6a3 3 0 0 1 6 0v3\"/>","salud":"<rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"5\"/><path d=\"M12 8v8M8 12h8\"/>","ocio":"<rect x=\"3\" y=\"5\" width=\"18\" height=\"15\" rx=\"2\"/><path d=\"m7 5 2 5 3-5 3 5 2-5M3 11h18\"/>","educacion":"<path d=\"m2 9 10-5 10 5-10 5L2 9ZM6 12v5c4 3 8 3 12 0v-5M22 9v7\"/>","suscripciones":"<rect x=\"7\" y=\"2\" width=\"10\" height=\"20\" rx=\"2\"/><path d=\"M11 18h2\"/>","otros":"<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M8 12h.01M12 12h.01M16 12h.01\"/>","nomina":"<rect x=\"3\" y=\"7\" width=\"18\" height=\"14\" rx=\"2\"/><path d=\"M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 13h18\"/>","extra":"<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 6v12M8 9c1-2 7-2 8 0s-2 3-4 3-5 1-4 3 7 2 8 0\"/>","regalos":"<rect x=\"4\" y=\"10\" width=\"16\" height=\"11\" rx=\"1\"/><path d=\"M3 7h18v3H3zM12 7v14M12 7c-7 0-7-7-3-6 2 0 3 3 3 6ZM12 7c7 0 7-7 3-6-2 0-3 3-3 6Z\"/>","otros-ingresos":"<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 6v12M8 10h8M8 14h8\"/>","download":"<path d=\"M12 3v12m-4-4 4 4 4-4M4 17v4h16v-4\"/>","upload":"<path d=\"M12 18V6m-4 4 4-4 4 4M4 17v4h16v-4\"/>","file":"<path d=\"M7 2h7l5 5v15H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Z\"/><path d=\"M14 2v6h5M9 13h6M9 17h6\"/>","chart":"<path d=\"M4 20V10M10 20V5M16 20v-9M22 20V3\"/>","camera":"<rect x=\"2\" y=\"6\" width=\"20\" height=\"15\" rx=\"3\"/><circle cx=\"12\" cy=\"13.5\" r=\"4\"/><path d=\"m7 6 2-3h6l2 3\"/>","phone":"<rect x=\"7\" y=\"2\" width=\"10\" height=\"20\" rx=\"2\"/><path d=\"M11 18h2\"/>","trash":"<path d=\"M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14M10 11v6M14 11v6\"/>","shield":"<path d=\"m12 2 9 4v6c0 6-4 9-9 10-5-1-9-4-9-10V6l9-4Z\"/><path d=\"m8 12 3 3 5-6\"/>","search":"<circle cx=\"11\" cy=\"11\" r=\"7\"/><path d=\"m16 16 5 5\"/>","receipt":"<path d=\"M5 2h14v20l-3-2-4 2-4-2-3 2V2Z\"/><path d=\"M9 7h6M9 11h6M9 15h4\"/>","repeat":"<path d=\"M4 7h14l-3-3m3 3-3 3M20 17H6l3-3m-3 3 3 3\"/>","bulb":"<path d=\"M9 18h6M10 21h4M8 14c-2-2-3-4-2-7a6 6 0 0 1 12 0c1 3 0 5-2 7l-1 3H9l-1-3Z\"/>","target":"<circle cx=\"12\" cy=\"12\" r=\"9\"/><circle cx=\"12\" cy=\"12\" r=\"5\"/><circle cx=\"12\" cy=\"12\" r=\"1\"/>","check":"<path d=\"m5 12 5 5 9-10\"/>","alert":"<path d=\"m12 3 10 18H2L12 3Z\"/><path d=\"M12 9v5M12 17h.01\"/>","arrowUp":"<path d=\"m6 16 10-10M9 6h7v7\"/>","arrowDown":"<path d=\"M6 8 16 18M9 18h7v-7\"/>"};
   const pictogram=(key,size=21)=>'<svg class="ui-pictogram" width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(visualIcons[key]||visualIcons.otros)+'</svg>';
-  const visualSettings={'export-json':'download','import-json':'upload','export-csv':'file','stats':'chart','smart-import':'camera','install-info':'phone','demo-data':'chart','erase-data':'trash','recurring':'repeat','savings':'target','refresh-app':'repeat'};
+  const visualSettings={'export-json':'download','import-json':'upload','export-csv':'file','stats':'chart','smart-import':'camera','install-info':'phone','erase-data':'trash','recurring':'repeat','savings':'target','refresh-app':'repeat'};
   const visualEmpty={'📊':'chart','🧾':'receipt','🔎':'search','🎯':'target','✓':'check'};
   const shell = document.getElementById('page-content');
   const txDialog = document.getElementById('transaction-dialog');
@@ -892,40 +901,14 @@ root.BudvivaGoals={build,total,status};
   const cardHeader = (title,action='',target='') => `<div class="section-heading"><h2>${title}</h2>${action?`<button type="button" class="text-link" data-action="${target}">${action} →</button>`:''}</div>`;
   const renderHome = () => {
     const tx=currentTx(), inc=total(tx,'income'), out=total(tx,'expense'), balance=inc-out;
-    const byCat=CAT.filter(c=>c.type==='expense').map(c=>({...c,amount:total(tx.filter(x=>x.category===c.id),'expense')})).filter(x=>x.amount>0).sort((a,b)=>b.amount-a.amount);
-    let chart='';
-    if(out){
-      let start=0;const circles = byCat.map(c=>{const p=c.amount/out*100;const cHtml=`<circle cx="75" cy="75" r="59" fill="none" stroke="${c.color}" stroke-width="17" stroke-dasharray="${p.toFixed(5)} ${(100-p).toFixed(5)}" stroke-dashoffset="${-start.toFixed(5)}" pathLength="100" transform="rotate(-90 75 75)"><title>${h(c.name)}: ${h(money(c.amount))}</title></circle>`;start+=p;return cHtml;}).join('');
-      const legend=byCat.slice(0,5).map(c=>`<div class="legend-row"><span class="legend-dot" style="background:${c.color}"></span><span class="legend-name">${h(c.name)}</span><span class="legend-value">${h(shortMoney(c.amount))}</span></div>`).join('');
-      chart=`<div class="overview-chart"><div class="donut-wrap"><svg viewBox="0 0 150 150" role="img" aria-label="Distribución de gastos por categoría"><circle cx="75" cy="75" r="59" stroke="#eaf0f2" stroke-width="17" fill="none"/>${circles}</svg><div class="donut-center"><span>Gastos</span><b>${h(shortMoney(out))}</b></div></div><div class="legend">${legend}</div></div>`;
-    }else chart=empty('📊','Sin gastos todavía','Los gastos que añadas se mostrarán aquí, separados por categoría.');
-    const recent=sorted(tx).slice(0,5);
-    const setBudgets=Object.entries(data.budgets).filter(([k])=>CAT.some(c=>c.id===k));
-    const budgetTotal=setBudgets.reduce((s,[,v])=>s+v,0);
-    const spentBudget=setBudgets.reduce((s,[k])=>s+total(tx.filter(t=>t.category===k),'expense'),0);
-    const budgetFraction=budgetTotal?spentBudget/budgetTotal:0;
-    const spentRatio=inc?Math.round(out/inc*100):0;
-    const tip=inc ? (out>inc?'<strong>Este mes has gastado más de lo ingresado.</strong><p>Revisa las categorías de gasto y define límites mensuales.</p>':`<strong>Has utilizado el ${spentRatio}% de tus ingresos.</strong><p>${inc-out>0?'Vas por buen camino. Puedes reservar parte de lo que queda para ahorrar.':'Tu balance está equilibrado.'}</p>`) : '<strong>Empieza por añadir tus ingresos.</strong><p>Así podrás ver el balance real y la parte que destinas a gastos.</p>';
+    const recent=sorted(tx).slice(0,4);
     return `${heading('Tu resumen','VISTA GENERAL')}
       <section class="balance-card" aria-label="Resumen del mes"><div class="balance-title">Balance del mes</div><div class="balance-main">${h(money(balance))}</div><div class="balance-grid"><div class="balance-item"><span class="balance-icon" aria-hidden="true">${pictogram("arrowUp",18)}</span><div><span class="balance-label">Ingresos</span><span class="balance-amount">${h(money(inc))}</span></div></div><div class="balance-item"><span class="balance-icon" aria-hidden="true">${pictogram("arrowDown",18)}</span><div><span class="balance-label">Gastos</span><span class="balance-amount">${h(money(out))}</span></div></div></div></section>
       <div class="hero-quick-actions"><button type="button" class="quick-expense" data-action="new-expense">${pictogram("arrowDown",19)} Añadir gasto</button><button type="button" class="quick-scan" data-action="smart-import">${pictogram("camera",19)} Escanear ticket</button></div>
-      ${savings.renderPreview(ui.month)}
-      ${goals.renderHome()}
-      ${cardHeader('¿En qué has gastado?')}<section class="card" aria-label="Desglose de gastos">${chart}</section>
-      <div class="tip-banner"><div class="tip-icon" aria-hidden="true">${pictogram("bulb",22)}</div><div>${tip}</div></div>
       ${budgetAlertView()}
-      ${cardHeader('Evolución · 6 meses','Ver análisis','stats')}<section class="card">${renderTrend()}</section>
-      ${cardHeader('Gastos recurrentes','Gestionar','recurring')}<section class="card rec-home"><span class="feature-icon">${pictogram("repeat",24)}</span><div><b>Automatiza tus gastos fijos</b><p>Alquiler, suministros y suscripciones.</p></div><button type="button" class="small-action" data-rec-new>Crear</button></section>
-      ${setBudgets.length?`${cardHeader('Tus presupuestos','Ver todos','budgets')}<section class="card"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px"><b style="font-size:14px">${h(money(spentBudget))}</b><small class="muted">de ${h(money(budgetTotal))}</small></div><div class="budget-line">${progress(budgetFraction)}</div><div class="chip-line"><i></i>${setBudgets.length} ${setBudgets.length===1?'categoría con límite':'categorías con límite'}</div></section>`:''}
-      ${cardHeader('Importación inteligente','Abrir','smart-import')}<section class="card rec-home"><span class="feature-icon">${pictogram("camera",24)}</span><div><b>Fotos de tickets y extractos</b><p>Revisa los movimientos antes de guardarlos.</p></div><button type="button" class="small-action" data-action="smart-import">Importar</button></section>
+      ${goals.renderHome()}
+      ${savings.renderPreview(ui.month)}
       ${cardHeader('Últimos movimientos','Ver todos','transactions')}<section class="card movement-list">${recent.length?recent.map(txRowWithReceipt).join(''):empty('🧾','Aún no hay movimientos','Pulsa el botón + para registrar tu primer gasto o ingreso.')}</section>`;
-  };
-  const renderTrend = () => {
-    const months=[];const [y,m]=ui.month.split('-').map(Number);
-    for(let i=5;i>=0;i--){const d=new Date(y,m-1-i,1);const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;const t=data.transactions.filter(x=>monthOf(x.date)===key);months.push({label:new Intl.DateTimeFormat('es-ES',{month:'short'}).format(d),inc:total(t,'income'),out:total(t,'expense')});}
-    const max=Math.max(1,...months.flatMap(x=>[x.inc,x.out]));
-    const bars=months.map(x=>`<div class="trend-col"><div class="trend-towers"><div class="trend-tower" style="height:${Math.max(3,Math.round(x.inc/max*97))}px" title="Ingresos: ${h(money(x.inc))}"></div><div class="trend-tower out" style="height:${Math.max(3,Math.round(x.out/max*97))}px" title="Gastos: ${h(money(x.out))}"></div></div><div class="trend-label">${h(x.label)}</div></div>`).join('');
-    return `<div class="trend-bars" role="img" aria-label="Gráfico de ingresos y gastos de los últimos seis meses">${bars}</div><div class="trend-legend"><span></span>Ingresos <span class="out"></span> Gastos</div>`;
   };
   const filterTransactions = () => {
     const query=ui.query.toLocaleLowerCase('es').trim();
@@ -936,7 +919,12 @@ root.BudvivaGoals={build,total,status};
     if(!tx.length)return `<section class="card list-empty">${empty('🔎','No encontramos movimientos','Prueba otros filtros o añade un nuevo movimiento para este mes.')}</section>`;
     let date='';return `<div class="list-summary">${tx.length} ${tx.length===1?'movimiento':'movimientos'} · ${h(money(total(tx,'expense')))} en gastos · ${h(money(total(tx,'income')))} en ingresos</div>` + tx.map(t=>{let a='';if(t.date!==date){date=t.date;const [y,m,d]=t.date.split('-').map(Number);a=`<div class="list-day">${h(new Intl.DateTimeFormat('es-ES',{weekday:'long',day:'numeric',month:'long'}).format(new Date(y,m-1,d,12)))}</div>`;}return a+`<div class="card movement-list">${txRowWithReceipt(t)}</div>`;}).join('');
   };
-  const renderTransactions = () => `${heading('Movimientos','HISTORIAL')}
+  const renderTransactions = () => `${heading('Movimientos','TUS OPERACIONES')}
+    <div class="transaction-tools" role="group" aria-label="Herramientas de movimientos">
+       <button type="button" data-action="smart-import">${pictogram('camera',18)}<span>Importar</span></button>
+       <button type="button" data-action="recurring">${pictogram('repeat',18)}<span>Recurrentes</span></button>
+       <button type="button" data-action="stats">${pictogram('chart',18)}<span>Estadísticas</span></button>
+    </div>
     <div class="filter-bar" aria-label="Filtrar por tipo">${[['all','Todos'],['expense','Gastos'],['income','Ingresos']].map(([id,label])=>`<button type="button" data-filter="${id}" class="filter-pill ${ui.filter===id?'is-active':''}" aria-pressed="${ui.filter===id}">${label}</button>`).join('')}</div>
     <label class="search-field"><span aria-hidden="true">${pictogram("search",19)}</span><input id="search-transactions" value="${h(ui.query)}" placeholder="Buscar por concepto o categoría..." aria-label="Buscar movimientos" autocomplete="off"></label>
     <div id="transactions-list">${transactionListing()}</div>`;
@@ -962,6 +950,7 @@ root.BudvivaGoals={build,total,status};
     return `${heading('Presupuestos','PLANIFICA TUS GASTOS')}
       <section class="card budget-overview"><div class="budget-top"><div><div class="balance-title" style="color:var(--muted)">Gastos con límite</div><div class="budget-amount">${h(money(configuredSpend))}</div></div><span class="total-badge">${configured.length} ${configured.length===1?'límite':'límites'}</span></div><p class="budget-sub">Presupuesto asignado: ${h(money(totalLimit))} / mes</p><div style="margin-top:15px">${progress(totalLimit?configuredSpend/totalLimit:0)}</div></section>
       ${budgetAlertView()}
+      ${cardHeader('Avisos de presupuesto')}<section class="card budget-alert-config"><label class="budget-alert-control"><span><b>Activar avisos</b><small>Te avisamos dentro de la aplicación cuando una categoría alcanza el umbral.</small></span><input id="budget-alert-enabled" type="checkbox" ${(data.budgetAlerts||{enabled:true}).enabled?'checked':''}></label><label class="budget-alert-select" for="budget-alert-threshold"><span>Umbral de aviso</span><select id="budget-alert-threshold" ${(data.budgetAlerts||{enabled:true}).enabled?'':'disabled'}>${[70,80,90].map(n=>`<option value="${n}" ${(data.budgetAlerts?.threshold||80)===n?'selected':''}>${n} %</option>`).join('')}</select></label><p class="muted">Al llegar al 100 % se muestra una advertencia de límite alcanzado o superado. No enviamos notificaciones externas.</p></section>
       ${cardHeader('Categorías con presupuesto')}<section class="card">${configured.length?rows(configured):empty('🎯','Crea tu primer presupuesto','Define un límite de gasto mensual para alguna de las categorías de abajo.')}</section>
       ${cardHeader('Otras categorías')}<section class="card">${rows(remainder)||empty('✓','Todas configuradas','Has definido un presupuesto para todas las categorías.')}</section>
       <p class="footnote">Los límites son mensuales y se aplican automáticamente a todos los meses. Los gastos sin presupuesto no se incluyen en el total asignado.</p>`;
@@ -980,29 +969,25 @@ root.BudvivaGoals={build,total,status};
     ];
     return `<section class="card"><strong style="font-size:13px">Selecciona tu estilo</strong><p class="muted">Cambia los colores y las superficies de toda la aplicación.</p><div class="theme-grid" role="group" aria-label="Tema de visualización">${themes.map(([id,label,a,b])=>`<button type="button" data-theme-choice="${id}" aria-pressed="${appTheme===id}" class="theme-choice ${appTheme===id?'is-selected':''}" style="--swatch-one:${a};--swatch-two:${b}"><span class="theme-swatch" aria-hidden="true"></span><span class="theme-name">${label}</span><span class="theme-check">${appTheme===id?'✓':''}</span></button>`).join('')}</div></section><p class="theme-note">El cambio es inmediato y no afecta a tus movimientos.</p>`;
   };
-  const renderSettings = () => `<div class="view-heading"><div><div class="eyebrow">PREFERENCIAS</div><h1 class="page-title">Ajustes</h1></div><span class="tag">v5.7 pruebas</span></div>
-    ${cardHeader('Tus datos')}<section class="card settings-card">
-    ${settingsRow('📦','Descargar copia de seguridad','Guarda un archivo .json con todos tus datos.','export-json')}
-    ${settingsRow('📥','Restaurar copia','Recupera tus datos desde un archivo .json.','import-json')}
-    ${settingsRow('📊','Exportar movimientos a CSV','Para abrirlos en Excel o Numbers.','export-csv')}
-    ${settingsRow('📈','Estadísticas avanzadas','Compara ingresos, gastos y categorías de los últimos 3, 6 o 12 meses.','stats')}
-    ${settingsRow('📷','Importar tickets y extractos','Haz fotos a tickets o importa PDF y CSV del banco.','smart-import')}
+  const renderSettings = () => `<div class="view-heading"><div><div class="eyebrow">PREFERENCIAS</div><h1 class="page-title">Ajustes</h1></div></div>
+    ${cardHeader('Copias y exportación')}<section class="card settings-card">
+      ${settingsRow('📦','Descargar copia de seguridad','Guarda tus movimientos, presupuestos y objetivos.','export-json')}
+      ${settingsRow('📥','Restaurar copia','Recupera los datos de un archivo JSON.','import-json')}
+      ${settingsRow('📊','Exportar movimientos a CSV','Para abrir tus operaciones en Excel o Numbers.','export-csv')}
     </section>
-    ${cardHeader('Herramientas financieras')}<section class="card settings-card">
-    ${settingsRow('🔁','Gastos recurrentes','Gestiona los movimientos periódicos.','recurring')}
-    ${settingsRow('💰','Ahorro inteligente','Analiza tickets y reduce compras prescindibles.','savings')}
-    </section>
-    ${cardHeader('Avisos de presupuesto')}<section class="card budget-alert-config"><label class="budget-alert-control"><span><b>Activar avisos</b><small>Te avisamos dentro de la aplicación cuando una categoría alcanza el umbral.</small></span><input id="budget-alert-enabled" type="checkbox" ${(data.budgetAlerts||{enabled:true}).enabled?'checked':''}></label><label class="budget-alert-select" for="budget-alert-threshold"><span>Umbral de aviso</span><select id="budget-alert-threshold" ${(data.budgetAlerts||{enabled:true}).enabled?'':'disabled'}>${[70,80,90].map(n=>`<option value="${n}" ${(data.budgetAlerts?.threshold||80)===n?'selected':''}>${n} %</option>`).join('')}</select></label><p class="muted">Al llegar al 100 % se muestra una advertencia de límite alcanzado o superado. No enviamos notificaciones externas.</p></section>
-    ${cardHeader('Personalización')} ${renderThemePicker()}
+    ${cardHeader('Apariencia')}${renderThemePicker()}
     ${cardHeader('Aplicación')}<section class="card settings-card">
-    ${settingsRow('🔄','Actualizar Budviva','Buscar la última versión sin borrar tus datos.','refresh-app')}
-    ${settingsRow('🏡','Instalar en el iPhone','Añádela a la pantalla de inicio desde Safari.','install-info')}
-    ${settingsRow('🧪','Cargar datos de demostración','Prueba los gráficos sin utilizar datos reales.','demo-data')}
-    ${settingsRow('🗑️','Borrar todos mis datos','Esta acción no se puede deshacer.','erase-data')}
+      ${settingsRow('🔄','Comprobar actualizaciones','Actualiza Budviva sin borrar tus datos.','refresh-app')}
+      ${(typeof window.matchMedia==='function'&&window.matchMedia('(display-mode: standalone)').matches)||window.navigator?.standalone===true?'':settingsRow('🏡','Instalar en el iPhone','Añadir Budviva a la pantalla de inicio de Safari.','install-info')}
     </section>
-    <div class="privacy-note"><span class="privacy-icon" aria-hidden="true">${pictogram("shield",21)}</span><div><strong>Privacidad por diseño</strong><p>Tus movimientos se guardan en este navegador, no en un servidor. No pedimos cuentas bancarias ni credenciales. Exporta una copia periódicamente: si borras los datos de Safari, podrías perder tus registros.</p></div></div>
-    <div class="install-box"><h3>Para usarla como una app</h3><p>Abre la página publicada en Safari, toca el botón Compartir y elige «Añadir a pantalla de inicio». Después podrás abrirla desde su icono, incluso sin conexión tras la primera carga.</p><p>La aplicación instalada puede funcionar sin conexión tras guardar los recursos en caché. Haz copias de seguridad periódicas.</p></div>
-    ${!storageOK?'<p class="form-error">No se ha podido acceder al almacenamiento local. Evita registrar datos hasta solucionarlo.</p>':''}`;
+    ${cardHeader('Privacidad y ayuda')}<section class="card settings-card">
+      <a class="settings-row" href="./privacidad.html" target="_blank" rel="noopener"><span class="settings-emoji" aria-hidden="true">${pictogram('shield',21)}</span><span class="content"><b>Política de privacidad</b><small>Cómo se procesan y guardan tus datos.</small></span><span class="chevron" aria-hidden="true">›</span></a>
+      <a class="settings-row" href="./soporte.html" target="_blank" rel="noopener"><span class="settings-emoji" aria-hidden="true">${pictogram('file',21)}</span><span class="content"><b>Ayuda y soporte</b><small>Guía, copias de seguridad y contacto.</small></span><span class="chevron" aria-hidden="true">›</span></a>
+    </section>
+    ${cardHeader('Eliminar datos')}<section class="card settings-card">
+      ${settingsRow('🗑️','Borrar datos financieros','Elimina movimientos, presupuestos, reglas y objetivos.','erase-data')}
+    </section>
+    <p class="footnote">Tus registros se conservan en este dispositivo. Haz una copia de seguridad periódica para evitar pérdidas. Budviva · versión 5.8 (beta).</p>`;
   const render = () => {
     const selectedReceipt=ui.tab==='transactions'&&ui.receiptId?data.transactions.find(t=>t.id===ui.receiptId):null;
     shell.innerHTML = ({home:renderHome,transactions:renderTransactions,budgets:renderBudgets,recurring:recurring.renderPage,stats:stats.renderPage,'smart-import':smartImport.renderPage,savings:savings.renderPage,settings:renderSettings})[ui.tab]();
@@ -1065,16 +1050,6 @@ root.BudvivaGoals={build,total,status};
       ui.month=nowMonth();ui.tab='home';ui.query='';ui.filter='all';render();toast('Copia restaurada correctamente');
     }catch(e){alert(`No se ha podido importar: ${e.message}`);}
   };
-  const makeDemo = () => {
-    if(data.transactions.length && !confirm('La demostración reemplazará todos los movimientos actuales. ¿Continuar?'))return;
-    const [y,m]=nowMonth().split('-').map(Number);
-    const template=[['income','nomina','Nómina',216000,2],['expense','hogar','Alquiler',76000,3],['expense','alimentacion','Supermercado',8220,5],['expense','transporte','Gasolina',4800,7],['expense','ocio','Cena con amigos',3790,9],['expense','alimentacion','Compra semanal',5600,12],['expense','suscripciones','Streaming',1299,14],['expense','salud','Farmacia',1525,17],['expense','compras','Ropa',5850,19],['income','extra','Trabajo extra',15400,21],['expense','alimentacion','Compra semanal',6375,22],['expense','ocio','Cine',2150,25]];
-    const demo=defaults();
-    for(let offset=2;offset>=0;offset--){const month=new Date(y,m-1-offset,1);const key=`${month.getFullYear()}-${String(month.getMonth()+1).padStart(2,'0')}`;for(const [type,category,title,amount,day] of template){if(offset===0 && day>new Date().getDate())continue;demo.transactions.push({id:uid(),type,category,title,amount:Math.round(amount*(1+(2-offset)*.08)),date:`${key}-${String(day).padStart(2,'0')}`,note:'Dato de demostración',method:category==='ocio'?'cash':'card'});}}
-    demo.budgets={alimentacion:32000,hogar:85000,transporte:13000,ocio:12500,suscripciones:2000};
-    const prev=data;demo.recurring=data.recurring;demo.recurringSkips=data.recurringSkips;demo.savingsGoals=data.savingsGoals;data=demo;if(!save()){data=prev;return;}
-    ui.tab='home';const previewMonth=new Date(y,m-1-(new Date().getDate()<10?1:0),1);ui.month=`${previewMonth.getFullYear()}-${String(previewMonth.getMonth()+1).padStart(2,'0')}`;render();toast('Datos de ejemplo cargados');
-  };
   // Evitar caché antigua, sin tocar localStorage ni los movimientos guardados.
   const refreshBudviva = async () => {
     toast('Actualizando Budviva…');
@@ -1088,13 +1063,13 @@ root.BudvivaGoals={build,total,status};
         await Promise.all(keys.filter(k=>k.startsWith('control-de-gastos-')).map(k=>caches.delete(k)));
       }
       const next=new URL(location.href);
-      next.searchParams.set('v','5.7');
+      next.searchParams.set('v','5.8');
       next.searchParams.set('refresh',String(Date.now()));
       location.replace(next.href);
     } catch(err) {
       console.warn('No se pudo actualizar la PWA:',err);
       const next=new URL(location.href);
-      next.searchParams.set('v','5.7');
+      next.searchParams.set('v','5.8');
       next.searchParams.set('refresh',String(Date.now()));
       location.replace(next.href);
     }
@@ -1104,12 +1079,11 @@ root.BudvivaGoals={build,total,status};
     if(action==='export-json'){exportJson();return;}
     if(action==='export-csv'){exportCsv();return;}
     if(action==='import-json'){importFileInput.click();return;}
-    if(action==='demo-data'){makeDemo();return;}
     if(action==='new-expense'){openTransaction();return;}
     if(action==='refresh-app'){refreshBudviva();return;}
     if(action==='install-info'){toast('En Safari: Compartir → Añadir a pantalla de inicio');return;}
     if(action==='erase-data'){
-      if(!confirm('¿Borrar definitivamente tus movimientos, presupuestos, objetivos de ahorro y reglas recurrentes de este dispositivo? Exporta una copia si quieres conservarlos.'))return;
+      if(!confirm('¿Borrar definitivamente tus movimientos, presupuestos, objetivos de ahorro y reglas recurrentes de este dispositivo? No elimina las copias de seguridad descargadas. Exporta una copia si quieres conservarlos.'))return;
       const prev=data;data=defaults();if(!save()){data=prev;return;}
       ui.month=nowMonth();ui.tab='home';ui.filter='all';ui.query='';render();toast('Datos borrados');
     }
