@@ -1,6 +1,6 @@
 # Cierre técnico provisional de la auditoría de Budviva
 
-**Fecha:** 4 de noviembre de 2026 · **PWA:** 6.2 beta · **iOS:** proyecto SwiftUI 1.0 beta · **Estado de publicación:** NO PUBLICADA / NO ENVIABLE TODAVÍA.
+**Fecha:** 4 de noviembre de 2026 · **PWA:** 6.2.1 beta · **iOS:** proyecto SwiftUI 1.0 beta · **Estado de publicación:** NO PUBLICADA / NO ENVIABLE TODAVÍA.
 
 ## Resultado de las correcciones
 
@@ -39,7 +39,7 @@
 
 ## Ampliación de auditoría (continuación)
 
-**Web Budviva 6.2 — comprobaciones adicionales realizadas:**
+**Web Budviva 6.2.1 — comprobaciones adicionales realizadas:**
 
 - **Almacenamiento de originales:** importación y adjuntar documentos a un movimiento manual, consulta en IndexedDB, conservación de referencias y exportación en copia completa. En GitHub Actions existe una **prueba móvil con Chromium aprobada** que cubre adjuntar un justificante de prueba, visualizarlo y comprobar que el JSON exportado contiene el archivo original en base64.
 - **Copias de seguridad:** cifrado AES-256-GCM con derivación PBKDF2-SHA256; pruebas de descifrado, contraseña errónea y detección de alteraciones. La restauración de JSON antiguo descarta referencias inexistentes; la restauración con archivos valida que estén incluidos y devuelve el estado previo si falla el guardado.
@@ -69,3 +69,20 @@
 - Identificador de paquete definitivo, firma Apple, TestFlight y aprobación oficial.
 - Revisión jurídico-comercial, responsabilidad RGPD, disponibilidad de la marca y canal privado de soporte.
 - Traducciones y localización adicionales al español: **no se debe publicitar soporte multilingüe como terminado**.
+
+## Auditoría visual con capturas reales 6.2.1
+
+Capturas obtenidas directamente de Chromium móvil 390 × 844, guardadas por GitHub Actions y revisadas visualmente. [Capturas automáticas](https://github.com/pedrombo88/control-de-gastos/actions/workflows/ui-e2e.yml).
+
+**Hallazgos corregidos:**
+- Ahorro sin tickets tenía dos tarjetas de estado vacío con dos acciones idénticas «Importar ticket» y cuatro indicadores a cero sin valor útil. Se muestra **una única tarjeta** cuando todavía no hay tickets; productos, categorías e indicadores se muestran al existir información.
+- Presupuestos sin límites mostraba de entrada nueve filas «Fijar», además de una tarjeta vacía redundante. Ahora se muestra **«Configurar primer presupuesto»** con un desplegable de categorías; al existir límites, sus filas continúan visibles y las no configuradas se recogen en «Añadir más categorías».
+- Estas correcciones son de presentación; mantienen las categorías, la configuración de presupuestos y el almacenamiento financiero sin migración.
+
+**Resultados verificados:** GitHub Actions *Pruebas de interfaz móvil* en el commit de 6.2.1: éxito en las pruebas de navegación, flujo de archivos, OCR y PDF, además de las pruebas de las dos pantallas simplificadas; despliegue GitHub Pages completado. Consultar siempre las ejecuciones más recientes del workflow antes de declarar una revisión nueva validada.
+
+## Revalidación iOS con SDK oficial de publicación
+
+GitHub Actions [run 41888961224](https://github.com/pedrombo88/control-de-gastos/actions/runs/41888961224) terminó correctamente con **Xcode 26.3.0**, simulador iPhone y **8 pruebas XCTest, 0 errores**. Entre ellas están las pruebas añadidas para limpiar referencias huérfanas de copias antiguas y rechazar restauraciones incompletas. Este resultado no equivale a prueba en dispositivo físico, firma de distribución, revisión de privacidad ni aprobación de App Store.
+
+**Estado:** beta técnica lista para pruebas manuales de aceptación. La publicación comercial sigue bloqueada por la firma y cuenta Apple del titular, test en iPhone físico/Safari, documentación legal y soporte privado definitivos, comprobación de marca y configuración de App Store Connect.
