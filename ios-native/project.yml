@@ -6,7 +6,7 @@ options:
 settings:
   base:
     SWIFT_VERSION: "5.9"
-    TARGETED_DEVICE_FAMILY: "1,2"
+    TARGETED_DEVICE_FAMILY: "1"
     IPHONEOS_DEPLOYMENT_TARGET: "17.0"
 targets:
   Budviva:
@@ -29,11 +29,8 @@ targets:
         CFBundleVersion: "1"
         NSCameraUsageDescription: "Budviva necesita la cámara para escanear tus tickets de compra."
         NSPhotoLibraryUsageDescription: "Budviva permite seleccionar fotografías de tickets."
-        UIRequiresFullScreen: false
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
-          - UIInterfaceOrientationLandscapeLeft
-          - UIInterfaceOrientationLandscapeRight
         UILaunchScreen: {}
   BudvivaTests:
     type: bundle.unit-test
