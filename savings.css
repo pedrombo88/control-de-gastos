@@ -53,3 +53,7 @@ html[data-app-theme="noche"] .saving-kpi-necessary strong{color:#56d0b8}
  .saving-receipt-chevron{display:none}
  .saving-kpi strong{font-size:16px}
 }
+
+.saving-month-select{display:flex;justify-content:flex-start;margin:-4px 0 16px}
+.saving-month-select .month-selector{width:100%;max-width:300px}
+.saving-month-select .month-selector strong{flex:1}
