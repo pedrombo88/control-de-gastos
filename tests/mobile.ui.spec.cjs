@@ -141,3 +141,27 @@ test("El importador lee un PDF auténtico desde la biblioteca local PDF.js",asyn
   await expect(page.locator('[data-receipt-field="name"]')).toHaveValue("PAN");
   await expect(page.locator('[data-import-field="amount"]')).toHaveValue("2,50");
 });
+
+
+test("OCR de imagen funciona con Tesseract y español descargados desde Budviva",async({page})=>{
+  test.setTimeout(100000);
+  await page.locator('[data-tab="transactions"]').click();
+  await page.locator('#page-content [data-action="smart-import"]').click();
+  const png64=await page.evaluate(()=>{
+    const canvas=document.createElement("canvas");
+    canvas.width=1100;canvas.height=830;
+    const ctx=canvas.getContext("2d");
+    ctx.fillStyle="#fff";ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle="#000";ctx.textBaseline="top";ctx.textAlign="left";
+    ctx.font="bold 68px Arial";ctx.fillText("MERCADO PRUEBA",65,70);
+    ctx.font="bold 56px Arial";ctx.fillText("PAN   2,00",65,230);
+    ctx.fillText("AGUA   10,34",65,340);
+    ctx.font="bold 67px Arial";ctx.fillText("TOTAL 12,34",65,540);
+    return canvas.toDataURL("image/png").split(",")[1];
+  });
+  await page.locator("#smart-import-file").setInputFiles({
+    name:"ticket-auditoria.png",mimeType:"image/png",buffer:Buffer.from(png64,"base64")
+  });
+  await expect(page.locator('[data-import-row]')).toHaveCount(1,{timeout:85000});
+  await expect(page.locator('[data-import-field="amount"]')).toHaveValue("12,34");
+});
