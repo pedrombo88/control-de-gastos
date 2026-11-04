@@ -810,7 +810,7 @@ root.BudvivaGoals={build,total,status};
       if(used.has(id)) id=uid();
       used.add(id);
       const originalCat = CAT.find(c=>c.id===item.category && c.type===item.type);
-      clean.transactions.push({id,type:item.type,amount:item.amount,date:item.date,title:item.title.trim().slice(0,90),category:originalCat?.id || (item.type==='income'?'otros-ingresos':'otros'),method:['card','cash','other'].includes(item.method)?item.method:'other',note:String(item.note ?? '').slice(0,200),...(Array.isArray(item.receiptItems)?{receiptItems:item.receiptItems.slice(0,120).filter(p=>p&&typeof p.name==='string'&&p.name.trim()&&Number.isSafeInteger(p.amount)&&p.amount>0&&p.amount<=9999999999).map(p=>({name:p.name.trim().slice(0,90),amount:p.amount,quantity:1,necessity:['necessary','optional','pending'].includes(p.necessity)?p.necessity:'pending'}))}:{}),...(typeof item.recurringId==='string'&&item.recurringId.length<100&&typeof item.occurrenceDate==='string'&&isRealDate(item.occurrenceDate)?{recurringId:item.recurringId,occurrenceDate:item.occurrenceDate}:{})});
+      clean.transactions.push({id,type:item.type,amount:item.amount,date:item.date,title:item.title.trim().slice(0,90),category:originalCat?.id || (item.type==='income'?'otros-ingresos':'otros'),method:['card','cash','other'].includes(item.method)?item.method:'other',note:String(item.note ?? '').slice(0,200),...(Array.isArray(item.receiptItems)?{receiptItems:item.receiptItems.slice(0,120).filter(p=>p&&typeof p.name==='string'&&p.name.trim()&&Number.isSafeInteger(p.amount)&&p.amount>0&&p.amount<=9999999999).map(p=>({name:p.name.trim().slice(0,90),amount:p.amount,quantity:1,necessity:['necessary','optional','pending'].includes(p.necessity)?p.necessity:'pending'}))}:{}),...(typeof item.importSource==='string'&&['ticket','bank'].includes(item.importSource)?{importSource:item.importSource}:{}),...(typeof item.recurringId==='string'&&item.recurringId.length<100&&typeof item.occurrenceDate==='string'&&isRealDate(item.occurrenceDate)?{recurringId:item.recurringId,occurrenceDate:item.occurrenceDate}:{})});
     }
     if(raw.budgets && typeof raw.budgets === 'object' && !Array.isArray(raw.budgets)){
       for (const c of CAT.filter(x=>x.type==='expense')){
@@ -852,11 +852,13 @@ root.BudvivaGoals={build,total,status};
   };
   let data = defaults();
   let storageOK = true;
+  let dataLoadCorrupt = false;
   try {
     const loaded=localStorage.getItem(STORAGE_KEY);
     if(loaded) data=normalize(JSON.parse(loaded));
-  } catch(e) {console.warn('No se han podido cargar los datos locales:',e); storageOK=false;}
+  } catch(e) {console.warn('No se han podido cargar los datos locales:',e); storageOK=false;dataLoadCorrupt=true;}
   const save = () => {
+    if(dataLoadCorrupt){toast('No se puede guardar: restaura primero una copia de tus datos.');return false;}
     try {localStorage.setItem(STORAGE_KEY,JSON.stringify(data));storageOK=true;return true;}
     catch(e){console.error('Error guardando datos',e);storageOK=false;toast('Sin espacio o permisos para guardar. Exporta tus datos.');return false;}
   };
@@ -987,6 +989,7 @@ root.BudvivaGoals={build,total,status};
     ${cardHeader('Eliminar datos')}<section class="card settings-card">
       ${settingsRow('🗑️','Borrar datos financieros','Elimina movimientos, presupuestos, reglas y objetivos.','erase-data')}
     </section>
+    ${dataLoadCorrupt?'<p class="form-error">Los datos guardados no se pueden leer. Restaura una copia de seguridad antes de introducir nuevos registros.</p>':(!storageOK?'<p class="form-error">No se puede acceder al almacenamiento local; evita registrar datos hasta solucionarlo.</p>':'')}
     <p class="footnote">Tus registros se conservan en este dispositivo. Haz una copia de seguridad periódica para evitar pérdidas. Budviva · versión 5.8 (beta).</p>`;
   const render = () => {
     const selectedReceipt=ui.tab==='transactions'&&ui.receiptId?data.transactions.find(t=>t.id===ui.receiptId):null;
@@ -1033,7 +1036,7 @@ root.BudvivaGoals={build,total,status};
     const blob=new Blob([content],{type:mime});const u=URL.createObjectURL(blob);
     const a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),60000);
   };
-  const exportJson = () => {exportFile(`budviva-backup-${localDate()}.json`,JSON.stringify({...data,exportedAt:new Date().toISOString()},null,2),'application/json;charset=utf-8');toast('Copia de seguridad preparada');};
+  const exportJson = () => {if(dataLoadCorrupt){toast('No puedes exportar una copia nueva: los datos guardados no son legibles.');return;}exportFile(`budviva-backup-${localDate()}.json`,JSON.stringify({...data,exportedAt:new Date().toISOString()},null,2),'application/json;charset=utf-8');toast('Copia de seguridad preparada');};
   const escapeCsv = v => {let text=String(v??'');if(/^[\s]*[=+@\-]/.test(text))text="'"+text;return '"'+text.replace(/"/g,'""')+'"';};
   const exportCsv = () => {
     const rows=[['Fecha','Tipo','Categoría','Concepto','Importe (€)','Método','Nota'],...sorted(data.transactions).map(t=>[t.date,t.type==='income'?'Ingreso':'Gasto',catById(t.category).name,t.title,(t.amount/100).toFixed(2).replace('.',','),methodNames[t.method],t.note])];
@@ -1046,7 +1049,7 @@ root.BudvivaGoals={build,total,status};
     try {
       const incoming=normalize(JSON.parse(await file.text()));
       if(!confirm(`Se reemplazarán tus ${data.transactions.length} movimientos actuales por ${incoming.transactions.length} de la copia. ¿Continuar?`))return;
-      const prev=data;data=incoming;if(!save()){data=prev;return;}
+      const prev=data,corruptBefore=dataLoadCorrupt;data=incoming;dataLoadCorrupt=false;if(!save()){data=prev;dataLoadCorrupt=corruptBefore;return;}
       ui.month=nowMonth();ui.tab='home';ui.query='';ui.filter='all';render();toast('Copia restaurada correctamente');
     }catch(e){alert(`No se ha podido importar: ${e.message}`);}
   };
@@ -1084,7 +1087,7 @@ root.BudvivaGoals={build,total,status};
     if(action==='install-info'){toast('En Safari: Compartir → Añadir a pantalla de inicio');return;}
     if(action==='erase-data'){
       if(!confirm('¿Borrar definitivamente tus movimientos, presupuestos, objetivos de ahorro y reglas recurrentes de este dispositivo? No elimina las copias de seguridad descargadas. Exporta una copia si quieres conservarlos.'))return;
-      const prev=data;data=defaults();if(!save()){data=prev;return;}
+      const prev=data,corruptBefore=dataLoadCorrupt;data=defaults();dataLoadCorrupt=false;if(!save()){data=prev;dataLoadCorrupt=corruptBefore;return;}
       ui.month=nowMonth();ui.tab='home';ui.filter='all';ui.query='';render();toast('Datos borrados');
     }
   };
@@ -1109,11 +1112,11 @@ root.BudvivaGoals={build,total,status};
     }
     const close=e.target.closest('[data-close]');if(close){document.getElementById(close.dataset.close)?.close();return;}
     const type=e.target.closest('[data-entry-type]');if(type){setEntryType(type.dataset.entryType);return;}
-    const tab=e.target.closest('[data-tab]');if(tab){ui.tab=tab.dataset.tab;ui.receiptId=null;ui.query='';ui.filter='all';render();window.scrollTo({top:0,behavior:'instant'});return;}
+    const tab=e.target.closest('[data-tab]');if(tab){ui.tab=tab.dataset.tab;ui.receiptId=null;ui.query='';ui.filter='all';render();window.scrollTo({top:0,behavior:'auto'});return;}
     const month=e.target.closest('[data-month-shift]');if(month){monthShift(Number(month.dataset.monthShift));render();return;}
     const filter=e.target.closest('[data-filter]');if(filter){ui.filter=filter.dataset.filter;render();return;}
     const receipt=e.target.closest('[data-open-receipt]');
-    if(receipt){const tx=data.transactions.find(t=>t.id===receipt.dataset.openReceipt);if(tx)ui.month=monthOf(tx.date);ui.tab='transactions';ui.receiptId=receipt.dataset.openReceipt;render();window.scrollTo({top:0,behavior:'instant'});return;}
+    if(receipt){const tx=data.transactions.find(t=>t.id===receipt.dataset.openReceipt);if(tx)ui.month=monthOf(tx.date);ui.tab='transactions';ui.receiptId=receipt.dataset.openReceipt;render();window.scrollTo({top:0,behavior:'auto'});return;}
     const edit=e.target.closest('[data-edit-id]');if(edit){openTransaction(edit.dataset.editId);return;}
     const budget=e.target.closest('[data-budget-category]');if(budget){openBudget(budget.dataset.budgetCategory);return;}
     const action=e.target.closest('[data-action]');if(action){handleAction(action.dataset.action);return;}
