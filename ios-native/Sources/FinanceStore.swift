@@ -261,7 +261,19 @@ final class FinanceStore: ObservableObject {
                 if !model.recurringSkips.contains(marker){model.recurringSkips.append(marker)}
             }
         }
-        // Los originales pueden compartirse; se conservan hasta una limpieza específica.
+        guard data.transactions.first(where:{$0.id==id}) == nil else{return}
+        let referenced=Set(data.transactions.flatMap{$0.sourceDocumentIds ?? []})
+        let orphaned=(entry?.sourceDocumentIds ?? []).filter{!referenced.contains($0)}
+        guard !orphaned.isEmpty else{return}
+        for docId in orphaned {
+            if let path=originalURL(docId){try? FileManager.default.removeItem(at:path)}
+        }
+        if var metadata=try? JSONDecoder().decode([OriginalDocument].self,from:Data(contentsOf:originalMetadataURL)) {
+            metadata.removeAll{orphaned.contains($0.id)}
+            if let bytes=try? JSONEncoder().encode(metadata) {
+                try? bytes.write(to:originalMetadataURL,options:[.atomic,.completeFileProtection])
+            }
+        }
     }
     func saveRecurring(_ rule:RecurringRule) {
         write { model in
@@ -358,6 +370,55 @@ final class FinanceStore: ObservableObject {
         return id
     }
     private var originalMetadataURL: URL {supportURL.appendingPathComponent("Originales-index.json")}
+    /// Importación transaccional: si falla el archivo o el JSON, no queda ningún movimiento a medias.
+    func importMovements(_ entries:[Movement],withOriginal bytes:Data,name:String,type:String) throws {
+        guard !isCorrupt else{throw LocalFinanceError.corrupted}
+        guard !entries.isEmpty,!bytes.isEmpty,bytes.count<=15*1024*1024 else{throw LocalFinanceError.invalidBackup}
+        let id=UUID().uuidString
+        try FileManager.default.createDirectory(at:filesURL,withIntermediateDirectories:true)
+        let path=filesURL.appendingPathComponent(id)
+        let previous=data,previousMeta=try? Data(contentsOf:originalMetadataURL)
+        try bytes.write(to:path,options:[.atomic,.completeFileProtection])
+        do {
+            var enriched=entries
+            for i in enriched.indices {
+                var refs=enriched[i].sourceDocumentIds ?? []
+                refs.append(id)
+                enriched[i].sourceDocumentIds=refs
+            }
+            data.transactions.append(contentsOf:enriched)
+            let meta=OriginalDocument(id:id,name:String(name.prefix(160)),type:String(type.prefix(100)),
+                size:bytes.count,createdAt:FinanceFormat.date(),
+                transactionIds:entries.map(\.id),base64:"")
+            var allMeta=(try? JSONDecoder().decode([OriginalDocument].self,
+                from:Data(contentsOf:originalMetadataURL))) ?? []
+            allMeta.append(meta)
+            let indexJSON=try JSONEncoder().encode(allMeta)
+            try indexJSON.write(to:originalMetadataURL,options:[.atomic,.completeFileProtection])
+            try persist()
+        }catch {
+            data=previous
+            try? FileManager.default.removeItem(at:path)
+            if let previousMeta {try? previousMeta.write(to:originalMetadataURL,options:[.atomic,.completeFileProtection])}
+            else {try? FileManager.default.removeItem(at:originalMetadataURL)}
+            throw error
+        }
+    }
+
+    /// Prepara una copia temporal con su extensión para QuickLook y compartir.
+    func previewOriginal(_ id:String) throws -> URL {
+        guard let source=originalURL(id) else{throw LocalFinanceError.invalidBackup}
+        let metadata=(try? JSONDecoder().decode([OriginalDocument].self,
+            from:Data(contentsOf:originalMetadataURL))) ?? []
+        let name=metadata.first(where:{$0.id==id})?.name ?? "Original"
+        let suffix=URL(fileURLWithPath:name).pathExtension.lowercased()
+        let supported=["pdf","jpg","jpeg","png","webp","bmp","csv","txt"]
+        let ext=supported.contains(suffix) ? suffix:"bin"
+        let temp=FileManager.default.temporaryDirectory.appendingPathComponent("budviva-"+UUID().uuidString+"."+ext)
+        try FileManager.default.copyItem(at:source,to:temp)
+        return temp
+    }
+
     func originalURL(_ id: String) -> URL? {
         let file = filesURL.appendingPathComponent(id)
         return FileManager.default.fileExists(atPath: file.path) ? file : nil
