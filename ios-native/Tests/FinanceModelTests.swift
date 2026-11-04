@@ -57,4 +57,10 @@ final class FinanceModelTests: XCTestCase {
         XCTAssertEqual(pieces.count,3)
         XCTAssertEqual(pieces[1],"Tienda; centro")
     }
+
+    func testDecryptsWebCompatibleKnownVector() throws {
+        let fixture = #"${payload}"#
+        let value=try BackupCipher.decrypt(Data(fixture.utf8),password:"Budviva-test-contraseña-2026")
+        XCTAssertEqual(String(data:value,encoding:.utf8),#"${expected}"#)
+    }
 }
