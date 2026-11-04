@@ -60,7 +60,8 @@ enum NativeImportParser {
         let lines=input.replacingOccurrences(of:"\u{FEFF}",with:"")
             .components(separatedBy:.newlines).filter{!$0.trimmingCharacters(in:.whitespaces).isEmpty}
         guard lines.count>1 else{return []}
-        let delimiter:Character=[";","\t",","].max(by:{lines[0].filter{$0==$1}.count < lines[0].filter{$0==$1}.count}) ?? ";"
+        let possible:[Character]=[";","\t",","]
+        let delimiter=possible.max(by:{first,second in lines[0].filter{$0==first}.count < lines[0].filter{$0==second}.count}) ?? ";"
         let header=csvCells(lines[0],delimiter:delimiter).map{$0.folding(options:[.diacriticInsensitive,.caseInsensitive],locale:Locale(identifier:"es_ES")).lowercased().replacingOccurrences(of:" ",with:"")}
         func idx(_ names:[String])->Int? {header.firstIndex(where:{v in names.contains(where:{v==$0 || v.hasPrefix($0)})})}
         guard let d=idx(["fecha","date"]),let n=idx(["concepto","descripcion","detalle","movimiento","description","comercio"]) else{return []}
@@ -78,7 +79,7 @@ enum NativeImportParser {
             }
             guard let value,value != 0 else{return nil}
             let type=value<0 ? "expense":"income"
-            return ImportDraft(date:date,title:String(field(n).prefix(90)),amount:FinanceFormat.money(abs(value)),type:type,
+            return ImportDraft(date:date,title:String(field(n).prefix(90)),amount:String(format:"%.2f",Double(abs(value))/100).replacingOccurrences(of:".",with:","),type:type,
                 category:type=="expense" ? "otros":"otros-ingresos")
         }
     }
@@ -109,7 +110,7 @@ enum NativeImportParser {
         let amount=total ?? items.reduce(0){$0+$1.amount}
         guard amount>0 else{return []}
         let title=rows.first(where:{$0.rangeOfCharacter(from:.letters) != nil}) ?? "Ticket"
-        return [ImportDraft(date:date,title:String(title.prefix(90)),amount:FinanceFormat.money(amount),
+        return [ImportDraft(date:date,title:String(title.prefix(90)),amount:String(format:"%.2f",Double(amount)/100).replacingOccurrences(of:".",with:","),
                             type:"expense",category:"otros",items:items)]
     }
     static func parseStatementText(_ text:String)->[ImportDraft] {
@@ -123,7 +124,7 @@ enum NativeImportParser {
               let date=isoDate(String(line[dateR])),let cents=cents(String(line[amountR])),cents != 0
             else{return nil}
             let type=cents<0 ? "expense":"income"
-            return ImportDraft(date:date,title:String(line[titleR].prefix(90)),amount:FinanceFormat.money(abs(cents)),
+            return ImportDraft(date:date,title:String(line[titleR].prefix(90)),amount:String(format:"%.2f",Double(abs(cents))/100).replacingOccurrences(of:".",with:","),
                 type:type,category:type=="expense" ? "otros":"otros-ingresos")
         }
     }
@@ -246,12 +247,12 @@ struct ImportScreen: View {
             if data.count>15*1024*1024 {throw NSError(domain:"Budviva",code:6,userInfo:[NSLocalizedDescriptionKey:"Máximo 15 MB por archivo."])}
             rawData=data;name=url.lastPathComponent;type=url.pathExtension.lowercased()
             busy=true;isError=false;drafts=[];message="Analizando \(name)…"
-            let current=mode
+            let current=mode,ext=type
             Task.detached(priority:.userInitiated) {
                 do {
-                    let text=try NativeImportParser.text(from:data,fileExtension:type)
+                    let text=try NativeImportParser.text(from:data,fileExtension:ext)
                     let parsed:[ImportDraft]
-                    if type=="csv" {parsed=NativeImportParser.parseCSV(text)}
+                    if ext=="csv" {parsed=NativeImportParser.parseCSV(text)}
                     else if current=="ticket" {parsed=NativeImportParser.parseTicket(text)}
                     else {parsed=NativeImportParser.parseStatementText(text)}
                     await MainActor.run {
@@ -276,7 +277,7 @@ struct ImportScreen: View {
                 !item.title.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty else {
                     message="Corrige los importes, fechas o conceptos antes de guardar.";isError=true;return
             }
-            if store.data.transactions.contains(where:{$0.date==item.date && $0.type==item.type && $0.amount==amount && $0.title.localizedCaseInsensitiveCompare(item.title)==.orderedSame}) {
+            if store.data.transactions.contains(where:{$0.date==item.date && $0.type==item.type && $0.amount==amount && $0.title.localizedCaseInsensitiveCompare(item.title) == .orderedSame}) {
                 message="Posible duplicado: \(item.title). Revisa el historial.";isError=true;return
             }
             movements.append(Movement(type:item.type,amount:amount,date:item.date,title:item.title,category:item.category,
