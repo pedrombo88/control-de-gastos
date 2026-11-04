@@ -1,18 +1,32 @@
 # Budviva — Tu dinero, más claro
 
-**Estado:** versión web instalable (PWA) **6.2.2 beta**, en preparación para una futura versión iOS comercial. **No publicada en App Store.**
+**Estado:** versión web instalable (PWA) **6.3.0 beta**, en preparación para una futura versión iOS comercial. **No publicada en App Store.**
 
 [Probar Budviva](https://pedrombo88.github.io/control-de-gastos/) · [Privacidad](https://pedrombo88.github.io/control-de-gastos/privacidad.html) · [Ayuda](https://pedrombo88.github.io/control-de-gastos/soporte.html) · [Auditoría para publicación](./AUDITORIA_BUDVIVA_2026-11-04.md)
 
 ## Interfaz principal
 
 - **Inicio:** balance del mes, acceso a gasto/ticket, avisos de presupuesto, avance del ahorro y últimas operaciones.
-- **Movimientos:** historial, filtros, buscador y accesos a **Importar**, **Recurrentes** y **Estadísticas**.
+- **Movimientos:** historial, filtros, buscador y accesos a **Importar**, **Recurrentes**, **Estadísticas** y **Compartidos**.
 - **Presupuestos:** límites y alertas con umbrales configurables.
 - **Ahorro:** vistas independientes **Analizar compras** (simulación de ahorro potencial) y **Mis objetivos** (aportaciones reales y progreso).
 - **Ajustes:** copias JSON, CSV, temas, actualización, privacidad, ayuda y borrado de datos.
 
 La importación admite tickets en imagen y documentos PDF/CSV/TXT con revisión previa. La extracción puede equivocarse. Budviva **conserva los originales asociados a los movimientos** en IndexedDB, también al adjuntarlos manualmente desde la edición de un movimiento y permite incluirlos en copias completas o cifradas. Debes verificar la carga y restauración en Safari antes de confiar en ellos.
+
+## Compartidos (v6.3.0 beta)
+
+Se ha implementado la pantalla `compartidos.html` y la lógica de dos cuentas para registrar solo gastos comunes, calcular deudas al céntimo, invitar a la pareja y confirmar pagos de compensación. **La sincronización todavía no está activa: el archivo `shared-config.js` no tiene credenciales públicas porque aún no existe un proyecto de base de datos exclusivo para Budviva.** El acceso muestra esta situación sin borrar ni modificar ningún gasto personal.
+
+Para activarla:
+1. Crear un proyecto Supabase **nuevo y exclusivo** para Budviva en una organización elegida por su responsable. No utilizar los proyectos DropPilot.
+2. Aplicar `backend/compartidos.sql` en ese proyecto y comprobar las políticas de acceso.
+3. Poner la URL del proyecto y exclusivamente su clave **publishable** (`sb_publishable_...`) en `shared-config.js`; nunca una `service_role` ni otra clave secreta.
+4. En Supabase Auth habilitar email OTP y configurar la plantilla con `{{ .Token }}`; configurar Site URL y URLs permitidas con `https://pedrombo88.github.io/control-de-gastos/compartidos.html`.
+5. Validar de extremo a extremo en dos iPhones con dos correos diferentes, y con un tercero ajeno comprobando que no accede a otro hogar.
+6. Antes de producción, cerrar privacidad y soporte comercial, restauración y retirada de la cuenta.
+
+Los pagos de compensación son registros informativos, no transferencias bancarias. Solo afectan a la deuda después de ser confirmados por quien los recibe. No hay sincronización de tickets originales, nóminas ni movimientos privados.
 
 ## Datos y privacidad
 
