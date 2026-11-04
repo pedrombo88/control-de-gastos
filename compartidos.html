@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#12263a"><meta name="description" content="Budviva Compartidos: equilibra los gastos comunes de dos personas.">
+<title>Compartidos · Budviva</title><link rel="icon" href="./icon.svg">
+<style>
+:root{color-scheme:light;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:#f4f7fa;color:#13273c}
+*{box-sizing:border-box}body{margin:0;min-height:100vh}main{max-width:660px;margin:auto;padding:22px 16px 96px}
+header{background:#10283b;color:#fff;padding:18px max(16px,calc((100vw - 660px)/2));display:flex;gap:16px;align-items:center}
+header a{color:#b9e6df;text-decoration:none;font-size:14px}header strong{font-size:21px;letter-spacing:-.6px}h1{font-size:27px;margin:6px 0 4px}h2{font-size:18px;margin:0 0 12px}p{line-height:1.5}.muted,small{color:#657687}.card{background:white;border-radius:20px;padding:19px;margin:15px 0;box-shadow:0 6px 26px #10283b0b;border:1px solid #e3eaee}
+.eyebrow{font-size:11px;font-weight:800;letter-spacing:1.5px;color:#188c79;text-transform:uppercase}
+label{font-weight:600;font-size:13px;display:block;margin:12px 0 6px}
+input,select{width:100%;padding:12px 14px;border:1px solid #cbd7dc;border-radius:11px;background:white;color:#172b3c;font:inherit;font-size:16px;min-height:46px}
+button{cursor:pointer;border:0;border-radius:11px;padding:12px 17px;background:#0d816e;color:white;font-weight:700;font:inherit;min-height:44px}
+button:disabled{opacity:.45;cursor:not-allowed}.secondary{background:#eef3f4;color:#183346}.danger{background:#fcecea;color:#a03026}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid #12a58c;outline-offset:2px}
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}.actions button{flex:1;min-width:120px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.stat{background:#f1f6f7;padding:13px;border-radius:13px}
+.stat small{display:block;font-size:12px}.stat b{font-size:22px}.balance{padding:18px;background:#10394a;color:white;border-radius:17px;margin:16px 0}
+.balance strong{font-size:30px;display:block}.balance small{color:#d1e7e8}
+.row{display:flex;justify-content:space-between;gap:12px;align-items:center;border-bottom:1px solid #ebeff2;padding:12px 0}.row:last-child{border-bottom:0}
+.row strong{display:block}.row small{display:block}.row .amount{font-weight:800;white-space:nowrap}
+.notice{border-radius:13px;background:#fdf3df;color:#684616;padding:13px;line-height:1.5}
+.good{background:#e6f7f1;color:#086a53}.error{background:#ffefee;color:#a02026}
+.hidden,[hidden]{display:none!important}.tab{display:flex;gap:8px;align-items:center}.tab button{background:#edf3f4;color:#3d5260}.tab button.active{background:#104c4a;color:#fff}
+.status{position:sticky;top:0;z-index:3;border-radius:10px;padding:12px;margin-top:12px;background:#e7f4f1;color:#125a4e}
+@media(max-width:390px){.grid{grid-template-columns:1fr}main{padding:17px 12px 90px}}
+</style></head><body>
+<header><a href="./index.html" aria-label="Volver a Budviva">← Volver</a><strong>bud<span style="color:#6cebd0">viva</span> <span style="font-weight:400;font-size:13px">Compartidos</span></strong></header>
+<main><div class="eyebrow">FINANZAS EN PAREJA</div><h1>Gastos compartidos</h1>
+<p class="muted">Cada persona conserva sus movimientos privados. Solo los gastos que registres aquí se comparten con la otra persona.</p>
+<div id="status" role="status" aria-live="polite" class="status hidden"></div>
+<section id="not-configured" class="card hidden"><h2>Sincronización pendiente de configurar</h2><p>La funcionalidad está preparada, pero necesita conectar un proyecto seguro de Budviva para enlazar ambos móviles.</p><p class="notice">Los movimientos actuales permanecen intactos. No se solicita ninguna contraseña bancaria.</p></section>
+<section id="auth" class="card hidden"><h2>Entrar en tu cuenta</h2>
+<form id="send-form"><label>Correo electrónico<input id="email" type="email" autocomplete="email" required></label><div class="actions"><button type="submit">Recibir código de acceso</button></div></form>
+<form id="verify-form" hidden><label>Código recibido por correo<input id="otp" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6,8}" required></label><div class="actions"><button>Acceder</button></div><small>Revisa el correo no deseado si no llega.</small></form>
+</section>
+<section id="setup" class="hidden">
+<div class="card"><h2>Crear un hogar</h2><form id="create-form"><label>Nombre del hogar<input name="title" maxlength="60" placeholder="Ej. Nuestro hogar" required></label><label>Tu nombre visible<input name="name" maxlength="40" required></label><div class="actions"><button>Crear hogar</button></div></form></div>
+<div class="card"><h2>Unirme a mi pareja</h2><form id="join-form"><label>Código de invitación<input name="token" maxlength="64" minlength="64" autocomplete="off" required></label><label>Tu nombre visible<input name="name" maxlength="40" required></label><div class="actions"><button>Unirme al hogar</button></div></form></div>
+<button id="setup-logout" class="secondary" type="button">Cerrar sesión</button>
+</section>
+<section id="dashboard" class="hidden">
+<div class="card"><div class="row"><div><div class="eyebrow">TU HOGAR</div><h2 id="home-name">Hogar</h2></div><button id="logout" class="secondary" type="button">Salir</button></div>
+<div id="members" class="grid"></div><div class="balance" role="status"><small id="balance-caption">Balance total confirmado</small><strong id="balance-total">0,00 €</strong><span id="balance-message">Estáis al día.</span></div><small>Las deudas se calculan sobre todos los gastos comunes y compensaciones confirmadas, no sobre gastos privados.</small></div>
+<div id="invite-section" class="card hidden"><h2>Invitar a la otra persona</h2><p>Comparte el código de un solo uso. Caduca en 48 horas.</p><button id="invite" type="button">Generar código</button><p id="invite-code" style="overflow-wrap:anywhere;font-weight:700"></p><button id="copy-invite" type="button" class="secondary hidden">Copiar código</button></div>
+<div class="card"><h2>Añadir gasto común</h2><form id="expense-form"><label>Concepto<input name="title" maxlength="100" placeholder="Compra supermercado" required></label>
+<div class="grid"><div><label>Importe (€)<input name="amount" inputmode="decimal" placeholder="0,00" required></label></div><div><label>Fecha<input name="date" type="date" required></label></div></div>
+<div class="grid"><div><label>Pagado por<select name="payer" id="expense-payer" required></select></label></div><div><label>Reparto del primer miembro<select name="share"><option value="5000">50 % / 50 %</option><option value="6000">60 % / 40 %</option><option value="7000">70 % / 30 %</option><option value="3000">30 % / 70 %</option><option value="4000">40 % / 60 %</option><option value="10000">100 % / 0 %</option><option value="0">0 % / 100 %</option></select></label></div></div>
+<small id="shares-help">Los porcentajes se asignan según el orden de aparición de los miembros.</small>
+<div class="actions"><button>Guardar gasto compartido</button></div></form></div>
+<div class="card"><h2>Compensar gastos</h2><p class="muted">Una compensación no aparece como otro gasto o ingreso personal. La otra persona debe confirmarla.</p>
+<form id="settlement-form"><div class="grid"><div><label>Quién paga<select name="payer" id="settlement-payer" required></select></label></div><div><label>Importe (€)<input name="amount" inputmode="decimal" required></label></div></div><div class="actions"><button>Proponer compensación</button></div></form></div>
+<div class="card"><div class="row"><h2>Historial común</h2><button id="refresh" class="secondary">Actualizar</button></div>
+<label>Periodo<select id="period"><option value="all">Todos los meses</option><option value="this">Este mes</option><option value="last">Mes anterior</option></select></label>
+<div id="expense-list"></div><h2 style="margin-top:18px">Compensaciones</h2><div id="settlement-list"></div></div></section>
+</main><script src="./shared-config.js"></script><script src="./shared-expenses.js"></script><script src="./compartidos.js"></script></body></html>
