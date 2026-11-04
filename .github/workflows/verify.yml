@@ -1,0 +1,22 @@
+name: Verificación Budviva
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  web-audit:
+    name: Sintaxis, negocio y compatibilidad de datos
+    runs-on: ubuntu-latest
+    steps:
+      - name: Obtener código
+        uses: actions/checkout@v4
+      - name: Node.js LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Ejecutar controles de release
+        run: npm run check
