@@ -66,6 +66,16 @@ async function readRows(table,select,query=''){
   const result=await request('/rest/v1/'+table+'?select='+enc(select)+query);
   return Array.isArray(result)?result:[];
 }
+async function readAllRows(table,select,filters){
+  // Supabase puede limitar las respuestas a 1.000 filas. Paginamos para no calcular deudas incorrectas.
+  const PAGE=500,MAX_PAGES=200,all=[];
+  for(let n=0;n<MAX_PAGES;n++){
+    const batch=await readRows(table,select,filters+'&limit='+PAGE+'&offset='+(n*PAGE));
+    all.push(...batch);
+    if(batch.length<PAGE)return all;
+  }
+  throw Error('El historial supera el límite de sincronización. Contacta con soporte antes de utilizar el balance.');
+}
 async function rpc(name,data){
   return request('/rest/v1/rpc/'+name,{method:'POST',data});
 }
@@ -81,8 +91,8 @@ async function load(){
     const [homes,people,bills,payments]=await Promise.all([
       readRows('bv_households','id,title,owner_id','&id=eq.'+id+'&limit=1'),
       readRows('bv_members','user_id,display_name,joined_at','&household_id=eq.'+id+'&order=joined_at.asc'),
-      readRows('bv_expenses','id,author_id,payer_id,title,category,amount_cents,share_basis_points_a,spent_on,created_at','&household_id=eq.'+id+'&order=spent_on.desc&limit=1000'),
-      readRows('bv_settlements','id,payer_id,receiver_id,amount_cents,status,created_at','&household_id=eq.'+id+'&order=created_at.desc&limit=1000')
+      readAllRows('bv_expenses','id,author_id,payer_id,title,category,amount_cents,share_basis_points_a,spent_on,created_at','&household_id=eq.'+id+'&order=spent_on.desc,id.desc'),
+      readAllRows('bv_settlements','id,payer_id,receiver_id,amount_cents,status,created_at','&household_id=eq.'+id+'&order=created_at.desc,id.desc')
     ]);
     household=homes[0]||null;members=people;expenses=bills;settlements=payments;
     if(!household)throw Error('No se puede acceder al hogar.');
