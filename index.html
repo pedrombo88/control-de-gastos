@@ -1036,6 +1036,7 @@ root.BudvivaGoals={build,total,status};
     return `${heading('Tu resumen','VISTA GENERAL')}
       <section class="balance-card" aria-label="Resumen del mes"><div class="balance-title">Balance del mes</div><div class="balance-main">${h(money(balance))}</div><div class="balance-grid"><div class="balance-item"><span class="balance-icon" aria-hidden="true">${pictogram("arrowUp",18)}</span><div><span class="balance-label">Ingresos</span><span class="balance-amount">${h(money(inc))}</span></div></div><div class="balance-item"><span class="balance-icon" aria-hidden="true">${pictogram("arrowDown",18)}</span><div><span class="balance-label">Gastos</span><span class="balance-amount">${h(money(out))}</span></div></div></div></section>
       <div class="hero-quick-actions"><button type="button" class="quick-expense" data-action="new-expense">${pictogram("arrowDown",19)} Añadir gasto</button><button type="button" class="quick-scan" data-action="smart-import">${pictogram("camera",19)} Escanear ticket</button></div>
+      <section class="card" style="margin-top:14px"><div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><div><strong style="display:block">Gastos compartidos</strong><small>Equilibra los gastos comunes de dos personas.</small></div><button type="button" class="small-action" data-action="shared-household">Abrir</button></div></section>
       ${budgetAlertView()}
       ${goals.renderHome()}
       ${savings.renderPreview(ui.month)}
