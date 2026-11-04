@@ -69,6 +69,18 @@ async function remove(id){
 async function clear(){
  await query("readwrite",store=>store.clear());
 }
+async function unlinkTransaction(id){
+ const docs=(await getAll()).filter(d=>Array.isArray(d.transactionIds)&&d.transactionIds.includes(id));
+ if(!docs.length)return 0;
+ await query("readwrite",store=>{
+   for(const doc of docs){
+     const remaining=doc.transactionIds.filter(t=>t!==id);
+     if(!remaining.length)store.delete(doc.id);
+     else store.put({...doc,transactionIds:remaining});
+   }
+ });
+ return docs.length;
+}
 async function base64Of(blob){
  return new Promise((resolve,reject)=>{
    const reader=new FileReader();
@@ -114,5 +126,5 @@ async function replaceAll(records){
 async function sizeInfo(){
  const docs=await getAll();return {count:docs.length,totalBytes:docs.reduce((n,d)=>n+d.size,0)};
 }
-root.BudvivaDocuments={saveFile,remove,clear,get,getAll,listForTransaction,exportBundle,decodeBundle,replaceAll,sizeInfo,MAX_FILE,MAX_BACKUP};
+root.BudvivaDocuments={saveFile,remove,clear,unlinkTransaction,get,getAll,listForTransaction,exportBundle,decodeBundle,replaceAll,sizeInfo,MAX_FILE,MAX_BACKUP};
 })(window);
