@@ -63,3 +63,39 @@ test("Copias cifradas y páginas legales accesibles",async ({page})=>{
     await expect(page.locator('#page-content a[href*="'+href+'"]')).toBeVisible();
   }
 });
+
+
+test("Un movimiento permite adjuntar original y exportarlo en una copia completa",async ({page})=>{
+  await page.locator('[data-action="new-expense"]').first().click();
+  await page.locator("#entry-amount").fill("8,35");
+  await page.locator("#entry-title").fill("Ticket de auditoría");
+  await page.locator("#transaction-form button[type=submit]").click();
+  await expect(page.locator("#transaction-dialog")).not.toBeVisible();
+  await page.locator('[data-tab="transactions"]').click();
+  await page.locator('[data-edit-id]').filter({hasText:"Ticket de auditoría"}).click();
+  await expect(page.locator("#attach-original-btn")).toBeVisible();
+  await page.setInputFiles('#attach-original-file',{
+    name:"justificante.txt",
+    mimeType:"text/plain",
+    buffer:Buffer.from("COMERCIO DE PRUEBA\nTOTAL 8,35\n")
+  });
+  await expect(page.locator("#transaction-dialog")).not.toBeVisible();
+  await expect(page.locator('[data-view-originals]')).toBeVisible();
+  await page.locator('[data-view-originals]').click();
+  await expect(page.locator('#documents-dialog')).toBeVisible();
+  await expect(page.locator('#documents-dialog-content')).toContainText("justificante.txt");
+  await page.locator('#documents-dialog [data-close]').click();
+  await page.locator('[data-tab="settings"]').click();
+  const downloadPromise=page.waitForEvent("download");
+  await page.getByText("Copia completa",{exact:true}).click();
+  const dl=await downloadPromise;
+  expect(dl.suggestedFilename()).toMatch(/^budviva-completa-\d{4}-\d{2}-\d{2}\.json$/);
+  const filePath=await dl.path();
+  const fs=require("node:fs");
+  const data=JSON.parse(fs.readFileSync(filePath,"utf8"));
+  expect(data.transactions).toHaveLength(1);
+  expect(data.transactions[0].sourceDocumentIds).toHaveLength(1);
+  expect(data.attachments).toHaveLength(1);
+  expect(data.attachments[0].name).toBe("justificante.txt");
+  expect(Buffer.from(data.attachments[0].base64,"base64").toString("utf8")).toContain("TOTAL 8,35");
+});
