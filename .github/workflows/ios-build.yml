@@ -22,7 +22,7 @@ jobs:
       - name: Configurar Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: '16.4'
+          xcode-version: '26.3'
       - name: Instalar generador de proyectos
         run: brew install xcodegen
       - name: Generar icono de la aplicación
