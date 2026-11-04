@@ -1,5 +1,8 @@
 # Auditoría profesional de Budviva — 4 de noviembre de 2026
 
+> **Actualización técnica (6.2.2):** este documento conserva el análisis histórico de la versión 5.8. No debe interpretarse su listado P0 como el estado actual del código. En 6.2.1 ya constan archivos originales almacenados en IndexedDB, copias cifradas opcionales, dependencias OCR/PDF empaquetadas localmente, pruebas automatizadas y un proyecto iOS nativo con compilación cloud sin firma. En 6.2.2 se ha corregido además la correspondencia entre páginas y caché offline del service worker. **Sigue pendiente la validación real en Safari/iPhone, TestFlight, la firma y distribución iOS y los requisitos legales/comerciales definitivos.** Estas mejoras se han comprobado por inspección del repositorio; no equivalen a una auditoría externa ni a una publicación aprobada.
+
+
 **Versión revisada:** Budviva 5.8 (beta) · **Repositorio:** `pedrombo88/control-de-gastos` · **Plataforma actual:** PWA estática distribuida mediante GitHub Pages.
 
 **Veredicto:** **NO APTA TODAVÍA PARA ENVÍO A APP STORE**. La estructura y las funciones principales permiten continuar la beta y realizar pruebas en iPhone, pero no sustituyen una compilación nativa, una auditoría legal y de seguridad ni pruebas reales con usuarios y dispositivos. No se ha enviado ninguna aplicación a Apple.
