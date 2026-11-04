@@ -39,8 +39,12 @@ Las bibliotecas OCR y PDF.js se empaquetan con versiones fijadas en `vendor/` y 
 - `sw.js`: caché y actualización de la PWA.
 - `manifest.webmanifest`: identidad de instalación de la app.
 - `privacidad.html` y `soporte.html`: páginas informativas públicas.
-- `goals.js`, `savings.js` y `savings.css`: copias históricas de módulos que deben retirarse **solo tras comprobar compatibilidad con instalaciones antiguas**.
-- `pruebas-v4`, `pruebas-v5`, `pruebas-v6` y `comprobar-v4.html`: pruebas antiguas fuera de la navegación principal.
+- El código de la pantalla Ahorro está integrado en `index.html` para evitar desajustes de versiones en instalaciones PWA anteriores.
+- Las pruebas históricas V4–V6 y los módulos redundantes se retiraron del despliegue principal; permanecen recuperables en el historial Git.
+- `ios-native/`: código y tests de la versión iOS nativa, con build cloud sin firma.
+- `vendor/`: OCR Tesseract y PDF.js de versiones fijadas con manifiesto SHA-256.
+- `tools/`, `tests/` y `.github/workflows/`: validación de seguridad, negocio, compilación y preparación de recursos.
+
 
 El proyecto funciona sin proceso de compilación: se publica desde la rama `main` mediante GitHub Pages.
 
