@@ -152,43 +152,7 @@
 .receipt-saved-row select{width:100%;font-size:11px;padding:6px 4px;border:1px solid var(--border);border-radius:8px;background:white}
 
 
-/* V4: estadísticas de necesidad de productos */
-.needs-panel .muted{font-size:12px;line-height:1.5}
-.needs-kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:14px 0}
-.needs-kpi{border:1px solid var(--border);border-radius:12px;padding:12px 10px;min-width:0;background:#fff}
-.needs-kpi small{display:inline-block;font-size:10px;color:var(--muted);vertical-align:middle}
-.needs-kpi strong{display:block;margin-top:6px;font-size:17px;overflow-wrap:anywhere}
-.needs-dot{width:8px;height:8px;display:inline-block;border-radius:50%;margin-right:5px}
-.needs-insight{padding:12px;background:#eff7f4;border-radius:12px;font-size:12px;line-height:1.5;margin:12px 0 20px}
-.needs-insight strong{font-size:19px;color:#087c70}
-.needs-insight small{display:block;color:var(--muted);margin-top:3px}
-.needs-stack-list{margin:10px 0 17px;display:flex;flex-direction:column;gap:11px}
-.needs-month-row{display:grid;grid-template-columns:58px minmax(0,1fr) 75px;gap:7px;align-items:center;font-size:10px}
-.needs-month-label{color:var(--muted);white-space:nowrap}
-.needs-month-row strong{text-align:right;font-size:10px}
-.needs-stacked{height:14px;border-radius:5px;display:flex;overflow:hidden;background:#edf0f3}
-.needs-segment{display:block;height:100%;flex-shrink:0}
-.needs-emptybar{width:100%;background:#edf0f3}
-.needs-table{min-width:370px}
-
-
-/* V5 — plan de ahorro */
-.saving-current{padding:13px 14px;background:#f2f8f6;border-radius:12px;margin:14px 0}
-.saving-current small,.saving-results small{display:block;color:var(--muted);font-size:11px;line-height:1.4}
-.saving-current strong{display:block;margin-top:6px;font-size:22px;color:#0b8571}
-.saving-slider-label{font-size:12px;font-weight:700;margin:16px 0 8px}
-.saving-choices{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 14px}
-.saving-choices button{flex:1 1 52px}
-.saving-results{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.saving-results>div{border:1px solid var(--border);border-radius:11px;padding:12px 9px}
-.saving-results strong{display:block;margin-top:7px;font-size:18px;overflow-wrap:anywhere}
-.saving-total{padding:11px 0;font-size:12px;color:var(--ink2)}
-.saving-leaderboard-row{display:grid;grid-template-columns:25px minmax(0,1fr) auto;gap:9px;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:12px}
-.saving-leaderboard-row>div{min-width:0;overflow-wrap:anywhere}
-.saving-leaderboard-row small{display:block;font-size:10px;color:var(--muted);margin-top:3px}
-.saving-position{display:grid;place-items:center;width:24px;height:24px;background:#edf6f3;border-radius:8px;font-size:11px;color:#0b8571}
-.saving-secondary-heading{margin-top:21px}
-
+/* Estilos de conciliación de tickets; los bloques estadísticos antiguos se han eliminado. */
 .v5-match-warning{padding:12px;margin:12px 0;border:1px solid #c8e4da;border-radius:12px;background:#f1faf6}
 .v5-match-warning strong{display:block;color:#096f61;font-size:12px}
 .v5-match-warning p{font-size:11px;line-height:1.5;margin:8px 0}
@@ -402,6 +366,28 @@ html[data-app-theme="noche"] .saving-kpi-necessary strong{color:#56d0b8}
 .settings-row[href]{text-decoration:none;color:inherit}
 .settings-row[href]:focus-visible,.transaction-tools button:focus-visible{outline:3px solid var(--design-accent);outline-offset:2px}
 
+
+/* Accesibilidad de controles en iPhone y coherencia con temas */
+.receipt-product-row input,.receipt-product-row select,.receipt-saved-row select,
+.smart-import-fields input,.smart-import-fields select{background:var(--white);color:var(--ink)}
+.receipt-saved-row select{border-color:var(--border)}
+.smart-import-status{background:var(--design-soft);color:var(--ink2)}
+.stats-cat-icon{background:var(--design-soft);color:var(--design-accent)}
+.stats-cat-track{background:var(--border)}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid var(--design-accent);outline-offset:2px}
+@media(max-width:420px){
+ .receipt-product-row{grid-template-columns:minmax(0,1fr) 94px;gap:8px;padding:10px 8px;background:var(--bg);border:1px solid var(--border);border-radius:12px}
+ .receipt-product-row input:first-child{grid-column:1}
+ .receipt-product-row input:nth-child(2){grid-column:2}
+ .receipt-product-row select{grid-column:1}
+ .receipt-product-row button{grid-column:2;min-height:39px;font-size:13px}
+ .receipt-saved-row{grid-template-columns:minmax(0,1fr) auto}
+ .receipt-saved-row select{grid-column:1/-1;min-height:42px}
+}
+@media(max-width:600px){
+ input:not([type="checkbox"]):not([type="radio"]),select,textarea{font-size:16px}
+ .receipt-product-row input,.receipt-product-row select,.receipt-saved-row select{font-size:16px}
+}
 </style>
   <title>Budviva · Tu dinero, más claro</title>
 </head>
