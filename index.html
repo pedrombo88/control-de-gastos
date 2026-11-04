@@ -184,6 +184,96 @@
 .v5-match-warning p{font-size:11px;line-height:1.5;margin:8px 0}
 .v5-match-warning label{display:block;font-size:11px;font-weight:700}
 .v5-match-warning select{width:100%;margin-top:7px;border:1px solid #c8e4da;border-radius:9px;padding:10px 6px;background:white;font-size:12px}
+ 
+/* Control de Gastos 5.3 — rediseño visual */
+html[data-app-theme="oceano"],html:not([data-app-theme]){
+  --mint:#2585e9;--mint2:#e4efff;--ink:#142445;--ink2:#506583;--bg:#f3f6fc;--border:#e2e9f5;
+  --design-accent:#2585e9;--design-strong:#153369;--design-soft:#eaf3ff;--design-header-a:#102754;--design-header-b:#214789;
+  --design-hero-a:#2558c8;--design-hero-b:#132f67;--design-focus:#b7d8fa;
+}
+html[data-app-theme="esmeralda"]{
+  --mint:#00a68a;--mint2:#def6ed;--ink:#162e36;--ink2:#58717a;--bg:#f3f8f7;--border:#dfecea;
+  --design-accent:#009f85;--design-strong:#123c47;--design-soft:#e2f6ef;--design-header-a:#0f353e;--design-header-b:#145b5e;
+  --design-hero-a:#0a776e;--design-hero-b:#17354d;--design-focus:#a1e2d1;
+}
+html[data-app-theme="arena"]{
+  --mint:#bd783e;--mint2:#fff0dd;--ink:#3e3027;--ink2:#7b6c61;--bg:#faf7f2;--border:#efe7dc;
+  --design-accent:#b57738;--design-strong:#5d4032;--design-soft:#fff1e0;--design-header-a:#463a37;--design-header-b:#835940;
+  --design-hero-a:#a36a45;--design-hero-b:#51423a;--design-focus:#e8c59c;
+}
+html[data-app-theme="noche"]{
+  color-scheme:dark;--mint:#4db6fa;--mint2:#1e3650;--ink:#f2f5ff;--ink2:#b2c3d8;--muted:#94abc3;--bg:#0d1728;--white:#1a2941;--border:#2f4059;--shadow:0 9px 26px rgba(0,0,0,.16);
+  --design-accent:#58b8ff;--design-strong:#e7f3ff;--design-soft:#1a344e;--design-header-a:#0a1525;--design-header-b:#162c50;
+  --design-hero-a:#235c94;--design-hero-b:#142747;--design-focus:#5185b2;
+}
+html[data-app-theme] body,body{background:var(--bg)}
+.app-shell{background:var(--bg)}
+.site-header{height:96px;padding:22px 23px 17px;background:linear-gradient(108deg,var(--design-header-a),var(--design-header-b));box-shadow:0 7px 24px rgba(21,44,88,.15);border-radius:0 0 25px 25px;color:#fff;margin-bottom:17px}
+.brand-name{color:#fff;font-size:19px;letter-spacing:-.7px}.brand-name span{color:#8fe6ff;font-weight:750}
+.brand-caption{color:#c7d8f5;letter-spacing:.45px}
+.brand-mark{background:#ffffff22;border:1px solid #ffffff3e;color:#fff;box-shadow:none;border-radius:13px;font-size:22px!important}
+.header-add{background:#ffffff22;border:1px solid #ffffff30;color:#fff;box-shadow:none;width:44px;height:44px;border-radius:13px}
+main{padding-top:0;padding-left:18px;padding-right:18px}
+.view-heading{margin-top:15px;margin-bottom:18px}.eyebrow{color:var(--design-accent);font-size:10px;letter-spacing:1.8px}.page-title{font-size:29px;letter-spacing:-1.3px}
+.month-selector{background:var(--white);box-shadow:0 4px 15px rgba(30,50,85,.05);border-radius:12px}.month-selector strong{font-size:11px}
+.month-arrow{color:var(--ink)}
+.balance-card{background:linear-gradient(130deg,var(--design-hero-a),var(--design-hero-b));border-radius:25px;min-height:224px;box-shadow:0 19px 31px rgba(24,65,135,.17)}
+.balance-card::before{top:-225px;right:-75px;border-color:#ffffff26}.balance-card::after{background:#ffffff12}
+.balance-main{font-size:41px;letter-spacing:-1.6px;margin-bottom:26px}
+.balance-title{color:#dce8ff}.balance-label{color:#c8d7f2}
+.balance-icon{background:#ffffff24;border-radius:10px}
+.card{background:var(--white);border-color:var(--border);box-shadow:0 6px 24px rgba(28,48,79,.045);border-radius:19px}
+.section-heading h2{font-size:18px;letter-spacing:-.5px}
+.text-link{color:var(--design-accent)}
+.primary-btn{background:var(--design-accent)}
+.filter-pill{background:var(--white);border-color:var(--border);color:var(--ink2)}
+.filter-pill.is-active{background:var(--design-strong);color:#fff;border-color:var(--design-strong)}
+.transaction-row{background:transparent;color:var(--ink)}
+.transaction-row+.transaction-row{border-color:var(--border)}
+.transaction-amount.income{color:var(--design-accent)}
+.search-field{background:var(--white);border-color:var(--border);color:var(--ink2)}
+.search-field input{color:var(--ink)}
+.budget-overview{background:linear-gradient(125deg,var(--white),var(--design-soft));border:1px solid var(--border);padding:23px 20px}
+.budget-amount{color:var(--ink);font-size:29px}
+.progress{height:10px;background:var(--border)}.progress>span{background:var(--design-accent)}
+.budget-row{padding:16px 0}.small-action{border-color:var(--border);background:var(--design-soft);color:var(--design-strong)}
+.settings-row,.settings-card{background:var(--white);color:var(--ink)}
+.settings-row .settings-emoji{background:var(--design-soft);color:var(--design-accent)}
+.settings-row small,.budget-values .secondary{color:var(--muted)}
+.settings-row .chevron{color:var(--muted)}
+.bottom-nav{background:var(--white);border-color:var(--border);box-shadow:0 -8px 32px rgba(20,40,70,.055);height:calc(77px + env(safe-area-inset-bottom))}
+.nav-item{color:var(--muted)}.nav-item.is-active{color:var(--design-accent)}.nav-item.is-active:before{background:var(--design-accent);height:3px;width:25px}
+.nav-icon{height:25px}.nav-icon svg{width:23px;height:23px}
+.tip-banner{background:var(--design-soft);border:1px solid var(--border)}
+.tip-banner .tip-icon,.rec-home .feature-icon{background:var(--design-soft);color:var(--design-accent)}
+.tip-banner p{color:var(--ink2)}
+.privacy-note{background:var(--design-soft);border-color:var(--border)}
+.privacy-note p{color:var(--ink2)}
+.privacy-icon{background:var(--white);color:var(--design-accent)}
+.sheet-card{background:var(--white);color:var(--ink)}.segment{background:var(--design-soft)}.segment-btn{color:var(--ink2)}.segment-btn.is-active{background:var(--design-strong);color:#fff}
+.field input,.field select{background:var(--bg);border-color:var(--border);color:var(--ink)}
+.amount-entry input,.icon-button{color:var(--ink)}.icon-button{background:var(--design-soft)}.tag{background:var(--design-soft);color:var(--design-accent)}
+.empty-icon{background:var(--design-soft);color:var(--design-accent)}.total-badge{background:var(--design-soft);color:var(--design-strong)}
+.budget-alert-panel{background:var(--white)}.budget-alert-item{border-color:var(--border)}
+.budget-alert-config{background:var(--white)}.budget-alert-select select{background:var(--bg);color:var(--ink)}
+.hero-quick-actions{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin:14px 0 24px}
+.hero-quick-actions button{min-height:63px;display:flex;align-items:center;justify-content:center;gap:10px;border-radius:17px;padding:12px;border:1px solid var(--border);font-size:12px;font-weight:800;letter-spacing:-.1px}
+.hero-quick-actions .quick-expense{background:var(--design-accent);color:#fff;border-color:var(--design-accent);box-shadow:0 8px 19px rgba(28,102,206,.15)}
+.hero-quick-actions .quick-scan{background:var(--white);color:var(--ink)}
+.hero-quick-actions .ui-pictogram{width:20px;height:20px}
+.theme-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:15px 0 0}
+.theme-choice{background:var(--white);border:2px solid var(--border);border-radius:15px;padding:12px 10px;display:flex;gap:10px;align-items:center;color:var(--ink);min-height:62px;text-align:left}
+.theme-choice.is-selected{border-color:var(--design-accent);box-shadow:0 0 0 3px var(--design-soft)}
+.theme-choice .theme-swatch{width:25px;height:25px;border-radius:9px;background:linear-gradient(140deg,var(--swatch-one),var(--swatch-two));flex:none}
+.theme-choice .theme-name{font-size:12px;font-weight:800}.theme-choice .theme-check{margin-left:auto;font-size:14px;color:var(--design-accent)}
+.theme-note{font-size:11px;color:var(--muted);line-height:1.5;margin:12px 3px 0}
+.header-version{font-size:9px;font-weight:900;background:#ffffff27;color:#fff;padding:2px 5px;border-radius:5px;margin-left:5px}
+html[data-app-theme="noche"] .budget-alert-panel{background:#2b2730;color:#f6e5d2}
+html[data-app-theme="noche"] .balance-card{box-shadow:0 14px 30px rgba(0,0,0,.27)}
+html[data-app-theme="noche"] .search-field input::placeholder{color:#8ca0b8}
+html[data-app-theme="noche"] .form-error{background:#422c39;color:#ffdce5}
+@media(max-width:380px){.site-header{padding-left:17px;padding-right:17px}.page-title{font-size:25px}.month-selector strong{min-width:90px;font-size:10px}.hero-quick-actions button{font-size:11px;padding:9px;gap:7px}}
+
 </style>
   <title>Control de Gastos · Controla tu dinero</title>
 </head>
@@ -193,7 +283,7 @@
   <div id="smart-import-status" class="smart-import-status" role="status" aria-live="polite" hidden></div>
   <div id="app" class="app-shell">
     <header class="site-header">
-      <div class="brand-lockup"><div class="brand-mark" aria-hidden="true">CG</div><div><div class="brand-name">control de <span>gastos</span></div><div class="brand-caption">Tus finanzas en orden</div></div></div>
+      <div class="brand-lockup"><div class="brand-mark" aria-hidden="true">CG</div><div><div class="brand-name">control de <span>gastos</span></div><div class="brand-caption">Tus finanzas en orden <span class="header-version">V5.3</span></div></div></div>
       <button id="quick-add-top" class="header-add" type="button" aria-label="Añadir movimiento" title="Añadir movimiento">+</button>
     </header>
     <main id="page-content" tabindex="-1" aria-live="polite"></main>
@@ -264,7 +354,7 @@
 <script src="reconcile.js"></script>
 <script src="smart-import.js"></script>
   <script>
-/* Control de Gastos — versión 5.2. Datos exclusivamente en este dispositivo. */
+/* Control de Gastos — versión 5.3. Datos exclusivamente en este dispositivo. */
 (() => {
   'use strict';
   const STORAGE_KEY = 'saldo-diario-data-v1';
@@ -423,6 +513,7 @@
     const tip=inc ? (out>inc?'<strong>Este mes has gastado más de lo ingresado.</strong><p>Revisa las categorías de gasto y define límites mensuales.</p>':`<strong>Has utilizado el ${spentRatio}% de tus ingresos.</strong><p>${inc-out>0?'Vas por buen camino. Puedes reservar parte de lo que queda para ahorrar.':'Tu balance está equilibrado.'}</p>`) : '<strong>Empieza por añadir tus ingresos.</strong><p>Así podrás ver el balance real y la parte que destinas a gastos.</p>';
     return `${heading('Tu resumen','VISTA GENERAL')}
       <section class="balance-card" aria-label="Resumen del mes"><div class="balance-title">Balance del mes</div><div class="balance-main">${h(money(balance))}</div><div class="balance-grid"><div class="balance-item"><span class="balance-icon" aria-hidden="true">${pictogram("arrowUp",18)}</span><div><span class="balance-label">Ingresos</span><span class="balance-amount">${h(money(inc))}</span></div></div><div class="balance-item"><span class="balance-icon" aria-hidden="true">${pictogram("arrowDown",18)}</span><div><span class="balance-label">Gastos</span><span class="balance-amount">${h(money(out))}</span></div></div></div></section>
+      <div class="hero-quick-actions"><button type="button" class="quick-expense" data-action="new-expense">${pictogram("arrowDown",19)} Añadir gasto</button><button type="button" class="quick-scan" data-action="smart-import">${pictogram("camera",19)} Escanear ticket</button></div>
       ${cardHeader('¿En qué has gastado?')}<section class="card" aria-label="Desglose de gastos">${chart}</section>
       <div class="tip-banner"><div class="tip-icon" aria-hidden="true">${pictogram("bulb",22)}</div><div>${tip}</div></div>
       ${budgetAlertView()}
@@ -479,7 +570,20 @@
       <p class="footnote">Los límites son mensuales y se aplican automáticamente a todos los meses. Los gastos sin presupuesto no se incluyen en el total asignado.</p>`;
   };
   const settingsRow = (emoji,title,subtitle,action) => `<button type="button" class="settings-row" data-action="${action}"><span class="settings-emoji" aria-hidden="true">${pictogram(visualSettings[action]||"file",21)}</span><span class="content"><b>${title}</b><small>${subtitle}</small></span><span class="chevron" aria-hidden="true">›</span></button>`;
-  const renderSettings = () => `<div class="view-heading"><div><div class="eyebrow">PREFERENCIAS</div><h1 class="page-title">Ajustes</h1></div><span class="tag">v5.2 pruebas</span></div>
+  const currentTheme=()=>{
+    try{const t=localStorage.getItem('control-gastos-theme-v1');return ['oceano','esmeralda','arena','noche'].includes(t)?t:'oceano';}
+    catch(_){return 'oceano';}
+  };
+  let appTheme=currentTheme();
+  document.documentElement.dataset.appTheme=appTheme;
+  const renderThemePicker=()=>{
+    const themes=[
+      ['oceano','Océano','#153c7c','#288cef'],['esmeralda','Esmeralda','#164a54','#12b99a'],
+      ['arena','Arena','#5d4135','#d49b5e'],['noche','Noche','#0f192b','#346296']
+    ];
+    return `<section class="card"><strong style="font-size:13px">Selecciona tu estilo</strong><p class="muted">Cambia los colores y las superficies de toda la aplicación.</p><div class="theme-grid" role="group" aria-label="Tema de visualización">${themes.map(([id,label,a,b])=>`<button type="button" data-theme-choice="${id}" aria-pressed="${appTheme===id}" class="theme-choice ${appTheme===id?'is-selected':''}" style="--swatch-one:${a};--swatch-two:${b}"><span class="theme-swatch" aria-hidden="true"></span><span class="theme-name">${label}</span><span class="theme-check">${appTheme===id?'✓':''}</span></button>`).join('')}</div></section><p class="theme-note">El cambio es inmediato y no afecta a tus movimientos.</p>`;
+  };
+  const renderSettings = () => `<div class="view-heading"><div><div class="eyebrow">PREFERENCIAS</div><h1 class="page-title">Ajustes</h1></div><span class="tag">v5.3 pruebas</span></div>
     ${cardHeader('Tus datos')}<section class="card settings-card">
     ${settingsRow('📦','Descargar copia de seguridad','Guarda un archivo .json con todos tus datos.','export-json')}
     ${settingsRow('📥','Restaurar copia','Recupera tus datos desde un archivo .json.','import-json')}
@@ -488,6 +592,7 @@
     ${settingsRow('📷','Importar tickets y extractos','Haz fotos a tickets o importa PDF y CSV del banco.','smart-import')}
     </section>
     ${cardHeader('Avisos de presupuesto')}<section class="card budget-alert-config"><label class="budget-alert-control"><span><b>Activar avisos</b><small>Te avisamos dentro de la aplicación cuando una categoría alcanza el umbral.</small></span><input id="budget-alert-enabled" type="checkbox" ${(data.budgetAlerts||{enabled:true}).enabled?'checked':''}></label><label class="budget-alert-select" for="budget-alert-threshold"><span>Umbral de aviso</span><select id="budget-alert-threshold" ${(data.budgetAlerts||{enabled:true}).enabled?'':'disabled'}>${[70,80,90].map(n=>`<option value="${n}" ${(data.budgetAlerts?.threshold||80)===n?'selected':''}>${n} %</option>`).join('')}</select></label><p class="muted">Al llegar al 100 % se muestra una advertencia de límite alcanzado o superado. No enviamos notificaciones externas.</p></section>
+    ${cardHeader('Personalización')} ${renderThemePicker()}
     ${cardHeader('Aplicación')}<section class="card settings-card">
     ${settingsRow('🏡','Instalar en el iPhone','Añádela a la pantalla de inicio desde Safari.','install-info')}
     ${settingsRow('🧪','Cargar datos de demostración','Prueba los gráficos sin utilizar datos reales.','demo-data')}
@@ -574,6 +679,7 @@
     if(action==='export-csv'){exportCsv();return;}
     if(action==='import-json'){importFileInput.click();return;}
     if(action==='demo-data'){makeDemo();return;}
+    if(action==='new-expense'){openTransaction();return;}
     if(action==='install-info'){toast('En Safari: Compartir → Añadir a pantalla de inicio');return;}
     if(action==='erase-data'){
       if(!confirm('¿Borrar definitivamente tus movimientos, presupuestos y reglas recurrentes de este dispositivo? Exporta una copia si quieres conservarlos.'))return;
@@ -590,6 +696,16 @@
     render();toast('Preferencias de avisos guardadas');
   });
   document.addEventListener('click', e => {
+    const themeButton=e.target.closest('[data-theme-choice]');
+    if(themeButton){
+      const value=themeButton.dataset.themeChoice;
+      if(!['oceano','esmeralda','arena','noche'].includes(value))return;
+      appTheme=value;
+      document.documentElement.dataset.appTheme=value;
+      try{localStorage.setItem('control-gastos-theme-v1',value);}catch(_){}
+      render();toast('Tema '+{oceano:'Océano',esmeralda:'Esmeralda',arena:'Arena',noche:'Noche'}[value]+' aplicado');
+      return;
+    }
     const close=e.target.closest('[data-close]');if(close){document.getElementById(close.dataset.close)?.close();return;}
     const type=e.target.closest('[data-entry-type]');if(type){setEntryType(type.dataset.entryType);return;}
     const tab=e.target.closest('[data-tab]');if(tab){ui.tab=tab.dataset.tab;ui.receiptId=null;ui.query='';ui.filter='all';render();window.scrollTo({top:0,behavior:'instant'});return;}
