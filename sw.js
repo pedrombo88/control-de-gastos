@@ -1,7 +1,7 @@
-/* Budviva 5.8 — recursos actualizados de red, uso offline conservado. */
+/* Budviva 6.0 — recursos actualizados de red, uso offline conservado. */
 const CACHE_PREFIX = 'control-de-gastos-';
-const CACHE = CACHE_PREFIX + '5.8';
-const CORE = ['./','./index.html','./recurring.js','./stats.js','./reconcile.js','./smart-import.js','./manifest.webmanifest','./icon.svg','./privacidad.html','./soporte.html'];
+const CACHE = CACHE_PREFIX + '6.0';
+const CORE = ['./','./index.html','./recurring.js','./stats.js','./reconcile.js','./documents.js','./backup-crypto.js','./smart-import.js','./manifest.webmanifest','./icon.svg','./privacidad.html','./soporte.html'];
 
 self.addEventListener('install', event => {
   event.waitUntil((async () => {
