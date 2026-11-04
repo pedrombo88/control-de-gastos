@@ -1,6 +1,5 @@
-/* Solo credenciales PÚBLICAS del proyecto Budviva: nunca claves secretas.
-   Configurar después de crear el proyecto backend independiente. */
+/* Configuración pública de Budviva Compartidos. No incluir claves privadas. */
 window.BUDVIVA_SHARED_CONFIG = Object.freeze({
- url: "",
- publishableKey: ""
+  url: "https://bsvtttcuqamjifnpuzlj.supabase.co",
+  publishableKey: "sb_publishable_vuz1EmFnMWS9PgMQVXEBjw_3F-6G1gr"
 });
