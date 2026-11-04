@@ -2,7 +2,7 @@
 (function(root){
   "use strict";
   function build(ctx){
-    const {getData,CAT,money,h,pictogram,render,getMonth}=ctx;
+    const {getData,CAT,money,h,pictogram,render,getMonth,monthSelector}=ctx;
     let period=1;
     let cut=25;
     function calc(){
@@ -17,7 +17,7 @@
       };
     }
     function periodButtons(){
-      return [[1,"Este mes"],[3,"3 meses"],[6,"6 meses"]].map(function(p){
+      return [[1,"Mes elegido"],[3,"3 meses"],[6,"6 meses"]].map(function(p){
         return '<button type="button" class="saving-period'+(period===p[0]?' selected':'')+
           '" data-saving-period="'+p[0]+'" aria-pressed="'+(period===p[0])+'">'+p[1]+'</button>';
       }).join("");
@@ -34,7 +34,7 @@
     }
     function renderPage(){
       const obj=calc(),a=obj.analysis,n=obj.needs;
-      const heading='<div class="view-heading"><div><div class="eyebrow">TU DINERO, MÁS CLARO</div><h1 class="page-title">Ahorro inteligente</h1></div><span class="tag">Análisis de tickets</span></div>';
+      const heading='<div class="view-heading"><div><div class="eyebrow">TU DINERO, MÁS CLARO</div><h1 class="page-title">Ahorro inteligente</h1></div><span class="tag">Tickets</span></div><div class="saving-month-select">'+monthSelector()+'</div>';
       const products=a.products.map(function(p,i){
         return '<div class="saving-rank-row"><span class="saving-rank-num">'+(i+1)+'</span><div class="saving-rank-info"><strong>'+h(p.name)+
           '</strong><small>'+p.count+' '+(p.count===1?'compra':'compras')+'</small></div><b>'+h(money(p.amount))+'</b></div>';
