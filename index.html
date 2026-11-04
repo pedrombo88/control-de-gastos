@@ -1133,20 +1133,26 @@ root.BudvivaGoals={build,total,status};
     const docs=window.BudvivaDocuments;
     if(!docs)throw Error('No está disponible el almacén de documentos.');
     const attached=Object.prototype.hasOwnProperty.call(payload,'attachments');
-    const records=attached?docs.decodeBundle(payload.attachments):null;
+    const records=attached?docs.decodeBundle(payload.attachments):[];
     const what=attached?'incluidos los archivos originales':'sin archivos originales (copia antigua)';
-    if(!confirm(`La restauración reemplazará tus ${data.transactions.length} movimientos por ${incoming.transactions.length} de la copia, ${what}. Exporta tus datos actuales antes de continuar. ¿Restaurar?`))return false;
-    const before=data,beforeCorrupt=dataLoadCorrupt;
-    let oldFiles=null;
-    if(attached){
-      oldFiles=await docs.getAll();
-      await docs.replaceAll(records);
+    if(!attached){
+      // Nunca conservar identificadores de archivos que la copia anterior no incluye.
+      for(const tx of incoming.transactions)delete tx.sourceDocumentIds;
+    }else{
+      const ids=new Set(records.map(record=>record.id));
+      if(incoming.transactions.some(tx=>Array.isArray(tx.sourceDocumentIds)&&tx.sourceDocumentIds.some(id=>!ids.has(id)))){
+        throw Error('La copia hace referencia a documentos originales ausentes. No se ha restaurado nada.');
+      }
     }
+    if(!confirm(`La restauración reemplazará tus ${data.transactions.length} movimientos por ${incoming.transactions.length} de la copia, ${what}, y eliminará los originales locales anteriores. Exporta primero una copia completa si quieres conservarlos. ¿Restaurar?`))return false;
+    const before=data,beforeCorrupt=dataLoadCorrupt,oldFiles=await docs.getAll();
+    await docs.replaceAll(records);
     data=incoming;dataLoadCorrupt=false;
     if(!save()){
       data=before;dataLoadCorrupt=beforeCorrupt;
-      if(oldFiles!==null)await docs.replaceAll(oldFiles).catch(err=>console.error('No se pudieron restaurar los originales tras un fallo:',err));
-      throw Error('No se han podido guardar los movimientos. Se ha intentado restaurar el estado anterior.');
+      try{await docs.replaceAll(oldFiles);}
+      catch(err){console.error('Error recuperando documentos originales tras fallo de restauración',err);throw Error('No se pudieron restaurar los datos anteriores. Evita continuar y conserva tu copia de seguridad.');}
+      throw Error('No se pudieron guardar los movimientos. Se ha recuperado el estado anterior.');
     }
     ui.month=nowMonth();ui.tab='home';ui.query='';ui.filter='all';render();toast('Copia restaurada.');
     return true;
