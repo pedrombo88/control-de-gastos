@@ -8,6 +8,19 @@ struct ReceiptProduct: Codable, Identifiable {
     var amount: Int
     var necessity: String = "pending"
     var quantity: Int? = 1
+
+    enum CodingKeys: String, CodingKey { case id,name,amount,necessity,quantity }
+    init(from decoder:Decoder)throws{
+        let box=try decoder.container(keyedBy:CodingKeys.self)
+        id=try box.decodeIfPresent(String.self,forKey:.id) ?? UUID().uuidString
+        name=try box.decode(String.self,forKey:.name)
+        amount=try box.decode(Int.self,forKey:.amount)
+        necessity=try box.decodeIfPresent(String.self,forKey:.necessity) ?? "pending"
+        quantity=try box.decodeIfPresent(Int.self,forKey:.quantity) ?? 1
+    }
+    init(id:String=UUID().uuidString,name:String,amount:Int,necessity:String="pending",quantity:Int?=1){
+        self.id=id;self.name=name;self.amount=amount;self.necessity=necessity;self.quantity=quantity
+    }
 }
 
 struct Movement: Codable, Identifiable {
@@ -48,6 +61,13 @@ struct SavingsGoal: Codable, Identifiable {
 struct AlertOptions: Codable {
     var enabled: Bool = true
     var threshold: Int = 80
+    enum CodingKeys:String,CodingKey { case enabled,threshold }
+    init() {}
+    init(from decoder:Decoder)throws{
+        let box=try decoder.container(keyedBy:CodingKeys.self)
+        enabled=try box.decodeIfPresent(Bool.self,forKey:.enabled) ?? true
+        threshold=try box.decodeIfPresent(Int.self,forKey:.threshold) ?? 80
+    }
 }
 
 struct RecurringRule: Codable, Identifiable {
@@ -81,8 +101,23 @@ struct FinanceData: Codable {
     var recurring: [RecurringRule] = []
     var recurringSkips: [String] = []
     var savingsGoals: [SavingsGoal] = []
-    // Los originales solo se incluyen en la exportación, no en el archivo de datos de uso diario.
     var attachments: [OriginalDocument]? = nil
+
+    enum CodingKeys: String,CodingKey {
+        case version,transactions,budgets,budgetAlerts,recurring,recurringSkips,savingsGoals,attachments
+    }
+    init() {}
+    init(from decoder:Decoder)throws{
+        let box=try decoder.container(keyedBy:CodingKeys.self)
+        version=try box.decodeIfPresent(Int.self,forKey:.version) ?? 2
+        transactions=try box.decode([Movement].self,forKey:.transactions)
+        budgets=try box.decodeIfPresent([String:Int].self,forKey:.budgets) ?? [:]
+        budgetAlerts=try box.decodeIfPresent(AlertOptions.self,forKey:.budgetAlerts) ?? AlertOptions()
+        recurring=try box.decodeIfPresent([RecurringRule].self,forKey:.recurring) ?? []
+        recurringSkips=try box.decodeIfPresent([String].self,forKey:.recurringSkips) ?? []
+        savingsGoals=try box.decodeIfPresent([SavingsGoal].self,forKey:.savingsGoals) ?? []
+        attachments=try box.decodeIfPresent([OriginalDocument].self,forKey:.attachments)
+    }
 }
 
 enum FinanceCategory {
@@ -156,9 +191,13 @@ final class FinanceStore: ObservableObject {
         try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         return url
     }
+    func prepareSecurity() {
+        try? FileManager.default.setAttributes([.protectionKey:FileProtectionType.complete],ofItemAtPath:supportURL.path)
+    }
 
     init() {
         theme = UserDefaults.standard.string(forKey: "budviva-theme") ?? "oceano"
+        prepareSecurity()
         do {
             if FileManager.default.fileExists(atPath: dataURL.path) {
                 data = try JSONDecoder().decode(FinanceData.self, from: Data(contentsOf: dataURL))
