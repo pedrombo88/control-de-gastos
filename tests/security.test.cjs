@@ -62,3 +62,10 @@ test("No document is persisted remotely by the local originals module",()=>{
     assert.doesNotMatch(source,/fetch\(/);
     assert.doesNotMatch(source,/XMLHttpRequest/);
 });
+
+test("Encrypted backups are compatible with deterministic AES-GCM vector", async () => {
+    const {BudvivaBackupCrypto:c}=load("backup-crypto.js");
+    const sample=${JSON.stringify(payload)};
+    const output=await c.decrypt(JSON.parse(sample),"Budviva-test-contraseña-2026");
+    assert.equal(output,${JSON.stringify(expected)});
+});
