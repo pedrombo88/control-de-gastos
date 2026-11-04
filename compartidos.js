@@ -6,6 +6,7 @@ const $=id=>document.getElementById(id);
 const authKey='budviva-shared-session-v1';
 const enc=encodeURIComponent;
 let session=null, user=null, household=null, members=[], expenses=[], settlements=[], inviteCode='';
+let draftApplied=false;
 const fmt=new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR'});
 const euro=n=>fmt.format(n/100);
 const esc=x=>String(x??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
@@ -89,6 +90,33 @@ function renderRoot(){
   setVisible('dashboard',true);renderDashboard();
 }
 function label(id){return members.find(m=>m.user_id===id)?.display_name||'Persona';}
+async function stableEventId(localId){
+ const input=new TextEncoder().encode(user.id+'|budviva-shared-v1|'+localId);
+ const digest=new Uint8Array(await crypto.subtle.digest('SHA-256',input));
+ const b=digest.slice(0,16);
+ b[6]=(b[6]&15)|0x80;b[8]=(b[8]&63)|0x80;
+ const h=Array.from(b,x=>x.toString(16).padStart(2,'0')).join('');
+ return h.slice(0,8)+'-'+h.slice(8,12)+'-'+h.slice(12,16)+'-'+h.slice(16,20)+'-'+h.slice(20);
+}
+function applyDraft(){
+ if(draftApplied)return;
+ let draft=null;
+ try{draft=JSON.parse(sessionStorage.getItem('budviva-share-draft-v1')||'null');}catch(_){}
+ if(!draft)return;
+ if(typeof draft.id!=='string'||!draft.id||typeof draft.title!=='string'||
+     !Number.isInteger(draft.amountCents)||draft.amountCents<=0||
+     !/^\d{4}-\d{2}-\d{2}$/.test(draft.date)||
+     Date.now()-draft.createdAt>24*60*60*1000){
+   sessionStorage.removeItem('budviva-share-draft-v1');return;
+ }
+ const form=$('expense-form');
+ form.elements.title.value=draft.title.slice(0,100);
+ form.elements.amount.value=(draft.amountCents/100).toFixed(2).replace('.',',');
+ form.elements.date.value=draft.date;
+ form.dataset.localId=draft.id;
+ draftApplied=true;
+ status('Gasto personal preparado. Revisa el reparto y pulsa «Guardar gasto compartido». Los cambios posteriores en tu movimiento privado no modifican automáticamente esta copia.');
+}
 function renderDashboard(){
   $('home-name').textContent=household.title;
   const sortedMembers=[...members].sort((a,b)=>a.joined_at.localeCompare(b.joined_at)||a.user_id.localeCompare(b.user_id));
@@ -120,6 +148,7 @@ function renderDashboard(){
     }catch(e){fail(e);}
   }
   renderHistory();
+  applyDraft();
 }
 function renderHistory(){
   const period=$('period').value, month=today().slice(0,7);
@@ -162,9 +191,14 @@ onSubmit('expense-form',async f=>{
   if(members.length!==2)throw Error('Debes vincular antes a la segunda persona.');
   const body={household_id:household.id,author_id:user.id,payer_id:user.id,
     title:f.elements.title.value.trim(),category:'otros',amount_cents:moneyToCents(f.elements.amount.value),
-    spent_on:f.elements.date.value,share_basis_points_a:Number(f.elements.share.value),client_event_id:crypto.randomUUID()};
+    spent_on:f.elements.date.value,share_basis_points_a:Number(f.elements.share.value),client_event_id:f.dataset.localId?await stableEventId(f.dataset.localId):crypto.randomUUID()};
   if(!body.title||body.title.length>100||!body.spent_on)throw Error('Revisa el concepto y la fecha.');
   await request('/rest/v1/bv_expenses',{method:'POST',data:body});
+  if(f.dataset.localId){
+    sessionStorage.removeItem('budviva-share-draft-v1');
+    delete f.dataset.localId;
+    draftApplied=false;
+  }
   f.reset();f.elements.date.value=today();await load();
 });
 onSubmit('settlement-form',async f=>{
