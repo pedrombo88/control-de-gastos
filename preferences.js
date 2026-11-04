@@ -22,8 +22,9 @@ function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
 function setTheme(value){if(!THEMES.includes(value))return;state.theme=value;save();apply();}
 function setLanguage(value){if(!LANGS.includes(value))return;state.language=value;save();apply();translate(document.body);}
 function t(value){return dictionaries[state.language]?.[value]||value;}
+const originals=new WeakMap();
 function translate(rootNode){
- if(!rootNode||state.language==='es')return;
+ if(!rootNode)return;
  const dictionary=dictionaries[state.language]||{};
  const walker=document.createTreeWalker(rootNode,NodeFilter.SHOW_TEXT,{
   acceptNode(node){
@@ -34,13 +35,17 @@ function translate(rootNode){
  });
  let node;
  while((node=walker.nextNode())){
-  const raw=node.nodeValue,trimmed=raw.trim();
-  if(dictionary[trimmed])node.nodeValue=raw.replace(trimmed,dictionary[trimmed]);
+  const raw=originals.has(node)?originals.get(node):node.nodeValue;
+  if(!originals.has(node))originals.set(node,raw);
+  const trimmed=raw.trim();
+  node.nodeValue=dictionary[trimmed]?raw.replace(trimmed,dictionary[trimmed]):raw;
  }
  rootNode.querySelectorAll?.('[placeholder],[aria-label],[title]').forEach(el=>{
   for(const attr of ['placeholder','aria-label','title']){
-   const value=el.getAttribute(attr);
-   if(value&&dictionary[value])el.setAttribute(attr,dictionary[value]);
+   const key='cgOriginal'+attr;
+   const value=el.dataset[key]||el.getAttribute(attr);
+   if(!el.dataset[key]&&value)el.dataset[key]=value;
+   if(value)el.setAttribute(attr,dictionary[value]||value);
   }
  });
 }
