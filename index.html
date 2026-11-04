@@ -350,6 +350,49 @@ html[data-app-theme="noche"] .saving-kpi-necessary strong{color:#56d0b8}
 .bottom-nav>.nav-item{min-width:0!important;width:100%;padding:0 1px;font-size:9px;white-space:nowrap;overflow:visible}
 .bottom-nav>.nav-item .nav-icon{flex:none}
 .bottom-nav>.nav-item[data-tab="savings"] .nav-icon{color:var(--design-accent,var(--mint))}
+
+/* V5.7 Metas de ahorro */
+.goals-section{margin:22px 0 10px}
+.goals-total{display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--white);border:1px solid var(--border);border-radius:16px;padding:13px 15px;margin:11px 0}
+.goals-total small{display:block;font-size:11px;color:var(--muted)}
+.goals-total strong{font-size:22px;display:block;margin-top:5px;color:var(--ink)}
+.goals-total>span{background:var(--design-soft);color:var(--design-accent);border-radius:25px;padding:8px 10px;font-weight:800;font-size:10px;white-space:nowrap}
+.goals-items{display:grid;gap:11px}
+.goal-item{border:1px solid var(--border);border-radius:18px;padding:16px;background:var(--white)}
+.goal-item-top{display:flex;justify-content:space-between;align-items:start;gap:9px}
+.goal-item-title{min-width:0;overflow-wrap:anywhere}
+.goal-item-title strong{display:block;font-size:15px;color:var(--ink)}
+.goal-item-title small{display:block;margin-top:5px;font-size:11px;color:var(--muted)}
+.goal-edit{font-size:11px;font-weight:800;color:var(--design-accent);background:var(--design-soft);border:0;padding:8px 10px;border-radius:9px}
+.goal-numbers{display:flex;align-items:baseline;gap:7px;margin:17px 0 10px;flex-wrap:wrap}
+.goal-numbers strong{color:var(--ink);font-size:24px;letter-spacing:-.4px}
+.goal-numbers span{color:var(--muted);font-size:12px}
+.goal-progress{height:9px;background:var(--design-soft);overflow:hidden;border-radius:15px}
+.goal-progress>span{display:block;height:100%;border-radius:15px;background:linear-gradient(90deg,#109f88,#50caa9);transition:width .25s}
+.goal-bottom{display:flex;justify-content:space-between;gap:9px;margin:8px 0 12px;color:var(--muted);font-size:11px}
+.goal-status{font-size:11px;font-weight:750;line-height:1.5;color:#168574}
+.goal-status:before{content:"";display:inline-block;width:7px;height:7px;background:#119c7d;border-radius:50%;margin-right:7px}
+.goal-status-late,.goal-status-behind{color:#be7540}
+.goal-status-late:before,.goal-status-behind:before{background:#d7904a}
+.goal-monthly{font-size:11px;line-height:1.5;color:var(--ink2);margin:7px 0}
+.goal-monthly strong{color:var(--ink)}
+.goal-add{width:100%;background:var(--design-soft);border:1px solid var(--design-accent);border-radius:12px;padding:11px;color:var(--design-accent);font-size:12px;font-weight:850;margin-top:12px}
+.goal-history{border-top:1px solid var(--border);margin-top:13px;font-size:11px}
+.goal-history summary{cursor:pointer;padding:12px 0 5px;font-weight:750;color:var(--ink2)}
+.goal-history-row{display:flex;gap:8px;align-items:center;border-bottom:1px solid var(--border);padding:10px 0}
+.goal-history-row span{min-width:0;flex:1;overflow-wrap:anywhere;color:var(--muted)}
+.goal-history-row b{color:var(--ink);white-space:nowrap}
+.goal-history-row button{color:#bd6767;border:0;background:transparent;font-size:15px}
+.goal-empty{display:flex;flex-direction:column;align-items:center;gap:9px;padding:21px 16px;text-align:center}
+.goal-empty .goal-symbol{background:var(--design-soft);color:var(--design-accent);border-radius:15px;font-size:33px;width:51px;height:51px;display:grid;place-items:center}
+.goal-empty strong{font-size:13px;color:var(--ink)}
+.goal-empty p{font-size:12px;line-height:1.5;color:var(--muted);margin:0}
+.goal-empty .primary-btn{width:100%;margin-top:8px}
+.goal-home{padding:16px}.goal-home>div:first-child{display:flex;justify-content:space-between;gap:8px;margin-bottom:13px;font-size:12px}
+.goal-home b{color:var(--design-accent)}.goal-home small{display:block;font-size:11px;color:var(--muted);margin-top:9px}
+.goal-dialog-form .form-grid{margin:11px 0}
+.goal-dialog-form .field input{min-height:43px}
+
 </style>
   <title>Budviva · Tu dinero, más claro</title>
 </head>
@@ -359,7 +402,7 @@ html[data-app-theme="noche"] .saving-kpi-necessary strong{color:#56d0b8}
   <div id="smart-import-status" class="smart-import-status" role="status" aria-live="polite" hidden></div>
   <div id="app" class="app-shell">
     <header class="site-header">
-      <div class="brand-lockup"><div class="brand-mark" aria-hidden="true">B<i class="brand-mark-dot"></i></div><div><div class="brand-name">bud<span>viva</span></div><div class="brand-caption">Tu dinero, más claro <span class="header-version">V5.6</span></div></div></div>
+      <div class="brand-lockup"><div class="brand-mark" aria-hidden="true">B<i class="brand-mark-dot"></i></div><div><div class="brand-name">bud<span>viva</span></div><div class="brand-caption">Tu dinero, más claro <span class="header-version">V5.7</span></div></div></div>
       <button id="quick-add-top" class="header-add" type="button" aria-label="Añadir movimiento" title="Añadir movimiento">+</button>
     </header>
     <main id="page-content" tabindex="-1" aria-live="polite"></main>
@@ -423,6 +466,35 @@ html[data-app-theme="noche"] .saving-kpi-necessary strong{color:#56d0b8}
       <div class="sheet-actions"><button id="rec-delete" type="button" class="danger-text" hidden>Eliminar regla</button><button class="primary-btn" type="submit">Guardar regla</button></div>
     </form>
   </dialog>
+  
+  <dialog id="goal-dialog" class="sheet-dialog" aria-labelledby="goal-heading">
+    <form id="goal-form" class="sheet-card goal-dialog-form" novalidate>
+      <div class="sheet-grabber" aria-hidden="true"></div>
+      <div class="sheet-heading"><h2 id="goal-heading">Nuevo objetivo</h2><button type="button" class="icon-button" data-close="goal-dialog" aria-label="Cerrar">✕</button></div>
+      <div class="form-grid">
+        <label class="field field-wide">Nombre del objetivo <input name="title" maxlength="65" placeholder="Ej. Vacaciones, emergencia..." required></label>
+        <label class="field">Cantidad objetivo (€) <input name="target" inputmode="decimal" placeholder="3.000,00" required></label>
+        <label class="field">Fecha límite <input name="dueDate" type="date" required></label>
+      </div>
+      <p class="footnote">Las aportaciones se registran por separado y no afectan a tu saldo.</p>
+      <div id="goal-form-error" class="form-error" role="alert" hidden></div>
+      <div class="sheet-actions"><button id="goal-remove" type="button" class="danger-text" hidden>Eliminar objetivo</button><button type="submit" class="primary-btn">Guardar objetivo</button></div>
+    </form>
+  </dialog>
+  <dialog id="goal-money-dialog" class="sheet-dialog" aria-labelledby="goal-money-heading">
+    <form id="goal-money-form" class="sheet-card goal-dialog-form" novalidate>
+      <div class="sheet-grabber" aria-hidden="true"></div>
+      <div class="sheet-heading"><h2 id="goal-money-heading">Nueva aportación</h2><button type="button" class="icon-button" data-close="goal-money-dialog" aria-label="Cerrar">✕</button></div>
+      <div class="form-grid">
+        <label class="field">Importe (€) <input name="amount" inputmode="decimal" placeholder="100,00" required></label>
+        <label class="field">Fecha <input name="date" type="date" required></label>
+        <label class="field field-wide">Nota (opcional) <input name="note" maxlength="90" placeholder="Ej. Ahorro de noviembre"></label>
+      </div>
+      <div id="goal-money-error" class="form-error" role="alert" hidden></div>
+      <div class="sheet-actions"><button type="submit" class="primary-btn">Registrar aportación</button></div>
+    </form>
+  </dialog>
+
   <input id="backup-import" type="file" accept="application/json,.json" hidden>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="recurring.js"></script>
@@ -430,11 +502,133 @@ html[data-app-theme="noche"] .saving-kpi-necessary strong{color:#56d0b8}
 <script src="reconcile.js"></script>
 <script src="smart-import.js"></script>
 <script>
+/* Budviva V5.7 — objetivos de ahorro reales, independientes del saldo */
+(function(root){
+"use strict";
+const total=g=>(g.contributions||[]).reduce((s,c)=>s+c.amount,0);
+function status(g,today){
+ const saved=total(g),remaining=Math.max(0,g.target-saved),progress=Math.min(1,saved/g.target);
+ const toDays=s=>Date.parse(s+"T12:00:00Z")/86400000;
+ const remainingDays=Math.max(0,toDays(g.dueDate)-toDays(today));
+ const elapsed=Math.max(0,Math.min(1,(toDays(today)-toDays(g.createdAt))/Math.max(1,toDays(g.dueDate)-toDays(g.createdAt))));
+ const monthly=remaining?Math.ceil(remaining/Math.max(1,remainingDays/30.4375)):0;
+ let state="ok",message="Vas siguiendo tu plan";
+ if(remaining===0){state="done";message="¡Objetivo conseguido!";}
+ else if(today>g.dueDate){state="late";message="Fecha superada · ahorro pendiente";}
+ else if(today===g.dueDate){state="late";message="La fecha límite es hoy";}
+ else if(today>g.createdAt&&saved+g.target*.05<g.target*elapsed){state="behind";message="Por debajo del ritmo previsto";}
+ return {saved,remaining,progress,monthly,state,message};
+}
+function build(ctx){
+ const {getData,save,render,money,parseMoney,isRealDate,uid,h,toast,localDate}=ctx;
+ const goalDlg=document.getElementById("goal-dialog"),goalForm=document.getElementById("goal-form");
+ const moneyDlg=document.getElementById("goal-money-dialog"),moneyForm=document.getElementById("goal-money-form");
+ let editing=null,depositing=null;
+ const list=()=>getData().savingsGoals;
+ const find=id=>list().find(g=>g.id===id);
+ const dateFmt=d=>new Intl.DateTimeFormat("es-ES",{day:"numeric",month:"short",year:"numeric"}).format(new Date(d+"T12:00:00"));
+ function formError(id,msg){const el=document.getElementById(id);el.textContent=msg;el.hidden=false;}
+ function change(fn){
+   const backup=JSON.stringify(list());fn();
+   if(!save()){getData().savingsGoals=JSON.parse(backup);render();return false;}
+   render();return true;
+ }
+ function renderPanel(){
+   const goals=list(),today=localDate(),sum=goals.reduce((n,g)=>n+total(g),0);
+   const entries=goals.slice().sort((a,b)=>a.dueDate.localeCompare(b.dueDate)).map(g=>{
+     const st=status(g,today),pct=Math.round(st.progress*100);
+     const history=g.contributions.slice().sort((a,b)=>b.date.localeCompare(a.date)||b.id.localeCompare(a.id));
+     return '<article class="goal-item"><div class="goal-item-top"><div class="goal-item-title"><strong>'+h(g.title)+'</strong><small>Objetivo: '+h(dateFmt(g.dueDate))+'</small></div><button type="button" class="goal-edit" data-goal-edit="'+h(g.id)+'">Editar</button></div>'+
+     '<div class="goal-numbers"><strong>'+h(money(st.saved))+'</strong><span>de '+h(money(g.target))+'</span></div>'+
+     '<div class="goal-progress" role="progressbar" aria-label="Progreso de '+h(g.title)+'" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+pct+'"><span style="width:'+pct+'%"></span></div>'+
+     '<div class="goal-bottom"><span>'+pct+' % conseguido</span><span>Faltan '+h(money(st.remaining))+'</span></div>'+
+     '<div class="goal-status goal-status-'+st.state+'">'+h(st.message)+'</div>'+
+     (st.remaining?'<p class="goal-monthly">Para cumplir la meta: <strong>'+h(money(st.monthly))+' / mes</strong></p>':'')+
+     '<button class="goal-add" type="button" data-goal-add="'+h(g.id)+'">+ Registrar aportación</button>'+
+     (history.length?'<details class="goal-history"><summary>Historial de aportaciones ('+history.length+')</summary>'+
+       history.slice(0,30).map(c=>'<div class="goal-history-row"><span>'+h(dateFmt(c.date))+(c.note?' · '+h(c.note):'')+'</span><b>'+h(money(c.amount))+'</b><button type="button" data-goal-delete-entry="'+h(c.id)+'" data-goal-id="'+h(g.id)+'" aria-label="Eliminar aportación">✕</button></div>').join('')+
+       (history.length>30?'<p class="muted">Se muestran las 30 aportaciones más recientes.</p>':'')+'</details>':'')+'</article>';
+   }).join('');
+   return '<section class="goals-section" aria-label="Objetivos de ahorro"><div class="section-heading"><h2>Mis objetivos de ahorro</h2><button type="button" class="text-link" data-goal-new>+ Nuevo</button></div>'+
+   '<div class="goals-total"><div><small>Ahorro real registrado</small><strong>'+h(money(sum))+'</strong></div><span>'+goals.length+' '+(goals.length===1?'objetivo':'objetivos')+'</span></div>'+
+   (entries?'<div class="goals-items">'+entries+'</div>':'<section class="card goal-empty"><div class="goal-symbol">◎</div><strong>Crea tu primera meta</strong><p>Decide cuánto quieres ahorrar y hasta cuándo. Después registra las aportaciones que realmente reserves.</p><button type="button" class="primary-btn" data-goal-new>Crear objetivo</button></section>')+
+   '<p class="footnote">Las aportaciones son apuntes de ahorro real que introduces manualmente. No modifican tus movimientos, saldo ni cuentas bancarias. Comprueba que has reservado ese dinero.</p></section>';
+ }
+ function renderHome(){
+   const goals=list();if(!goals.length)return '';
+   const g=goals.filter(x=>total(x)<x.target).sort((a,b)=>a.dueDate.localeCompare(b.dueDate))[0]||goals[0],st=status(g,localDate());
+   return '<div class="section-heading"><h2>Objetivos de ahorro</h2><button type="button" class="text-link" data-action="savings">Ver metas →</button></div>'+
+     '<section class="card goal-home"><div><strong>'+h(g.title)+'</strong><b>'+Math.round(st.progress*100)+' %</b></div>'+
+     '<div class="goal-progress"><span style="width:'+Math.round(st.progress*100)+'%"></span></div><small>'+h(money(st.saved))+' de '+h(money(g.target))+' ahorrados</small></section>';
+ }
+ function openGoal(id){
+   const g=id?find(id):null;if(id&&!g)return;
+   editing=g?g.id:null;goalForm.reset();
+   goalForm.elements.title.value=g?g.title:'';
+   goalForm.elements.target.value=g?String((g.target/100).toFixed(2)).replace('.',','):'';
+   const due=new Date();due.setFullYear(due.getFullYear()+1);
+   goalForm.elements.dueDate.value=g?g.dueDate:localDate(due);
+   document.getElementById("goal-heading").textContent=g?"Editar objetivo":"Nuevo objetivo";
+   document.getElementById("goal-remove").hidden=!g;
+   document.getElementById("goal-form-error").hidden=true;
+   goalDlg.showModal();
+ }
+ function openMoney(id){
+   const g=find(id);if(!g)return;depositing=id;moneyForm.reset();
+   moneyForm.elements.date.value=localDate();
+   document.getElementById("goal-money-heading").textContent="Ahorrar para "+g.title;
+   document.getElementById("goal-money-error").hidden=true;moneyDlg.showModal();
+ }
+ goalForm.addEventListener("submit",event=>{
+   event.preventDefault();
+   const title=goalForm.elements.title.value.trim(),target=parseMoney(goalForm.elements.target.value),dueDate=goalForm.elements.dueDate.value;
+   if(!title||title.length>65||!target||!isRealDate(dueDate)||(!editing&&dueDate<localDate()))return formError("goal-form-error","Introduce un nombre, un importe válido y una fecha de hoy o posterior.");
+   const g=editing?find(editing):null;if(editing&&!g)return formError("goal-form-error","Objetivo no encontrado.");
+   if(!g&&list().length>=60)return formError("goal-form-error","Máximo 60 objetivos.");
+   const ok=change(()=>{
+     if(g){g.title=title;g.target=target;g.dueDate=dueDate;}
+     else list().push({id:uid(),title,target,dueDate,createdAt:localDate(),contributions:[]});
+   });
+   if(ok){goalDlg.close();toast(g?"Objetivo actualizado":"Objetivo creado");}
+ });
+ moneyForm.addEventListener("submit",event=>{
+   event.preventDefault();
+   const g=find(depositing),amount=parseMoney(moneyForm.elements.amount.value),date=moneyForm.elements.date.value,note=moneyForm.elements.note.value.trim();
+   if(!g)return formError("goal-money-error","Objetivo no encontrado.");
+   if(!amount||!isRealDate(date)||date>localDate()||note.length>90)return formError("goal-money-error","Revisa el importe y la fecha (no puede ser futura).");
+   if(g.contributions.length>=500)return formError("goal-money-error","Máximo 500 aportaciones por objetivo.");
+   if(total(g)+amount>9999999999)return formError("goal-money-error","Importe acumulado demasiado grande.");
+   if(change(()=>g.contributions.push({id:uid(),amount,date,note:note.slice(0,90)}))){moneyDlg.close();toast("Aportación registrada");}
+ });
+ document.getElementById("goal-remove").addEventListener("click",()=>{
+   const g=find(editing);if(!g||!confirm('¿Eliminar «'+g.title+'» y todas sus aportaciones?'))return;
+   if(change(()=>{getData().savingsGoals=list().filter(x=>x.id!==g.id);})){goalDlg.close();toast("Objetivo eliminado");}
+ });
+ document.addEventListener("click",event=>{
+   const el=event.target.closest("[data-goal-new],[data-goal-edit],[data-goal-add],[data-goal-delete-entry]");
+   if(!el)return;
+   if(el.hasAttribute("data-goal-new"))return openGoal();
+   if(el.hasAttribute("data-goal-edit"))return openGoal(el.dataset.goalEdit);
+   if(el.hasAttribute("data-goal-add"))return openMoney(el.dataset.goalAdd);
+   if(el.hasAttribute("data-goal-delete-entry")){
+     const g=find(el.dataset.goalId),c=g?.contributions.find(x=>x.id===el.dataset.goalDeleteEntry);
+     if(!c||!confirm("¿Eliminar esta aportación de "+money(c.amount)+"?"))return;
+     if(change(()=>{g.contributions=g.contributions.filter(x=>x.id!==c.id);})){toast("Aportación eliminada");}
+   }
+ });
+ [goalDlg,moneyDlg].forEach(d=>d.addEventListener("click",event=>{if(event.target===d)d.close();}));
+ return {renderPanel,renderHome};
+}
+root.BudvivaGoals={build,total,status};
+})(window);
+
+</script>
+<script>
 /* Budviva V5.5 - Ahorro inteligente. Reutiliza las cuentas de CGStats. */
 (function(root){
   "use strict";
   function build(ctx){
-    const {getData,CAT,money,h,pictogram,render,getMonth,monthSelector}=ctx;
+    const {getData,CAT,money,h,pictogram,render,getMonth,monthSelector,renderGoals}=ctx;
     let period=1;
     let cut=25;
     function calc(){
@@ -493,7 +687,7 @@ html[data-app-theme="noche"] .saving-kpi-necessary strong{color:#56d0b8}
         '<div class="saving-hero-value">'+h(money(a.averageMonthly))+'</div>'+
         '<div class="saving-hero-caption">Simulación reduciendo el '+cut+' % de las compras marcadas como «No necesario».</div>'+
         '<div class="saving-hero-divider"></div><div class="saving-hero-foot"><span>Proyección anual orientativa</span><strong>'+h(money(a.annualProjection))+'</strong></div></section>'+
-        '<section class="card saving-simulator"><h2>Tu plan de reducción</h2><p class="muted">¿Qué porcentaje de compras prescindibles puedes evitar?</p>'+
+        renderGoals()+'<section class="card saving-simulator"><h2>Tu plan de reducción</h2><p class="muted">¿Qué porcentaje de compras prescindibles puedes evitar?</p>'+
         '<div class="saving-choices-v2" role="group" aria-label="Porcentaje simulado">'+cutButtons()+'</div>'+
         '<p class="saving-explanation">Has identificado '+h(money(a.optional))+' en compras prescindibles durante el periodo. Reducir un '+cut+
         ' % equivaldría a '+h(money(a.reduction))+' en el periodo seleccionado.</p></section>'+
@@ -533,7 +727,7 @@ html[data-app-theme="noche"] .saving-kpi-necessary strong{color:#56d0b8}
 
 </script>
   <script>
-/* Budviva — versión 5.6. Datos exclusivamente en este dispositivo. */
+/* Budviva — versión 5.7. Datos exclusivamente en este dispositivo. */
 (() => {
   'use strict';
   const STORAGE_KEY = 'saldo-diario-data-v1';
@@ -595,7 +789,7 @@ html[data-app-theme="noche"] .saving-kpi-necessary strong{color:#56d0b8}
     return !Number.isNaN(date.getTime()) && localDate(date) === d && d >= '2000-01-01' && d <= '2100-12-31';
   };
   const catById = id => CAT.find(c=>c.id===id) || CAT.find(c=>c.id==='otros');
-  const defaults = () => ({version:2, transactions:[], budgets:{}, budgetAlerts:{enabled:true,threshold:80}, recurring:[], recurringSkips:[]});
+  const defaults = () => ({version:2, transactions:[], budgets:{}, budgetAlerts:{enabled:true,threshold:80}, recurring:[], recurringSkips:[], savingsGoals:[]});
   const normalize = raw => {
     if(!raw || !Array.isArray(raw.transactions) || typeof raw!=='object') throw new Error('Copia de seguridad no válida');
     if(raw.transactions.length > 40000) throw new Error('El archivo tiene demasiados movimientos');
@@ -627,6 +821,24 @@ html[data-app-theme="noche"] .saving-kpi-necessary strong{color:#56d0b8}
       }
     }
     if(Array.isArray(raw.recurringSkips))clean.recurringSkips=raw.recurringSkips.filter(x=>typeof x==='string'&&x.length<150).slice(0,5000);
+    if(Array.isArray(raw.savingsGoals)){
+      if(raw.savingsGoals.length>60)throw new Error('Demasiados objetivos de ahorro');
+      const ids=new Set();
+      for(const g of raw.savingsGoals){
+        if(!g||typeof g.id!=='string'||!g.id||g.id.length>=100||ids.has(g.id)||typeof g.title!=='string'||!g.title.trim()||!Number.isSafeInteger(g.target)||g.target<=0||g.target>9999999999||!isRealDate(g.dueDate)||!isRealDate(g.createdAt))throw new Error('La copia tiene objetivos no válidos');
+        ids.add(g.id);
+        const items=Array.isArray(g.contributions)?g.contributions:[];
+        if(items.length>500)throw new Error('Demasiadas aportaciones');
+        const usedContributions=new Set(),contributions=[];
+        for(const c of items){
+          if(!c||typeof c.id!=='string'||!c.id||c.id.length>=100||usedContributions.has(c.id)||!Number.isSafeInteger(c.amount)||c.amount<=0||c.amount>9999999999||!isRealDate(c.date))throw new Error('La copia tiene aportaciones no válidas');
+          usedContributions.add(c.id);
+          contributions.push({id:c.id,amount:c.amount,date:c.date,note:String(c.note??'').slice(0,90)});
+        }
+        if(contributions.reduce((n,c)=>n+c.amount,0)>9999999999)throw new Error('El importe de una meta supera el máximo');
+        clean.savingsGoals.push({id:g.id,title:g.title.trim().slice(0,65),target:g.target,dueDate:g.dueDate,createdAt:g.createdAt,contributions});
+      }
+    }
     return clean;
   };
   let data = defaults();
@@ -642,6 +854,7 @@ html[data-app-theme="noche"] .saving-kpi-necessary strong{color:#56d0b8}
   // Conserva la clave de almacenamiento de V1 para migrar sin perder movimientos.
   if(!Array.isArray(data.recurring))data.recurring=[];
   if(!Array.isArray(data.recurringSkips))data.recurringSkips=[];
+  if(!Array.isArray(data.savingsGoals))data.savingsGoals=[];
   let ui = {tab:'home',month:nowMonth(),filter:'all',query:''};
   let editingTx = null;
   let editingBudget = null;
@@ -653,7 +866,8 @@ html[data-app-theme="noche"] .saving-kpi-necessary strong{color:#56d0b8}
   const recurring=window.CGRecurring.build({getData:()=>data,save,render:()=>render(),CAT,h,money,parseMoney,isRealDate,uid,toast,localDate});
   const stats=window.CGStats.build({getData:()=>data,CAT,money,h,localDate,render:()=>render()});
   const smartImport=window.CGSmartImport.build({getData:()=>data,save,render:()=>render(),CAT,h,money,parseMoney,isRealDate,uid,toast,localDate});
-  const savings=window.BudvivaSavings.build({getData:()=>data,CAT,money,h,pictogram,render:()=>render(),getMonth:()=>ui.month,monthSelector:()=>monthSelector()});
+  const goals=window.BudvivaGoals.build({getData:()=>data,save,render:()=>render(),money,parseMoney,isRealDate,uid,h,toast,localDate});
+  const savings=window.BudvivaSavings.build({getData:()=>data,CAT,money,h,pictogram,render:()=>render(),getMonth:()=>ui.month,monthSelector:()=>monthSelector(),renderGoals:()=>goals.renderPanel()});
   const currentTx = () => data.transactions.filter(t=>monthOf(t.date)===ui.month);
   const total = (list,type) => list.reduce((n,t)=>n+(!type||t.type===type?t.amount:0),0);
   const monthSelector = () => {
@@ -696,6 +910,7 @@ html[data-app-theme="noche"] .saving-kpi-necessary strong{color:#56d0b8}
       <section class="balance-card" aria-label="Resumen del mes"><div class="balance-title">Balance del mes</div><div class="balance-main">${h(money(balance))}</div><div class="balance-grid"><div class="balance-item"><span class="balance-icon" aria-hidden="true">${pictogram("arrowUp",18)}</span><div><span class="balance-label">Ingresos</span><span class="balance-amount">${h(money(inc))}</span></div></div><div class="balance-item"><span class="balance-icon" aria-hidden="true">${pictogram("arrowDown",18)}</span><div><span class="balance-label">Gastos</span><span class="balance-amount">${h(money(out))}</span></div></div></div></section>
       <div class="hero-quick-actions"><button type="button" class="quick-expense" data-action="new-expense">${pictogram("arrowDown",19)} Añadir gasto</button><button type="button" class="quick-scan" data-action="smart-import">${pictogram("camera",19)} Escanear ticket</button></div>
       ${savings.renderPreview(ui.month)}
+      ${goals.renderHome()}
       ${cardHeader('¿En qué has gastado?')}<section class="card" aria-label="Desglose de gastos">${chart}</section>
       <div class="tip-banner"><div class="tip-icon" aria-hidden="true">${pictogram("bulb",22)}</div><div>${tip}</div></div>
       ${budgetAlertView()}
@@ -765,7 +980,7 @@ html[data-app-theme="noche"] .saving-kpi-necessary strong{color:#56d0b8}
     ];
     return `<section class="card"><strong style="font-size:13px">Selecciona tu estilo</strong><p class="muted">Cambia los colores y las superficies de toda la aplicación.</p><div class="theme-grid" role="group" aria-label="Tema de visualización">${themes.map(([id,label,a,b])=>`<button type="button" data-theme-choice="${id}" aria-pressed="${appTheme===id}" class="theme-choice ${appTheme===id?'is-selected':''}" style="--swatch-one:${a};--swatch-two:${b}"><span class="theme-swatch" aria-hidden="true"></span><span class="theme-name">${label}</span><span class="theme-check">${appTheme===id?'✓':''}</span></button>`).join('')}</div></section><p class="theme-note">El cambio es inmediato y no afecta a tus movimientos.</p>`;
   };
-  const renderSettings = () => `<div class="view-heading"><div><div class="eyebrow">PREFERENCIAS</div><h1 class="page-title">Ajustes</h1></div><span class="tag">v5.6 pruebas</span></div>
+  const renderSettings = () => `<div class="view-heading"><div><div class="eyebrow">PREFERENCIAS</div><h1 class="page-title">Ajustes</h1></div><span class="tag">v5.7 pruebas</span></div>
     ${cardHeader('Tus datos')}<section class="card settings-card">
     ${settingsRow('📦','Descargar copia de seguridad','Guarda un archivo .json con todos tus datos.','export-json')}
     ${settingsRow('📥','Restaurar copia','Recupera tus datos desde un archivo .json.','import-json')}
@@ -857,7 +1072,7 @@ html[data-app-theme="noche"] .saving-kpi-necessary strong{color:#56d0b8}
     const demo=defaults();
     for(let offset=2;offset>=0;offset--){const month=new Date(y,m-1-offset,1);const key=`${month.getFullYear()}-${String(month.getMonth()+1).padStart(2,'0')}`;for(const [type,category,title,amount,day] of template){if(offset===0 && day>new Date().getDate())continue;demo.transactions.push({id:uid(),type,category,title,amount:Math.round(amount*(1+(2-offset)*.08)),date:`${key}-${String(day).padStart(2,'0')}`,note:'Dato de demostración',method:category==='ocio'?'cash':'card'});}}
     demo.budgets={alimentacion:32000,hogar:85000,transporte:13000,ocio:12500,suscripciones:2000};
-    const prev=data;demo.recurring=data.recurring;demo.recurringSkips=data.recurringSkips;data=demo;if(!save()){data=prev;return;}
+    const prev=data;demo.recurring=data.recurring;demo.recurringSkips=data.recurringSkips;demo.savingsGoals=data.savingsGoals;data=demo;if(!save()){data=prev;return;}
     ui.tab='home';const previewMonth=new Date(y,m-1-(new Date().getDate()<10?1:0),1);ui.month=`${previewMonth.getFullYear()}-${String(previewMonth.getMonth()+1).padStart(2,'0')}`;render();toast('Datos de ejemplo cargados');
   };
   // Evitar caché antigua, sin tocar localStorage ni los movimientos guardados.
@@ -873,13 +1088,13 @@ html[data-app-theme="noche"] .saving-kpi-necessary strong{color:#56d0b8}
         await Promise.all(keys.filter(k=>k.startsWith('control-de-gastos-')).map(k=>caches.delete(k)));
       }
       const next=new URL(location.href);
-      next.searchParams.set('v','5.6');
+      next.searchParams.set('v','5.7');
       next.searchParams.set('refresh',String(Date.now()));
       location.replace(next.href);
     } catch(err) {
       console.warn('No se pudo actualizar la PWA:',err);
       const next=new URL(location.href);
-      next.searchParams.set('v','5.6');
+      next.searchParams.set('v','5.7');
       next.searchParams.set('refresh',String(Date.now()));
       location.replace(next.href);
     }
@@ -894,7 +1109,7 @@ html[data-app-theme="noche"] .saving-kpi-necessary strong{color:#56d0b8}
     if(action==='refresh-app'){refreshBudviva();return;}
     if(action==='install-info'){toast('En Safari: Compartir → Añadir a pantalla de inicio');return;}
     if(action==='erase-data'){
-      if(!confirm('¿Borrar definitivamente tus movimientos, presupuestos y reglas recurrentes de este dispositivo? Exporta una copia si quieres conservarlos.'))return;
+      if(!confirm('¿Borrar definitivamente tus movimientos, presupuestos, objetivos de ahorro y reglas recurrentes de este dispositivo? Exporta una copia si quieres conservarlos.'))return;
       const prev=data;data=defaults();if(!save()){data=prev;return;}
       ui.month=nowMonth();ui.tab='home';ui.filter='all';ui.query='';render();toast('Datos borrados');
     }
