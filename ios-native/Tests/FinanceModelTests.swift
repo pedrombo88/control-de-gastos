@@ -63,4 +63,44 @@ final class FinanceModelTests: XCTestCase {
         let value=try BackupCipher.decrypt(Data(fixture.utf8),password:"Budviva-test-contraseña-2026")
         XCTAssertEqual(String(data:value,encoding:.utf8),#"{"version":2,"transactions":[],"budgets":{}}"#)
     }
+
+    @MainActor
+    func testLegacyBackupClearsOrphanedOriginalReferences() throws {
+        let legacy = """
+        {
+          "version":2,
+          "transactions":[
+            {"id":"legacy-ref-1","type":"expense","date":"2026-11-04",
+             "title":"Compra antigua","amount":1250,"category":"otros",
+             "sourceDocumentIds":["missing-original"]}
+          ]
+        }
+        """
+        let store=FinanceStore()
+        try store.restoreBackup(Data(legacy.utf8))
+        XCTAssertEqual(store.data.transactions.count,1)
+        XCTAssertNil(store.data.transactions.first?.sourceDocumentIds)
+        let exported=try JSONDecoder().decode(FinanceData.self,from:store.exportBackup())
+        XCTAssertEqual(exported.attachments?.count,0)
+        try store.wipe()
+    }
+
+    @MainActor
+    func testMalformedFullBackupDoesNotReplaceExistingState() throws {
+        let store=FinanceStore()
+        let initial=store.data.transactions.count
+        let malformed = """
+        {
+          "version":2,
+          "transactions":[
+            {"id":"ref-invalid-1","type":"expense","date":"2026-11-04",
+             "title":"Incorrecto","amount":1250,"category":"otros",
+             "sourceDocumentIds":["not-in-attachments"]}
+          ],
+          "attachments":[]
+        }
+        """
+        XCTAssertThrowsError(try store.restoreBackup(Data(malformed.utf8)))
+        XCTAssertEqual(store.data.transactions.count,initial)
+    }
 }
