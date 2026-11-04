@@ -1,7 +1,7 @@
-/* Budviva 5.7 — recursos actualizados de red, uso offline conservado. */
+/* Budviva 5.8 — recursos actualizados de red, uso offline conservado. */
 const CACHE_PREFIX = 'control-de-gastos-';
-const CACHE = CACHE_PREFIX + '5.7';
-const CORE = ['./','./index.html','./recurring.js','./stats.js','./reconcile.js','./smart-import.js','./manifest.webmanifest','./icon.svg'];
+const CACHE = CACHE_PREFIX + '5.8';
+const CORE = ['./','./index.html','./recurring.js','./stats.js','./reconcile.js','./smart-import.js','./manifest.webmanifest','./icon.svg','./privacidad.html','./soporte.html'];
 
 self.addEventListener('install', event => {
   event.waitUntil((async () => {
@@ -31,6 +31,9 @@ self.addEventListener('fetch', event => {
         }
         return response;
       }catch(err){
+        const pathname=new URL(request.url).pathname;
+        if(pathname.endsWith('/privacidad.html'))return await caches.match('./privacidad.html') || Response.error();
+        if(pathname.endsWith('/soporte.html'))return await caches.match('./soporte.html') || Response.error();
         return await caches.match('./index.html') || Response.error();
       }
     })());
