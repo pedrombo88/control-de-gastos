@@ -1,0 +1,13 @@
+{
+  "name": "budviva",
+  "private": true,
+  "version": "6.0.0",
+  "description": "Budviva PWA — control de gastos y ahorro",
+  "scripts": {
+    "test": "node --test tests/*.test.cjs",
+    "check": "node tools/check-web.cjs && npm test"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
