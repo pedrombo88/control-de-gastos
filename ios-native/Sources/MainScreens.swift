@@ -1,5 +1,6 @@
 import SwiftUI
 import Charts
+import QuickLook
 
 struct HomeScreen: View {
     @EnvironmentObject var store: FinanceStore
@@ -174,6 +175,8 @@ struct EntryEditor: View {
     @State private var note=""
     @State private var method="card"
     @State private var invalid=false
+    @State private var previewOriginal:URL?
+    @State private var previewCopies:[URL]=[]
     var body:some View {
         NavigationStack {
             Form {
@@ -194,6 +197,23 @@ struct EntryEditor: View {
                     }
                     TextField("Nota",text:$note)
                 }
+                if let entry,let originals=entry.sourceDocumentIds,!originals.isEmpty {
+                    Section("Documentos originales") {
+                        ForEach(originals,id:\.self) { id in
+                            Button {
+                                do {
+                                    let url=try store.previewOriginal(id)
+                                    previewCopies.append(url)
+                                    previewOriginal=url
+                                }catch {
+                                    store.errorMessage="No se pudo abrir el original: "+error.localizedDescription
+                                }
+                            } label:{
+                                Label("Abrir documento original",systemImage:"doc.text")
+                            }
+                        }
+                    }
+                }
                 if entry != nil {
                     Section { Button("Eliminar movimiento",role:.destructive){
                         store.delete(entry!.id);dismiss()
@@ -208,6 +228,11 @@ struct EntryEditor: View {
             }
             .alert("Revisa los datos",isPresented:$invalid) { Button("Aceptar",role:.cancel){} }
                 message:{Text("Introduce un concepto y una cantidad válida mayor de cero.")}
+            .quickLookPreview($previewOriginal)
+            .onDisappear {
+                for url in previewCopies {try? FileManager.default.removeItem(at:url)}
+                previewCopies=[]
+            }
             .onAppear {
                 guard let entry else { return }
                 type=entry.type;title=entry.title;amount=String(format:"%.2f",Double(entry.amount)/100).replacingOccurrences(of:".",with:",")
