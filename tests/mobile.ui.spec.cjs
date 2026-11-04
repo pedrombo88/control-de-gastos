@@ -99,3 +99,44 @@ test("Un movimiento permite adjuntar original y exportarlo en una copia completa
   expect(data.attachments[0].name).toBe("justificante.txt");
   expect(Buffer.from(data.attachments[0].base64,"base64").toString("utf8")).toContain("TOTAL 8,35");
 });
+
+
+function receiptPDF(){
+  // PDF elemental con xref válido, Helvetica y tres líneas de texto. Ningún recurso de red.
+  const content=[
+    "BT /F1 15 Tf 40 740 Td (TIENDA PRUEBA) Tj",
+    "0 -26 Td (PAN 2,50) Tj",
+    "0 -26 Td (TOTAL 2,50) Tj ET"
+  ].join("\n");
+  const objects=[
+    "<< /Type /Catalog /Pages 2 0 R >>",
+    "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+    "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>",
+    "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+    "<< /Length "+Buffer.byteLength(content,"latin1")+" >>\nstream\n"+content+"\nendstream"
+  ];
+  let doc="%PDF-1.4\n",offsets=[0];
+  for(let i=0;i<objects.length;i++){
+    offsets.push(Buffer.byteLength(doc,"latin1"));
+    doc+=(i+1)+" 0 obj\n"+objects[i]+"\nendobj\n";
+  }
+  const start=Buffer.byteLength(doc,"latin1");
+  doc+="xref\n0 "+(objects.length+1)+"\n0000000000 65535 f \n";
+  for(const n of offsets.slice(1))doc+=String(n).padStart(10,"0")+" 00000 n \n";
+  doc+="trailer\n<< /Size "+(objects.length+1)+" /Root 1 0 R >>\nstartxref\n"+start+"\n%%EOF\n";
+  return Buffer.from(doc,"latin1");
+}
+test("El importador lee un PDF auténtico desde la biblioteca local PDF.js",async({page})=>{
+  await page.locator('[data-tab="transactions"]').click();
+  await page.locator('#page-content [data-action="smart-import"]').click();
+  await expect(page.locator('#page-content')).toContainText("Importar movimientos");
+  await page.locator('#smart-import-file').setInputFiles({
+    name:"ticket-auditoria.pdf",
+    mimeType:"application/pdf",
+    buffer:receiptPDF()
+  });
+  await expect(page.locator('[data-import-row]')).toHaveCount(1,{timeout:20000});
+  await expect(page.locator('#smart-import-status')).toContainText("1 posibles movimientos");
+  await expect(page.locator('#page-content')).toContainText("TIENDA PRUEBA");
+  await expect(page.locator('#page-content')).toContainText("PAN");
+});
