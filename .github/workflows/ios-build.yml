@@ -49,3 +49,34 @@ jobs:
             -destination 'generic/platform=iOS Simulator' \
             CODE_SIGNING_ALLOWED=NO \
             build-for-testing
+      - name: Ejecutar pruebas XCTest en simulador
+        timeout-minutes: 18
+        run: |
+          set -euo pipefail
+          echo "Dispositivos de simulador disponibles:"
+          xcrun simctl list devices available
+          DEVICE_ID=$(xcrun simctl list devices available -j | python3 -c '
+          import json,sys
+          devices=json.load(sys.stdin)["devices"]
+          ios=[device for runtime,group in devices.items() if "iOS" in runtime for device in group]
+          choices=[item for item in ios if "iPhone" in item["name"] and item["state"]=="Shutdown" and item.get("isAvailable",True)]
+          if not choices: choices=[item for item in ios if "iPhone" in item["name"] and item.get("isAvailable",True)]
+          print(choices[0]["udid"] if choices else "")
+          ')
+          if [ -z "$DEVICE_ID" ]; then echo "No se encuentra un simulador iPhone disponible"; exit 1; fi
+          xcrun simctl boot "$DEVICE_ID" || true
+          xcrun simctl bootstatus "$DEVICE_ID" -b
+          xcodebuild -project ios-native/Budviva.xcodeproj \
+            -scheme Budviva \
+            -configuration Debug \
+            -destination "platform=iOS Simulator,id=$DEVICE_ID" \
+            -resultBundlePath ios-native/BudvivaTestResults.xcresult \
+            CODE_SIGNING_ALLOWED=NO \
+            test
+      - name: Guardar informe de XCTest si falla
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: budviva-ios-xctest
+          path: ios-native/BudvivaTestResults.xcresult
+          retention-days: 7
