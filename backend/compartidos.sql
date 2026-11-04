@@ -74,7 +74,7 @@ create policy "bv member update own name" on public.bv_members for update to aut
  using (user_id=(select auth.uid())) with check (user_id=(select auth.uid()));
 create policy "bv expenses read" on public.bv_expenses for select to authenticated using(private.bv_is_member(household_id));
 create policy "bv expenses insert" on public.bv_expenses for insert to authenticated
- with check(author_id=(select auth.uid()) and private.bv_is_member(household_id)
+ with check(author_id=(select auth.uid()) and payer_id=(select auth.uid()) and private.bv_is_member(household_id)
    and exists(select 1 from public.bv_members m where m.household_id=bv_expenses.household_id and m.user_id=bv_expenses.payer_id));
 create policy "bv expenses delete own" on public.bv_expenses for delete to authenticated
  using(author_id=(select auth.uid()) and private.bv_is_member(household_id));
