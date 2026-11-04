@@ -40,3 +40,12 @@ jobs:
             -destination 'generic/platform=iOS Simulator' \
             CODE_SIGNING_ALLOWED=NO \
             build
+      - name: Compilar pruebas XCTest para simulador
+        run: |
+          xcodebuild -project ios-native/Budviva.xcodeproj \
+            -scheme Budviva \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO \
+            build-for-testing
