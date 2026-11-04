@@ -359,7 +359,8 @@ html[data-app-theme="noche"] .saving-kpi-necessary strong{color:#56d0b8}
 
 
 /* Budviva V5.8 — navegación simplificada */
-.transaction-tools{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 19px}
+.transaction-tools{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:0 0 19px}
+@media(max-width:480px){.transaction-tools{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .transaction-tools button{min-width:0;min-height:65px;padding:9px 4px;background:var(--white);border:1px solid var(--border);border-radius:14px;color:var(--ink);font-size:11px;font-weight:800;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
 .transaction-tools button .ui-pictogram{color:var(--design-accent)}
 .transaction-tools button:active{transform:translateY(1px)}
@@ -848,7 +849,7 @@ root.BudvivaGoals={build,total,status};
 
 </script>
   <script>
-/* Budviva — versión 6.3.0. Datos exclusivamente en este dispositivo. */
+/* Budviva — versión 6.3.1. Datos exclusivamente en este dispositivo. */
 (() => {
   'use strict';
   const STORAGE_KEY = 'saldo-diario-data-v1';
@@ -1123,7 +1124,7 @@ root.BudvivaGoals={build,total,status};
       ${settingsRow('🗑️','Borrar datos financieros','Elimina movimientos, presupuestos, reglas y objetivos.','erase-data')}
     </section>
     ${dataLoadCorrupt?'<p class="form-error">Los datos guardados no se pueden leer. Restaura una copia de seguridad antes de introducir nuevos registros.</p>':(!storageOK?'<p class="form-error">No se puede acceder al almacenamiento local; evita registrar datos hasta solucionarlo.</p>':'')}
-    <p class="footnote">Tus registros se conservan en este dispositivo. Haz una copia de seguridad periódica para evitar pérdidas. Budviva · versión 6.3.0 (beta).</p>`;
+    <p class="footnote">Tus registros se conservan en este dispositivo. Haz una copia de seguridad periódica para evitar pérdidas. Budviva · versión 6.3.1 (beta).</p>`;
   const render = () => {
     const selectedReceipt=ui.tab==='transactions'&&ui.receiptId?data.transactions.find(t=>t.id===ui.receiptId):null;
     shell.innerHTML = ({home:renderHome,transactions:renderTransactions,budgets:renderBudgets,recurring:recurring.renderPage,stats:stats.renderPage,'smart-import':smartImport.renderPage,savings:savings.renderPage,settings:renderSettings})[ui.tab]();
