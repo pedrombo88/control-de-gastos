@@ -240,7 +240,7 @@ function build(ctx){
    const opts=[["pending","Sin clasificar"],["necessary","Necesario"],["optional","No necesario"]].map(([value,label])=>'<option value="'+value+'" '+(item.necessity===value?"selected":"")+'>'+label+'</option>').join("");
    return '<div class="receipt-saved-row"><span>'+escape(item.name)+'</span><b>'+escape(money(item.amount))+'</b><select data-saved-product-necessity="'+j+'" data-saved-receipt-id="'+escape(t.id)+'" aria-label="Necesidad de '+escape(item.name)+'">'+opts+'</select></div>';
   }).join("");
-  return '<section class="card receipt-saved-panel"><div class="section-heading"><h2>🧾 Productos de '+escape(t.title)+'</h2></div>'
+  return '<section class="card receipt-saved-panel"><div class="section-heading"><h2>Productos de '+escape(t.title)+'</h2></div>'
     +'<p class="receipt-hint">Total del ticket: '+escape(money(t.amount))+'. Los productos no se suman otra vez a tus gastos.</p>'
     +rows
     +'<div class="receipt-totals"><span>Necesarios: <b>'+escape(money(sum.necessary))+'</b></span><span>No necesarios: <b>'+escape(money(sum.optional))+'</b></span><span>Sin clasificar: <b>'+escape(money(sum.pending))+'</b></span>'
@@ -253,7 +253,7 @@ function build(ctx){
    const options=[["pending","Sin clasificar"],["necessary","Necesario"],["optional","No necesario"]].map(([v,label])=>'<option value="'+v+'" '+(item.necessity===v?"selected":"")+'>'+label+'</option>').join("");
    return '<div class="receipt-product-row" data-product-index="'+j+'"><input aria-label="Nombre del producto" data-receipt-field="name" maxlength="90" value="'+escape(item.name)+'"><input aria-label="Precio del producto en euros" data-receipt-field="amount" inputmode="decimal" value="'+escape((item.amount/100).toFixed(2).replace(".",","))+'"><select aria-label="Clasificar necesidad" data-receipt-field="necessity">'+options+'</select><button type="button" data-receipt-delete="'+j+'" aria-label="Eliminar producto">✕</button></div>';
   }).join("");
-  return '<details class="receipt-breakdown" '+(r.items.length?"open":"")+'><summary>🧾 Desglose de productos ('+r.items.length+')</summary>'
+  return '<details class="receipt-breakdown" '+(r.items.length?"open":"")+'><summary>Productos del ticket ('+r.items.length+')</summary>'
     +'<p class="receipt-hint">Clasifica cada producto como necesario o no necesario. El balance contabiliza únicamente el total del ticket.</p>'
     +'<div class="receipt-product-list">'+productRows+'</div>'
     +'<button type="button" class="small-action" data-receipt-add="'+index+'">＋ Añadir producto</button>'
@@ -266,9 +266,9 @@ function build(ctx){
   const isValid=valid(r);
   const matches=matchFor(r),linked=linkedTo(r);
   const duplicateDisabled=duplicate&&!r.allowDuplicate&&!linked;
-  const opts=CAT.filter(c=>c.type===r.type).map(c=>'<option value="'+escape(c.id)+'" '+(c.id===r.category?"selected":"")+'>'+escape(c.emoji+" "+c.name)+'</option>').join("");
+  const opts=CAT.filter(c=>c.type===r.type).map(c=>'<option value="'+escape(c.id)+'" '+(c.id===r.category?"selected":"")+'>'+escape(c.name)+'</option>').join("");
   return '<article class="smart-import-row" data-import-row="'+i+'"><label class="smart-import-select"><input type="checkbox" data-import-select="'+i+'" '+(r.selected&&!duplicateDisabled&&isValid?"checked":"")+' '+(duplicateDisabled||!isValid?"disabled":"")+'><span>'+escape(r.confidence==="baja"?"Revisión necesaria":r.confidence==="alta"?"Datos estructurados":"Revisa los datos")+'</span></label>'
-   +(matches.length?'<div class="smart-import-warning v5-match-warning"><strong>🔗 Posible compra ya registrada</strong><p>Si el ticket y el cargo del banco son la misma compra, vincúlalos: solo contará una vez.</p><label>Vincular con movimiento existente<select data-import-link="'+i+'"><option value="">No vincular</option>'+matches.map(tx=>'<option value="'+escape(tx.id)+'" '+(r.linkTo===tx.id?'selected':'')+'>'+escape(tx.date+' · '+tx.title+' · '+money(tx.amount)+' · '+(tx.matchStrength==="alta"?"comercio coincidente":"revisar coincidencia"))+'</option>').join("")+'</select></label></div>':"")
+   +(matches.length?'<div class="smart-import-warning v5-match-warning"><strong>Posible compra ya registrada</strong><p>Si el ticket y el cargo del banco son la misma compra, vincúlalos: solo contará una vez.</p><label>Vincular con movimiento existente<select data-import-link="'+i+'"><option value="">No vincular</option>'+matches.map(tx=>'<option value="'+escape(tx.id)+'" '+(r.linkTo===tx.id?'selected':'')+'>'+escape(tx.date+' · '+tx.title+' · '+money(tx.amount)+' · '+(tx.matchStrength==="alta"?"comercio coincidente":"revisar coincidencia"))+'</option>').join("")+'</select></label></div>':"")
    +(duplicate?'<div class="smart-import-warning">Posible duplicado del historial. <label><input type="checkbox" data-import-allow-duplicate="'+i+'" '+(r.allowDuplicate?"checked":"")+'> Es una compra distinta: importar igualmente</label></div>':"")
    +'<div class="smart-import-fields"><label>Fecha<input type="date" data-import-field="date" value="'+escape(r.date)+'"></label><label>Concepto<input type="text" maxlength="90" data-import-field="title" value="'+escape(r.title)+'"></label>'
    +'<label>Importe (€)<input type="text" inputmode="decimal" data-import-field="amount" value="'+(r.amount?escape((r.amount/100).toFixed(2).replace(".",",")):"")+'" placeholder="Revisar"></label>'
@@ -276,18 +276,18 @@ function build(ctx){
    +'<label class="smart-import-wide">Categoría<select data-import-field="category">'+opts+'</select></label></div>'
    +(r.type==="expense"?receiptItemsHTML(r,i):"")
    +'<button type="button" class="smart-import-confirm '+(r.selected&&!duplicateDisabled?'confirmed':'')+'" data-import-confirm="'+i+'" '+(duplicateDisabled||!isValid?'disabled':'')+'>'
-   +(r.selected&&!duplicateDisabled?'✓ Movimiento seleccionado · Quitar':'☑ Seleccionar este movimiento para guardar')+'</button></article>';
+   +(r.selected&&!duplicateDisabled?'Movimiento seleccionado · Quitar':'Seleccionar este movimiento para guardar')+'</button></article>';
  }
  const renderPage=()=>{
   const dupes=duplicates();
   const rows=state.rows.map((r,i)=>rowHTML(r,i,dupes)).join("");
   const chosen=state.rows.filter(r=>r.selected&&valid(r)&&(!dupes.has(fingerprint(r))||r.allowDuplicate||linkedTo(r)));
-  return '<div class="view-heading"><div><div class="eyebrow">LECTURA INTELIGENTE</div><h1 class="page-title">Importar gastos</h1></div><span class="tag">V4</span></div>'
-  +'<section class="card smart-import-intro"><strong>📷 Tickets y extractos bancarios</strong><p>Haz una foto, sube una imagen o selecciona un PDF o CSV. El sistema propone los movimientos y tú decides cuáles guardar. Revisa los cargos y abonos: algunos extractos no indican claramente el signo.</p>'
-  +'<div class="smart-import-actions"><button type="button" class="primary-btn" data-import-camera>📸 Hacer foto del ticket</button><button type="button" class="small-action" data-import-pick>📁 Subir foto, PDF o CSV</button></div>'
+  return '<div class="view-heading"><div><div class="eyebrow">LECTURA INTELIGENTE</div><h1 class="page-title">Importar movimientos</h1></div></div>'
+  +'<section class="card smart-import-intro"><strong>Tickets y extractos bancarios</strong><p>Haz una foto, sube una imagen o selecciona un PDF o CSV. El sistema propone los movimientos y tú decides cuáles guardar. Revisa los cargos y abonos: algunos extractos no indican claramente el signo.</p>'
+  +'<div class="smart-import-actions"><button type="button" class="primary-btn" data-import-camera>Hacer foto de ticket</button><button type="button" class="small-action" data-import-pick>Seleccionar foto, PDF o CSV</button></div>'
   +'<div class="smart-import-modes"><label><input type="radio" name="smart-import-mode" value="ticket" checked> Ticket de compra</label><label><input type="radio" name="smart-import-mode" value="statement"> Extracto bancario</label></div></section>'
   +'<p class="footnote">Las imágenes y los documentos se procesan en el iPhone. Para el reconocimiento de fotos se descarga una librería OCR externa. Los documentos no se suben a nuestros servidores. Comprueba importes y fechas: el reconocimiento automático puede equivocarse.</p>'
-  +(state.rows.length?'<section class="card smart-import-review"><div class="section-heading"><h2>Revisar '+state.rows.length+' movimientos</h2></div><p class="muted">Seleccionados: <strong>'+chosen.length+'</strong>. Los duplicados sospechosos se excluyen por defecto, salvo que confirmes que son compras diferentes.</p>'+rows+'<p class="smart-import-confirm-help" role="status">'+(chosen.length?'✅ '+chosen.length+' movimiento(s) confirmado(s).':'☝️ Revisa los datos y pulsa «Seleccionar este movimiento para guardar» debajo del desglose.')+'</p><button type="button" class="primary-btn smart-import-save" data-import-save '+(chosen.length?"":"disabled")+'>Guardar '+chosen.length+' movimientos</button></section>':'<section class="card smart-import-empty"><strong>Tu importación aparecerá aquí</strong><p>Los tickets suelen crear un gasto por el total. Los extractos pueden contener varios movimientos.</p></section>');
+  +(state.rows.length?'<section class="card smart-import-review"><div class="section-heading"><h2>Revisar '+state.rows.length+' movimientos</h2></div><p class="muted">Seleccionados: <strong>'+chosen.length+'</strong>. Los duplicados sospechosos se excluyen por defecto, salvo que confirmes que son compras diferentes.</p>'+rows+'<p class="smart-import-confirm-help" role="status">'+(chosen.length?''+chosen.length+' movimiento(s) confirmado(s).':'Revisa los datos y pulsa «Seleccionar este movimiento para guardar» debajo del desglose.')+'</p><button type="button" class="primary-btn smart-import-save" data-import-save '+(chosen.length?"":"disabled")+'>Guardar '+chosen.length+' movimientos</button></section>':'<section class="card smart-import-empty"><strong>Tu importación aparecerá aquí</strong><p>Los tickets suelen crear un gasto por el total. Los extractos pueden contener varios movimientos.</p></section>');
  };
  const updateRow=(target)=>{
   const row=target.closest("[data-import-row]");if(!row)return;
