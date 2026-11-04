@@ -75,12 +75,14 @@ create policy "bv member update own name" on public.bv_members for update to aut
 create policy "bv expenses read" on public.bv_expenses for select to authenticated using(private.bv_is_member(household_id));
 create policy "bv expenses insert" on public.bv_expenses for insert to authenticated
  with check(author_id=(select auth.uid()) and payer_id=(select auth.uid()) and private.bv_is_member(household_id)
+   and (select count(*) from public.bv_members m where m.household_id=bv_expenses.household_id)=2
    and exists(select 1 from public.bv_members m where m.household_id=bv_expenses.household_id and m.user_id=bv_expenses.payer_id));
 create policy "bv expenses delete own" on public.bv_expenses for delete to authenticated
  using(author_id=(select auth.uid()) and private.bv_is_member(household_id));
 create policy "bv settlements read" on public.bv_settlements for select to authenticated using(private.bv_is_member(household_id));
 create policy "bv settlements propose" on public.bv_settlements for insert to authenticated
  with check(status='pending' and payer_id=(select auth.uid()) and private.bv_is_member(household_id)
+ and (select count(*) from public.bv_members m where m.household_id=bv_settlements.household_id)=2
  and exists(select 1 from public.bv_members m where m.household_id=bv_settlements.household_id and m.user_id=bv_settlements.receiver_id));
 -- No UPDATE policy: review only through a constrained RPC. Avoid modifying balances with an arbitrary UPDATE.
 
