@@ -1,7 +1,20 @@
-/* Budviva 6.2.1 — recursos actualizados de red, uso offline conservado. */
+/* Budviva 6.2.2 — caché por ruta sin sustituir la pantalla principal. */
 const CACHE_PREFIX = 'control-de-gastos-';
-const CACHE = CACHE_PREFIX + '6.2.1';
+const CACHE = CACHE_PREFIX + '6.2.2';
 const CORE = ['./','./index.html','./recurring.js','./stats.js','./reconcile.js','./documents.js','./backup-crypto.js','./smart-import.js','./manifest.webmanifest','./icon.svg','./privacidad.html','./soporte.html'];
+
+function sameOrigin(request) {
+  return new URL(request.url).origin === self.location.origin;
+}
+
+function navigationFallback(url) {
+  const path = new URL(url).pathname;
+  if (path.endsWith('/privacidad.html')) return './privacidad.html';
+  if (path.endsWith('/soporte.html')) return './soporte.html';
+  const scopePath = new URL(self.registration.scope).pathname;
+  if (path === scopePath || path === scopePath + 'index.html') return './index.html';
+  return null;
+}
 
 self.addEventListener('install', event => {
   event.waitUntil((async () => {
@@ -11,6 +24,7 @@ self.addEventListener('install', event => {
     await self.skipWaiting();
   })());
 });
+
 self.addEventListener('activate', event => {
   event.waitUntil((async () => {
     const keys = await caches.keys();
@@ -18,37 +32,37 @@ self.addEventListener('activate', event => {
     await self.clients.claim();
   })());
 });
+
 self.addEventListener('fetch', event => {
   const request = event.request;
-  if(request.method !== 'GET' || new URL(request.url).origin !== self.location.origin)return;
-  if(request.mode === 'navigate'){
+  if (request.method !== 'GET' || !sameOrigin(request)) return;
+  if (request.mode === 'navigate') {
     event.respondWith((async () => {
+      const fallback = navigationFallback(request.url);
       try {
-        const response = await fetch(request,{cache:'no-store'});
-        if(response.ok){
+        const response = await fetch(request, {cache:'no-store'});
+        if (response.ok && fallback) {
           const copy = response.clone();
-          event.waitUntil(caches.open(CACHE).then(cache => cache.put('./index.html',copy)).catch(() => {}));
+          event.waitUntil(caches.open(CACHE).then(cache => cache.put(fallback, copy)).catch(() => {}));
         }
         return response;
-      }catch(err){
-        const pathname=new URL(request.url).pathname;
-        if(pathname.endsWith('/privacidad.html'))return await caches.match('./privacidad.html') || Response.error();
-        if(pathname.endsWith('/soporte.html'))return await caches.match('./soporte.html') || Response.error();
-        return await caches.match('./index.html') || Response.error();
+      } catch (_err) {
+        return (fallback && await caches.match(new URL(fallback, self.registration.scope).href)) || Response.error();
       }
     })());
-  }else{
-    event.respondWith((async () => {
-      try {
-        const response = await fetch(request,{cache:'no-store'});
-        if(response.ok){
-          const copy=response.clone();
-          event.waitUntil(caches.open(CACHE).then(cache => cache.put(request,copy)).catch(() => {}));
-        }
-        return response;
-      }catch(err){
-        return await caches.match(request) || Response.error();
-      }
-    })());
+    return;
   }
+
+  event.respondWith((async () => {
+    try {
+      const response = await fetch(request, {cache:'no-store'});
+      if (response.ok) {
+        const copy = response.clone();
+        event.waitUntil(caches.open(CACHE).then(cache => cache.put(request, copy)).catch(() => {}));
+      }
+      return response;
+    } catch (_err) {
+      return await caches.match(request) || Response.error();
+    }
+  })());
 });
