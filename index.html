@@ -1088,23 +1088,103 @@ root.BudvivaGoals={build,total,status};
     const blob=new Blob([content],{type:mime});const u=URL.createObjectURL(blob);
     const a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),60000);
   };
-  const exportJson = () => {if(dataLoadCorrupt){toast('No puedes exportar una copia nueva: los datos guardados no son legibles.');return;}exportFile(`budviva-backup-${localDate()}.json`,JSON.stringify({...data,exportedAt:new Date().toISOString()},null,2),'application/json;charset=utf-8');toast('Copia de seguridad preparada');};
+  const buildFullBackup = async () => {
+    if(dataLoadCorrupt)throw Error('Los datos locales no son legibles. Restaura una copia anterior.');
+    if(!window.BudvivaDocuments)throw Error('El almacén de originales no está disponible.');
+    const attachments=await window.BudvivaDocuments.exportBundle();
+    return JSON.stringify({...data,backupFormat:'budviva-full-v1',attachments,exportedAt:new Date().toISOString()},null,2);
+  };
+  const exportJson = async () => {
+    try{
+      toast('Preparando copia completa…');
+      const json=await buildFullBackup();
+      exportFile(`budviva-completa-${localDate()}.json`,json,'application/json;charset=utf-8');
+      toast('Copia completa preparada con originales.');
+    }catch(err){alert('No se ha podido crear la copia completa: '+err.message);}
+  };
+  const exportEncrypted=async password=>{
+    const json=await buildFullBackup();
+    const encrypted=await window.BudvivaBackupCrypto.encrypt(json,password);
+    exportFile(`budviva-cifrada-${localDate()}.budviva`,encrypted,'application/octet-stream');
+  };
+  const openOriginals=async transactionId=>{
+    const tx=data.transactions.find(t=>t.id===transactionId);
+    if(!tx)return;
+    docObjectURLs.forEach(url=>URL.revokeObjectURL(url));docObjectURLs=[];
+    docsContent.textContent='Buscando originales…';documentsDialog.showModal();
+    try{
+      const ids=Array.isArray(tx.sourceDocumentIds)?tx.sourceDocumentIds:[];
+      const files=(await Promise.all(ids.map(id=>window.BudvivaDocuments.get(id)))).filter(Boolean);
+      docsContent.innerHTML=files.map(file=>{
+        const url=URL.createObjectURL(file.blob);docObjectURLs.push(url);
+        const label=h(file.name),size=h((file.size/1024).toFixed(0));
+        return `<div class="document-item"><b>${label}</b><small>${size} KB · Conservado en este dispositivo</small><a href="${url}" target="_blank" rel="noopener" download="${label}">Abrir o guardar original</a></div>`;
+      }).join('')||'<p class="muted">No se encuentra el original en este dispositivo. Comprueba si restauraste una copia completa.</p>';
+    }catch(err){docsContent.textContent='No se pudo recuperar el original: '+err.message;}
+  };
   const escapeCsv = v => {let text=String(v??'');if(/^[\s]*[=+@\-]/.test(text))text="'"+text;return '"'+text.replace(/"/g,'""')+'"';};
   const exportCsv = () => {
     const rows=[['Fecha','Tipo','Categoría','Concepto','Importe (€)','Método','Nota'],...sorted(data.transactions).map(t=>[t.date,t.type==='income'?'Ingreso':'Gasto',catById(t.category).name,t.title,(t.amount/100).toFixed(2).replace('.',','),methodNames[t.method],t.note])];
     const csv='\ufeff'+rows.map(r=>r.map(escapeCsv).join(';')).join('\r\n');
     exportFile(`budviva-transactions-${localDate()}.csv`,csv,'text/csv;charset=utf-8');toast('CSV preparado para descargar');
   };
+  const applyImportedBackup=async payload=>{
+    const incoming=normalize(payload);
+    const docs=window.BudvivaDocuments;
+    if(!docs)throw Error('No está disponible el almacén de documentos.');
+    const attached=Object.prototype.hasOwnProperty.call(payload,'attachments');
+    const records=attached?docs.decodeBundle(payload.attachments):null;
+    const what=attached?'incluidos los archivos originales':'sin archivos originales (copia antigua)';
+    if(!confirm(`La restauración reemplazará tus ${data.transactions.length} movimientos por ${incoming.transactions.length} de la copia, ${what}. Exporta tus datos actuales antes de continuar. ¿Restaurar?`))return false;
+    const before=data,beforeCorrupt=dataLoadCorrupt;
+    let oldFiles=null;
+    if(attached){
+      oldFiles=await docs.getAll();
+      await docs.replaceAll(records);
+    }
+    data=incoming;dataLoadCorrupt=false;
+    if(!save()){
+      data=before;dataLoadCorrupt=beforeCorrupt;
+      if(oldFiles!==null)await docs.replaceAll(oldFiles).catch(err=>console.error('No se pudieron restaurar los originales tras un fallo:',err));
+      throw Error('No se han podido guardar los movimientos. Se ha intentado restaurar el estado anterior.');
+    }
+    ui.month=nowMonth();ui.tab='home';ui.query='';ui.filter='all';render();toast('Copia restaurada.');
+    return true;
+  };
   const importJson = async file => {
     if(!file)return;
-    if(file.size>5*1024*1024) return toast('El archivo es demasiado grande (máximo 5 MB)');
-    try {
-      const incoming=normalize(JSON.parse(await file.text()));
-      if(!confirm(`Se reemplazarán tus ${data.transactions.length} movimientos actuales por ${incoming.transactions.length} de la copia. ¿Continuar?`))return;
-      const prev=data,corruptBefore=dataLoadCorrupt;data=incoming;dataLoadCorrupt=false;if(!save()){data=prev;dataLoadCorrupt=corruptBefore;return;}
-      ui.month=nowMonth();ui.tab='home';ui.query='';ui.filter='all';render();toast('Copia restaurada correctamente');
-    }catch(e){alert(`No se ha podido importar: ${e.message}`);}
+    if(file.size>110*1024*1024)return alert('La copia supera el tamaño máximo de 110 MB.');
+    try{
+      const payload=JSON.parse(await file.text());
+      if(window.BudvivaBackupCrypto.isEncrypted(payload)){
+        unlockPayload=payload;backupUnlockForm.reset();
+        document.getElementById('backup-unlock-error').hidden=true;
+        backupUnlockDialog.showModal();return;
+      }
+      await applyImportedBackup(payload);
+    }catch(err){alert('No se pudo leer la copia: '+err.message);}
   };
+  backupPassForm.addEventListener('submit',async event=>{
+    event.preventDefault();
+    const password=backupPassForm.elements.password.value,repeat=backupPassForm.elements.repeat.value;
+    const err=document.getElementById('backup-password-error');
+    if(password.length<12||password!==repeat){err.textContent='La contraseña debe tener al menos 12 caracteres y coincidir en ambos campos.';err.hidden=false;return;}
+    const btn=backupPassForm.querySelector('button[type="submit"]');btn.disabled=true;
+    try{await exportEncrypted(password);backupPassDialog.close();backupPassForm.reset();toast('Copia cifrada preparada. Guarda bien la contraseña.');}
+    catch(error){err.textContent=error.message;err.hidden=false;}
+    finally{btn.disabled=false;}
+  });
+  backupUnlockForm.addEventListener('submit',async event=>{
+    event.preventDefault();const password=backupUnlockForm.elements.password.value;
+    const err=document.getElementById('backup-unlock-error');const btn=backupUnlockForm.querySelector('button[type="submit"]');btn.disabled=true;
+    try{
+      if(!unlockPayload)throw Error('No se encuentra la copia cifrada.');
+      const plain=await window.BudvivaBackupCrypto.decrypt(unlockPayload,password);
+      const applied=await applyImportedBackup(JSON.parse(plain));
+      if(applied){unlockPayload=null;backupUnlockDialog.close();backupUnlockForm.reset();}
+    }catch(error){err.textContent=error.message;err.hidden=false;}
+    finally{btn.disabled=false;}
+  });
   // Evitar caché antigua, sin tocar localStorage ni los movimientos guardados.
   const refreshBudviva = async () => {
     toast('Actualizando Budviva…');
@@ -1132,7 +1212,8 @@ root.BudvivaGoals={build,total,status};
   const handleAction = action => {
     if(action==='savings-goals'||action==='savings-analysis'){savings.showPanel(action==='savings-goals'?'goals':'analysis');ui.tab='savings';render();return;}
     if(action==='transactions'||action==='budgets'||action==='recurring'||action==='stats'||action==='smart-import'||action==='savings'){ui.tab=action;ui.query='';render();return;}
-    if(action==='export-json'){exportJson();return;}
+    if(action==='export-json'){void exportJson();return;}
+    if(action==='export-secure'){backupPassForm.reset();document.getElementById('backup-password-error').hidden=true;backupPassDialog.showModal();return;}
     if(action==='export-csv'){exportCsv();return;}
     if(action==='import-json'){importFileInput.click();return;}
     if(action==='new-expense'){openTransaction();return;}
@@ -1163,7 +1244,13 @@ root.BudvivaGoals={build,total,status};
       render();toast('Tema '+{oceano:'Océano',esmeralda:'Esmeralda',arena:'Arena',noche:'Noche'}[value]+' aplicado');
       return;
     }
-    const close=e.target.closest('[data-close]');if(close){document.getElementById(close.dataset.close)?.close();return;}
+    const close=e.target.closest('[data-close]');if(close){
+      document.getElementById(close.dataset.close)?.close();
+      if(close.dataset.close==='documents-dialog'){docObjectURLs.forEach(url=>URL.revokeObjectURL(url));docObjectURLs=[];}
+      if(close.dataset.close==='backup-unlock-dialog')unlockPayload=null;
+      return;
+    }
+    const originals=e.target.closest('[data-view-originals]');if(originals){void openOriginals(originals.dataset.viewOriginals);return;}
     const type=e.target.closest('[data-entry-type]');if(type){setEntryType(type.dataset.entryType);return;}
     const tab=e.target.closest('[data-tab]');if(tab){ui.tab=tab.dataset.tab;ui.receiptId=null;ui.query='';ui.filter='all';render();window.scrollTo({top:0,behavior:'auto'});return;}
     const month=e.target.closest('[data-month-shift]');if(month){monthShift(Number(month.dataset.monthShift));render();return;}
