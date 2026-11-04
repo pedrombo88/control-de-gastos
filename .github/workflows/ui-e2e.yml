@@ -35,6 +35,14 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Probar navegación y funcionalidades móviles
         run: npx playwright test --config=playwright.config.cjs
+      - name: Guardar capturas de auditoría visual
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: budviva-ui-capturas
+          path: ui-capturas/
+          if-no-files-found: warn
+          retention-days: 14
       - name: Guardar capturas e informe en errores
         if: failure()
         uses: actions/upload-artifact@v4
