@@ -485,7 +485,7 @@ html[data-app-theme="noche"] .form-error{background:#422c39;color:#ffdce5}
   const recurring=window.CGRecurring.build({getData:()=>data,save,render:()=>render(),CAT,h,money,parseMoney,isRealDate,uid,toast,localDate});
   const stats=window.CGStats.build({getData:()=>data,CAT,money,h,localDate,render:()=>render()});
   const smartImport=window.CGSmartImport.build({getData:()=>data,save,render:()=>render(),CAT,h,money,parseMoney,isRealDate,uid,toast,localDate});
-  const savings=window.BudvivaSavings.build({getData:()=>data,CAT,money,h,pictogram,render:()=>render(),getMonth:()=>ui.month});
+  const savings=window.BudvivaSavings.build({getData:()=>data,CAT,money,h,pictogram,render:()=>render(),getMonth:()=>ui.month,monthSelector:()=>monthSelector()});
   const currentTx = () => data.transactions.filter(t=>monthOf(t.date)===ui.month);
   const total = (list,type) => list.reduce((n,t)=>n+(!type||t.type===type?t.amount:0),0);
   const monthSelector = () => {
@@ -730,7 +730,7 @@ html[data-app-theme="noche"] .form-error{background:#422c39;color:#ffdce5}
     const month=e.target.closest('[data-month-shift]');if(month){monthShift(Number(month.dataset.monthShift));render();return;}
     const filter=e.target.closest('[data-filter]');if(filter){ui.filter=filter.dataset.filter;render();return;}
     const receipt=e.target.closest('[data-open-receipt]');
-    if(receipt){ui.tab='transactions';ui.receiptId=receipt.dataset.openReceipt;render();return;}
+    if(receipt){const tx=data.transactions.find(t=>t.id===receipt.dataset.openReceipt);if(tx)ui.month=monthOf(tx.date);ui.tab='transactions';ui.receiptId=receipt.dataset.openReceipt;render();window.scrollTo({top:0,behavior:'instant'});return;}
     const edit=e.target.closest('[data-edit-id]');if(edit){openTransaction(edit.dataset.editId);return;}
     const budget=e.target.closest('[data-budget-category]');if(budget){openBudget(budget.dataset.budgetCategory);return;}
     const action=e.target.closest('[data-action]');if(action){handleAction(action.dataset.action);return;}
