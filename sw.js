@@ -1,6 +1,6 @@
-/* Budviva 5.6 — recursos actualizados de red, uso offline conservado. */
+/* Budviva 5.7 — recursos actualizados de red, uso offline conservado. */
 const CACHE_PREFIX = 'control-de-gastos-';
-const CACHE = CACHE_PREFIX + '5.6';
+const CACHE = CACHE_PREFIX + '5.7';
 const CORE = ['./','./index.html','./recurring.js','./stats.js','./reconcile.js','./smart-import.js','./manifest.webmanifest','./icon.svg'];
 
 self.addEventListener('install', event => {
