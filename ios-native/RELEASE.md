@@ -1,0 +1,89 @@
+# Budviva — Expediente de publicación iOS
+
+**Estado:** beta técnica. Esta carpeta contiene un proyecto iOS nativo SwiftUI, no un contenedor WKWebView. **No se ha enviado a App Store ni a TestFlight.** La revisión oficial de Apple, las pruebas en dispositivos reales y la firma de distribución siguen pendientes.
+
+## Funciones implementadas
+
+- Inicio: balance, ingresos/gastos, avisos y vistas resumidas.
+- Movimientos: altas/ediciones/borrados, filtros, búsqueda y estadísticas.
+- Importar: archivos desde iPhone, cámara de tickets, OCR con Vision y lectura PDFKit y CSV; revisión de importes antes del guardado.
+- Recurrentes: reglas periódicas con registro de vencimientos al abrir la aplicación, sin prometer ejecución en segundo plano.
+- Presupuestos: límites, gasto por categoría y avisos de 70/80/90 %.
+- Ahorro: compras necesarias/no necesarias, proyección estimada y metas de ahorro con aportaciones reales.
+- Datos: almacenamiento privado protegido en Application Support y originales de documentos asociados.
+- Copias: JSON completo importable desde la PWA, y opción cifrada AES-256-GCM/PBKDF2; vector de compatibilidad compartido con la web.
+- Apariencia: cuatro temas. **Interfaz actual en español.** Otros idiomas no están certificados como completos.
+
+## Cómo comprobar la compilación sin Mac propio
+
+En GitHub: [workflow iOS](https://github.com/pedrombo88/control-de-gastos/actions/workflows/ios-build.yml). Usa macOS, Xcode 16.4 y XcodeGen.
+
+La ejecución genera el icono **1024×1024 RGB sin transparencia**, genera el proyecto Xcode y compila para simulador iOS sin firma. Incluye el target de pruebas XCTest y el paso `build-for-testing`. **El hecho de que compile no demuestra que funcione en un iPhone real**.
+
+Para trabajar desde un Mac más adelante:
+1. Instalar Xcode y XcodeGen.
+2. Ejecutar `python3 ios-native/tools/generate-icon.py` desde la raíz.
+3. Ejecutar `cd ios-native && xcodegen generate --spec project.yml`.
+4. Abrir `Budviva.xcodeproj` y configurar tu Apple Development Team y el Bundle Identifier definitivo.
+
+## Identidad y cuenta de Apple — bloqueantes
+
+- La identidad `com.example.budviva` es **solo una plantilla**. Cambiarla por el identificador controlado por el titular antes de firmar o publicar. No sustituirla por un identificador inventado.
+- Cuenta activa de Apple Developer Program y permisos en App Store Connect; el titular debe completar contratos, fiscalidad, pagos y datos de contacto según corresponda.
+- Confirmar disponibilidad comercial de **Budviva** en la OEPM, EUIPO y App Store.
+- Completar un canal privado de asistencia a usuarios (no solo GitHub Issues público).
+- Identificar legalmente al responsable del tratamiento y revisar la política con la configuración definitiva.
+- Completar declaraciones de datos, cifrado, permisos de cámara y cualquier cuestionario de App Store Connect. El hecho de usar AES para copias exige evaluar correctamente la información de cumplimiento de exportación; **no se ha supuesto exención**.
+
+## Ficha inicial de App Store — borrador
+
+**Nombre:** Budviva  
+**Subtítulo:** Tus gastos y ahorro, claros  
+**Categoría:** Finanzas  
+**Idioma de lanzamiento:** Español (España)  
+**Dispositivo:** iPhone  
+**Requisito:** iOS 17 o superior  
+**Modelo:** por definir; no se han implementado suscripciones ni compras dentro de la app.
+
+**Descripción comercial inicial:**
+
+Budviva te ayuda a tener una visión clara de tu dinero. Registra gastos e ingresos, organiza presupuestos y crea objetivos de ahorro con seguimiento de tus aportaciones reales.
+
+Escanea tickets con la cámara o selecciona documentos para revisar los importes y clasificar los productos que consideras necesarios o prescindibles. Consulta estadísticas, controla los gastos recurrentes y conserva tus documentos originales en el iPhone.
+
+Tu información financiera permanece en tu dispositivo. Puedes descargar copias de seguridad completas o protegerlas con una contraseña.
+
+**Lo que no debe prometerse:** conexión automática a entidades bancarias, sincronización entre dispositivos, almacenamiento en la nube, ejecución recurrente en segundo plano, ahorro garantizado, lectura infalible de extractos o asesoramiento financiero.
+
+**Política de privacidad provisional:** https://pedrombo88.github.io/control-de-gastos/privacidad.html
+
+**Soporte provisional:** https://pedrombo88.github.io/control-de-gastos/soporte.html
+
+**Pendiente:** correo o formulario privado de soporte, web y responsable legal definitivos, capturas reales, clasificación por edades, términos comerciales, disponibilidad de marca y revisión GDPR.
+
+## Pruebas de aceptación antes de TestFlight
+
+| Bloque | Prueba obligatoria | Estado |
+|---|---|---|
+| Datos | 100 altas/ediciones/borrados y reinicios sin pérdida | Pendiente iPhone físico |
+| Copias | JSON PWA→iOS, JSON iOS→PWA, cifrada en ambas direcciones | Test vector añadido; prueba con dispositivos pendiente |
+| Cámara | Permisos concedidos/denegados, ticket bien/mal iluminado | Pendiente |
+| Documentos | JPG, PNG, CSV, PDF con texto, PDF escaneado, PDF corrupto, PDF de 30 páginas | Pendiente |
+| Ahorro | Producto necesario/no necesario, redondeos, metas cumplidas/vencidas | Parcialmente automatizado |
+| Presupuestos | 70/80/90 %, importes sin presupuesto, importes que superan límite | Pendiente UI real |
+| Recurrentes | Diario, semanal, mensual, anual, pausa, cambio de fecha, sin duplicados | Pendiente UI real |
+| Accesibilidad | VoiceOver, Dynamic Type, contraste y tamaño de botones | Pendiente |
+| iOS | Bajo almacenamiento, pérdida de conectividad, permisos, recuperación tras cierre | Pendiente |
+| App Store | Capturas iPhone auténticas, descripción, privacidad y canal de soporte | Pendiente titular |
+
+## Lanzamiento
+
+1. Resolver errores del workflow iOS y obtener ejecución verde con pruebas compiladas.
+2. Ejecutar pruebas en iPhone (con TestFlight cuando exista cuenta Apple).
+3. Corregir bloqueos de datos, importación, accesibilidad y privacidad.
+4. Obtener correo de soporte y textos legales completos.
+5. Configurar certificados, identificador, firma y subida a App Store Connect.
+6. Completar App Privacy, export compliance y metadatos.
+7. Enviar a revisión cuando el binario esté listo y autorizado.
+
+La publicación requiere acciones y credenciales del titular; este repositorio no contiene ni debe contener certificados, claves ni contraseñas.
