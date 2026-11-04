@@ -1,1 +1,20 @@
-{"id":"./","name":"Budviva — Personal Finance","short_name":"Budviva","start_url":"./","scope":"./","display":"standalone","background_color":"#f4f7f9","theme_color":"#12263a","lang":"es-ES","icons":[{"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any"}],"description":"Track your money with clarity. Expenses, budgets and receipts."}
+{
+  "id": "./",
+  "name": "Budviva — Control de gastos y ahorro",
+  "short_name": "Budviva",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f7f9",
+  "theme_color": "#12263a",
+  "lang": "es-ES",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "description": "Controla tus movimientos, presupuestos y objetivos de ahorro. Escanea tickets y analiza gastos."
+}
