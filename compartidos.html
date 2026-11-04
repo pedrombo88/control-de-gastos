@@ -33,6 +33,12 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{ou
 <section id="auth" class="card hidden"><h2>Entrar en tu cuenta</h2>
 <form id="send-form"><label>Correo electrónico<input id="email" type="email" autocomplete="email" required></label><div class="actions"><button type="submit">Recibir código de acceso</button></div></form>
 <form id="verify-form" hidden><label>Código recibido por correo<input id="otp" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6,8}" required></label><div class="actions"><button>Acceder</button></div><small>Revisa el correo no deseado si no llega.</small></form>
+<details style="margin-top:20px"><summary style="cursor:pointer;font-weight:600">Ya tengo una contraseña de acceso</summary>
+<p class="muted">Opción para cuentas previamente creadas con contraseña. Durante las pruebas permite entrar sin depender de los correos OTP.</p>
+<form id="password-form"><label>Correo electrónico<input name="email" type="email" autocomplete="username" required></label>
+<label>Contraseña<input name="password" type="password" minlength="8" autocomplete="current-password" required></label>
+<div class="actions"><button type="submit">Acceder con contraseña</button></div></form>
+</details>
 </section>
 <section id="setup" class="hidden">
 <div class="card"><h2>Crear un hogar</h2><form id="create-form"><label>Nombre del hogar<input name="title" maxlength="60" placeholder="Ej. Nuestro hogar" required></label><label>Tu nombre visible<input name="name" maxlength="40" required></label><div class="actions"><button>Crear hogar</button></div></form></div>
@@ -41,7 +47,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{ou
 </section>
 <section id="dashboard" class="hidden">
 <div class="card"><div class="row"><div><div class="eyebrow">TU HOGAR</div><h2 id="home-name">Hogar</h2></div><button id="logout" class="secondary" type="button">Salir</button></div>
-<div id="members" class="grid"></div><div class="balance" role="status"><small id="balance-caption">Balance total confirmado</small><strong id="balance-total">0,00 €</strong><span id="balance-message">Estáis al día.</span></div><small>Las deudas se calculan sobre todos los gastos comunes y compensaciones confirmadas, no sobre gastos privados.</small></div>
+<div id="members" class="grid"></div><label style="margin-top:14px">Comparativa de gastos <select id="summary-period"><option value="this">Este mes</option><option value="last">Mes anterior</option><option value="all">Todo el periodo</option></select></label>
+<div class="balance" role="status"><small id="balance-caption">Balance total confirmado</small><strong id="balance-total">0,00 €</strong><span id="balance-message">Estáis al día.</span></div><small>Las deudas se calculan sobre todos los gastos comunes y compensaciones confirmadas, no sobre gastos privados.</small></div>
 <div id="invite-section" class="card hidden"><h2>Invitar a la otra persona</h2><p>Comparte el código de un solo uso. Caduca en 48 horas.</p><button id="invite" type="button">Generar código</button><p id="invite-code" style="overflow-wrap:anywhere;font-weight:700"></p><button id="copy-invite" type="button" class="secondary hidden">Copiar código</button></div>
 <div class="card"><h2>Añadir gasto común</h2><form id="expense-form"><label>Concepto<input name="title" maxlength="100" placeholder="Compra supermercado" required></label>
 <div class="grid"><div><label>Importe (€)<input name="amount" inputmode="decimal" placeholder="0,00" required></label></div><div><label>Fecha<input name="date" type="date" required></label></div></div>
