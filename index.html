@@ -388,6 +388,11 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
  input:not([type="checkbox"]):not([type="radio"]),select,textarea{font-size:16px}
  .receipt-product-row input,.receipt-product-row select,.receipt-saved-row select{font-size:16px}
 }
+
+/* Ahorro organizado en dos vistas independientes */
+.saving-subtabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;padding:5px;margin:0 0 18px;background:var(--design-soft);border:1px solid var(--border);border-radius:15px}
+.saving-subtabs button{min-height:44px;padding:10px 7px;border:0;border-radius:11px;background:transparent;color:var(--ink2);font-size:12px;font-weight:800}
+.saving-subtabs button.selected{color:var(--design-accent);background:var(--white);box-shadow:0 4px 13px rgba(30,55,90,.08)}
 </style>
   <title>Budviva · Tu dinero, más claro</title>
 </head>
@@ -552,7 +557,7 @@ function build(ctx){
  function renderHome(){
    const goals=list();if(!goals.length)return '';
    const g=goals.filter(x=>total(x)<x.target).sort((a,b)=>a.dueDate.localeCompare(b.dueDate))[0]||goals[0],st=status(g,localDate());
-   return '<div class="section-heading"><h2>Objetivos de ahorro</h2><button type="button" class="text-link" data-action="savings">Ver metas →</button></div>'+
+   return '<div class="section-heading"><h2>Objetivos de ahorro</h2><button type="button" class="text-link" data-action="savings-goals">Ver metas →</button></div>'+
      '<section class="card goal-home"><div><strong>'+h(g.title)+'</strong><b>'+Math.round(st.progress*100)+' %</b></div>'+
      '<div class="goal-progress"><span style="width:'+Math.round(st.progress*100)+'%"></span></div><small>'+h(money(st.saved))+' de '+h(money(g.target))+' ahorrados</small></section>';
  }
@@ -626,6 +631,7 @@ root.BudvivaGoals={build,total,status};
     const {getData,CAT,money,h,pictogram,render,getMonth,monthSelector,renderGoals}=ctx;
     let period=1;
     let cut=25;
+    let activePanel='analysis';
     function calc(){
       const month=getMonth();
       const keys=root.CGStats.monthsFor(period,month+"-15");
@@ -654,8 +660,13 @@ root.BudvivaGoals={build,total,status};
         h(description)+'</p><button type="button" class="small-action" data-action="'+h(buttonAction)+'">'+h(buttonLabel)+'</button></div>';
     }
     function renderPage(){
+      const heading='<div class="view-heading"><div><div class="eyebrow">TUS FINANZAS</div><h1 class="page-title">Ahorro</h1></div></div>';
+      const tabs='<div class="saving-subtabs" role="group" aria-label="Secciones de ahorro">'+
+        '<button type="button" data-saving-view="analysis" aria-pressed="'+(activePanel==='analysis')+'" class="'+(activePanel==='analysis'?'selected':'')+'">Analizar compras</button>'+
+        '<button type="button" data-saving-view="goals" aria-pressed="'+(activePanel==='goals')+'" class="'+(activePanel==='goals'?'selected':'')+'">Mis objetivos</button></div>';
+      if(activePanel==='goals')return heading+tabs+renderGoals();
       const obj=calc(),a=obj.analysis,n=obj.needs;
-      const heading='<div class="view-heading"><div><div class="eyebrow">TU DINERO, MÁS CLARO</div><h1 class="page-title">Ahorro inteligente</h1></div><span class="tag">Tickets</span></div><div class="saving-month-select">'+monthSelector()+'</div>';
+      const headingAnalysis=heading+tabs+'<div class="saving-month-select">'+monthSelector()+'</div>';
       const products=a.products.map(function(p,i){
         return '<div class="saving-rank-row"><span class="saving-rank-num">'+(i+1)+'</span><div class="saving-rank-info"><strong>'+h(p.name)+
           '</strong><small>'+p.count+' '+(p.count===1?'compra':'compras')+'</small></div><b>'+h(money(p.amount))+'</b></div>';
@@ -676,13 +687,13 @@ root.BudvivaGoals={build,total,status};
       const savingsKpis=[["necessary","Necesarios"],["optional","Prescindibles"],["pending","Sin clasificar"],["unitemized","Sin desglose"]].map(function(row){
         return '<div class="saving-kpi saving-kpi-'+row[0]+'"><span>'+row[1]+'</span><strong>'+h(money(n[row[0]]))+'</strong></div>';
       }).join("");
-      return heading+
+      return headingAnalysis+
         '<div class="saving-periods" role="group" aria-label="Periodo de análisis">'+periodButtons()+'</div>'+
         '<section class="saving-hero"><div class="saving-hero-label">'+pictogram('target',19)+' Ahorro potencial al mes</div>'+
         '<div class="saving-hero-value">'+h(money(a.averageMonthly))+'</div>'+
         '<div class="saving-hero-caption">Simulación reduciendo el '+cut+' % de las compras marcadas como «No necesario».</div>'+
         '<div class="saving-hero-divider"></div><div class="saving-hero-foot"><span>Proyección anual orientativa</span><strong>'+h(money(a.annualProjection))+'</strong></div></section>'+
-        renderGoals()+'<section class="card saving-simulator"><h2>Tu plan de reducción</h2><p class="muted">¿Qué porcentaje de compras prescindibles puedes evitar?</p>'+
+        '<section class="card saving-simulator"><h2>Tu plan de reducción</h2><p class="muted">¿Qué porcentaje de compras prescindibles puedes evitar?</p>'+
         '<div class="saving-choices-v2" role="group" aria-label="Porcentaje simulado">'+cutButtons()+'</div>'+
         '<p class="saving-explanation">Has identificado '+h(money(a.optional))+' en compras prescindibles durante el periodo. Reducir un '+cut+
         ' % equivaldría a '+h(money(a.reduction))+' en el periodo seleccionado.</p></section>'+
@@ -696,12 +707,17 @@ root.BudvivaGoals={build,total,status};
     }
     function renderPreview(month){
       const report=root.CGStats.analyzeSavings(getData().transactions,[month],CAT,25);
-      return '<div class="section-heading"><h2>Ahorro inteligente</h2><button type="button" class="text-link" data-action="savings">Ver análisis →</button></div>'+
+      return '<div class="section-heading"><h2>Ahorro inteligente</h2><button type="button" class="text-link" data-action="savings-analysis">Ver análisis →</button></div>'+
         '<section class="card saving-preview"><span class="saving-preview-icon">'+pictogram('target',24)+'</span>'+
         '<div><b>'+h(money(report.reduction))+'</b><small>Potencial de ahorro este mes si reduces un 25 % de tus compras prescindibles.</small></div>'+
-        '<button type="button" class="small-action" data-action="savings">Ver plan</button></section>';
+        '<button type="button" class="small-action" data-action="savings-analysis">Ver plan</button></section>';
     }
     document.addEventListener('click',function(event){
+      const panel=event.target.closest('[data-saving-view]');
+      if(panel){
+        if(!['analysis','goals'].includes(panel.dataset.savingView)||panel.dataset.savingView===activePanel)return;
+        activePanel=panel.dataset.savingView;render();return;
+      }
       const button=event.target.closest('[data-saving-period],[data-saving-cut]');
       if(!button)return;
       if(button.hasAttribute('data-saving-period')){
@@ -715,7 +731,7 @@ root.BudvivaGoals={build,total,status};
       }
       render();
     });
-    return {renderPage,renderPreview,getState:function(){return {period,cut}}};
+    return {renderPage,renderPreview,showPanel:function(panel){if(['analysis','goals'].includes(panel))activePanel=panel;},getState:function(){return {period,cut,activePanel}}};
   }
   root.BudvivaSavings={build};
 })(window);
@@ -1064,6 +1080,7 @@ root.BudvivaGoals={build,total,status};
     }
   };
   const handleAction = action => {
+    if(action==='savings-goals'||action==='savings-analysis'){savings.showPanel(action==='savings-goals'?'goals':'analysis');ui.tab='savings';render();return;}
     if(action==='transactions'||action==='budgets'||action==='recurring'||action==='stats'||action==='smart-import'||action==='savings'){ui.tab=action;ui.query='';render();return;}
     if(action==='export-json'){exportJson();return;}
     if(action==='export-csv'){exportCsv();return;}
