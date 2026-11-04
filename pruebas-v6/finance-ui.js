@@ -2,9 +2,9 @@
 (function(root){
 "use strict";
 const KEY="finance-ui-preferences-v1";
-const THEMES=["auto","black-yellow","black-purple","white-blue","white-red","natural","premium"];
+const THEMES=["violet-studio","auto","black-yellow","black-purple","white-blue","white-red","natural","premium"];
 const LANGS=["es","en","fr","de","it","pt"];
-let state={theme:"black-yellow",language:"es"};
+let state={theme:"violet-studio",language:"es"};
 try{const p=JSON.parse(localStorage.getItem(KEY)||"{}");if(THEMES.includes(p.theme))state.theme=p.theme;else if(p.theme==="dark")state.theme="black-purple";else if(p.theme==="light"||p.theme==="ocean")state.theme="white-blue";else if(p.theme==="sand")state.theme="white-red";if(LANGS.includes(p.language))state.language=p.language;}catch(e){}
 const dictionary={
 "Ajustes":"Settings","Inicio":"Home","Movimientos":"Transactions","Presupuestos":"Budgets","Recurrentes":"Recurring","Estadísticas":"Analytics",
@@ -57,7 +57,7 @@ function setTheme(v){if(!THEMES.includes(v))return false;state.theme=v;persist()
 function setLanguage(v){if(!LANGS.includes(v))return false;state.language=v;persist();return true;}
 function renderControls(){
  const en=state.language==="en";
- const themes=[["auto",en?"Automatic":"Automático","◐"],["natural",en?"Natural":"Natural","●"],["premium",en?"Premium":"Premium","●"],["black-yellow",en?"Black & Yellow":"Negro y Amarillo","●"],["black-purple",en?"Black & Purple":"Negro y Morado","●"],["white-blue",en?"White & Blue":"Blanco y Azul","●"],["white-red",en?"White & Red":"Blanco y Rojo","●"]];
+ const themes=[["violet-studio",en?"Studio Violet":"Violeta Studio","✦"],["auto",en?"Automatic":"Automático","◐"],["natural",en?"Natural":"Natural","●"],["premium",en?"Premium":"Premium","●"],["black-yellow",en?"Black & Yellow":"Negro y Amarillo","●"],["black-purple",en?"Black & Purple":"Negro y Morado","●"],["white-blue",en?"White & Blue":"Blanco y Azul","●"],["white-red",en?"White & Red":"Blanco y Rojo","●"]];
  return '<div class="finance-pref-head"><span class="finance-pref-symbol">✦</span><div><strong>'+(en?"Appearance & language":"Apariencia e idioma")+'</strong><small>'+(en?"Personalise your Finance experience":"Personaliza tu experiencia en Finance")+'</small></div></div>'+
  '<div class="finance-pref-label">'+(en?"Display theme":"Tema de visualización")+'</div>'+
  '<div class="finance-theme-grid" role="group" aria-label="'+(en?"Display theme":"Tema de visualización")+'">'+themes.map(([id,label,emoji])=>'<button type="button" class="finance-theme-choice'+(state.theme===id?' selected':'')+'" data-finance-theme="'+id+'" aria-pressed="'+(state.theme===id)+'"><span class="finance-theme-icon finance-swatch finance-swatch-'+id+'">'+emoji+'</span><span>'+label+'</span><span class="finance-theme-check">'+(state.theme===id?"✓":"")+'</span></button>').join("")+'</div>'+
