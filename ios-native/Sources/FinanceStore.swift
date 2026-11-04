@@ -550,7 +550,8 @@ final class FinanceStore: ObservableObject {
 }
 
 struct BackupFile: FileDocument {
-    static var readableContentTypes: [UTType] { [.json] }
+    static var readableContentTypes: [UTType] { [.json,.data] }
+    static var writableContentTypes: [UTType] { [.json,.data] }
     var data: Data
     init(data: Data) { self.data=data }
     init(configuration: ReadConfiguration) throws { data=configuration.file.regularFileContents ?? Data() }
