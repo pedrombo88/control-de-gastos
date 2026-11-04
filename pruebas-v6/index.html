@@ -308,15 +308,16 @@ button{touch-action:manipulation}
 .cg-empty-pro p{font-size:12px;line-height:1.65;color:var(--muted);max-width:275px;margin:7px auto 0}
 .cg-empty-pro .empty-icon{display:none}
 </style>
-  <title>Finance · Tu dinero, más claro</title>
+  <link rel="stylesheet" href="inicio-v2.css">
+  <title>Control de Gastos · Inicio V2</title>
 </head>
-<body><div style="position:sticky;top:0;z-index:9999;background:#fff0b8;color:#654b00;text-align:center;font:700 12px system-ui;padding:9px">🧪 FINANCE V6 · PRUEBAS — Datos separados de tu app habitual</div>
+<body><div class="v6-preview-banner">VERSIÓN DE PRUEBAS V6 · Datos independientes de tu aplicación principal</div>
   <input id="smart-import-file" type="file" accept="image/*,application/pdf,.pdf,.csv,text/csv,.txt,text/plain" hidden>
   <input id="smart-import-camera" type="file" accept="image/*" capture="environment" hidden>
   <div id="smart-import-status" class="smart-import-status" role="status" aria-live="polite" hidden></div>
   <div id="app" class="app-shell">
     <header class="site-header">
-      <div class="brand-lockup"><div class="brand-mark" aria-hidden="true">F<span class="finance-brand-dot">.</span></div><div><div class="brand-name">Finance<span class="finance-brand-dot">.</span></div><div class="brand-caption">Tu dinero. Tus decisiones.</div></div></div>
+      <div class="brand-lockup"><div class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 19h18M5 16v-4h3v4m3 0V6h3v10m3 0v-7h3v7"/></svg></div><div><div class="brand-name">Control de <span>Gastos</span></div><div class="brand-caption">Tus finanzas, más claras</div></div></div>
       <button id="quick-add-top" class="header-add" type="button" aria-label="Añadir movimiento" title="Añadir movimiento">+</button>
     </header>
     <main id="page-content" tabindex="-1" aria-live="polite"></main>
@@ -525,29 +526,79 @@ button{touch-action:manipulation}
   const cardHeader = (title,action='',target='') => `<div class="section-heading"><h2>${title}</h2>${action?`<button type="button" class="text-link" data-action="${target}">${action} →</button>`:''}</div>`;
   const renderHome = () => {
     const tx=currentTx(), inc=total(tx,'income'), out=total(tx,'expense'), balance=inc-out;
-    const byCat=CAT.filter(c=>c.type==='expense').map(c=>({...c,amount:total(tx.filter(x=>x.category===c.id),'expense')})).filter(x=>x.amount>0).sort((a,b)=>b.amount-a.amount);
+    const byCat=CAT.filter(c=>c.type==='expense')
+      .map(c=>({...c,amount:total(tx.filter(x=>x.category===c.id),'expense')}))
+      .filter(x=>x.amount>0).sort((a,b)=>b.amount-a.amount);
     let chart='';
-    if(out){
-      let start=0;const circles = byCat.map(c=>{const p=c.amount/out*100;const cHtml=`<circle cx="75" cy="75" r="59" fill="none" stroke="${c.color}" stroke-width="17" stroke-dasharray="${p.toFixed(5)} ${(100-p).toFixed(5)}" stroke-dashoffset="${-start.toFixed(5)}" pathLength="100" transform="rotate(-90 75 75)"><title>${h(c.name)}: ${h(money(c.amount))}</title></circle>`;start+=p;return cHtml;}).join('');
+    if(out>0){
+      let start=0;
+      const circles=byCat.map(c=>{
+        const p=c.amount/out*100;
+        const piece=`<circle cx="75" cy="75" r="59" fill="none" stroke="${c.color}" stroke-width="16" stroke-dasharray="${p.toFixed(5)} ${(100-p).toFixed(5)}" stroke-dashoffset="${-start.toFixed(5)}" pathLength="100" transform="rotate(-90 75 75)"><title>${h(c.name)}: ${h(money(c.amount))}</title></circle>`;
+        start+=p;return piece;
+      }).join('');
       const legend=byCat.slice(0,5).map(c=>`<div class="legend-row"><span class="legend-dot" style="background:${c.color}"></span><span class="legend-name">${h(c.name)}</span><span class="legend-value">${h(shortMoney(c.amount))}</span></div>`).join('');
-      chart=`<div class="overview-chart"><div class="donut-wrap"><svg viewBox="0 0 150 150" role="img" aria-label="Distribución de gastos por categoría"><circle cx="75" cy="75" r="59" stroke="#eaf0f2" stroke-width="17" fill="none"/>${circles}</svg><div class="donut-center"><span>Gastos</span><b>${h(shortMoney(out))}</b></div></div><div class="legend">${legend}</div></div>`;
-    }else chart=empty('📊','Sin gastos todavía','Los gastos que añadas se mostrarán aquí, separados por categoría.');
+      chart=`<div class="overview-chart"><div class="donut-wrap"><svg viewBox="0 0 150 150" role="img" aria-label="Distribución de gastos por categoría"><circle cx="75" cy="75" r="59" stroke="var(--border)" stroke-width="16" fill="none"/>${circles}</svg><div class="donut-center"><span>Gastos</span><b>${h(shortMoney(out))}</b></div></div><div class="legend">${legend}</div></div>`;
+    }else{
+      chart=empty('📊','Sin gastos todavía','Cuando registres un gasto, verás aquí cómo se distribuye por categorías.');
+    }
     const recent=sorted(tx).slice(0,5);
     const setBudgets=Object.entries(data.budgets).filter(([k])=>CAT.some(c=>c.id===k));
-    const budgetTotal=setBudgets.reduce((s,[,v])=>s+v,0);
-    const spentBudget=setBudgets.reduce((s,[k])=>s+total(tx.filter(t=>t.category===k),'expense'),0);
+    const budgetTotal=setBudgets.reduce((sum,[,value])=>sum+value,0);
+    const spentBudget=setBudgets.reduce((sum,[id])=>sum+total(tx.filter(t=>t.category===id),'expense'),0);
     const budgetFraction=budgetTotal?spentBudget/budgetTotal:0;
+    const remaining=budgetTotal-spentBudget;
     const spentRatio=inc?Math.round(out/inc*100):0;
-    const tip=inc ? (out>inc?'<strong>Este mes has gastado más de lo ingresado.</strong><p>Revisa las categorías de gasto y define límites mensuales.</p>':`<strong>Has utilizado el ${spentRatio}% de tus ingresos.</strong><p>${inc-out>0?'Vas por buen camino. Puedes reservar parte de lo que queda para ahorrar.':'Tu balance está equilibrado.'}</p>`) : '<strong>Empieza por añadir tus ingresos.</strong><p>Así podrás ver el balance real y la parte que destinas a gastos.</p>';
-    return `${heading('Tu resumen','VISTA GENERAL')}
-      <section class="balance-card" aria-label="Resumen del mes"><div class="balance-title">Balance del mes</div><div class="balance-main">${h(money(balance))}</div><div class="balance-grid"><div class="balance-item"><span class="balance-icon" aria-hidden="true">↗</span><div><span class="balance-label">Ingresos</span><span class="balance-amount">${h(money(inc))}</span></div></div><div class="balance-item"><span class="balance-icon" aria-hidden="true">↘</span><div><span class="balance-label">Gastos</span><span class="balance-amount">${h(money(out))}</span></div></div></div></section>
-      ${cardHeader('¿En qué has gastado?')}<section class="card" aria-label="Desglose de gastos">${chart}</section>
-      <div class="tip-banner"><div class="tip-icon" aria-hidden="true">💡</div><div>${tip}</div></div>
-      ${cardHeader('Evolución · 6 meses','Ver análisis','stats')}<section class="card">${renderTrend()}</section>
-      ${cardHeader('Gastos recurrentes','Gestionar','recurring')}<section class="card rec-home"><span>🔁</span><div><b>Automatiza tus gastos fijos</b><p>Alquiler, suministros y suscripciones.</p></div><button type="button" class="small-action" data-rec-new>Crear</button></section>
-      ${setBudgets.length?`${cardHeader('Tus presupuestos','Ver todos','budgets')}<section class="card"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px"><b style="font-size:14px">${h(money(spentBudget))}</b><small class="muted">de ${h(money(budgetTotal))}</small></div><div class="budget-line">${progress(budgetFraction)}</div><div class="chip-line"><i></i>${setBudgets.length} ${setBudgets.length===1?'categoría con límite':'categorías con límite'}</div></section>`:''}
-      ${cardHeader('Importación inteligente','Abrir','smart-import')}<section class="card rec-home"><span>📷</span><div><b>Fotos de tickets y extractos</b><p>Revisa los movimientos antes de guardarlos.</p></div><button type="button" class="small-action" data-action="smart-import">Importar</button></section>
-      ${cardHeader('Últimos movimientos','Ver todos','transactions')}<section class="card movement-list">${recent.length?recent.map(txRowWithReceipt).join(''):empty('🧾','Aún no hay movimientos','Pulsa el botón + para registrar tu primer gasto o ingreso.')}</section>`;
+    const saved=inc-out;
+    const tip=inc ? (out>inc?
+      '<strong>Este mes los gastos superan los ingresos.</strong><p>Revisa tus categorías y ajusta los próximos presupuestos.</p>':
+      `<strong>Has utilizado el ${spentRatio}% de tus ingresos.</strong><p>${saved>0?'Tienes margen para reservar una parte y avanzar con tus objetivos.':'Tus ingresos y gastos están equilibrados.'}</p>`) :
+      '<strong>Registra tus ingresos para comenzar.</strong><p>Verás cómo evoluciona tu balance y en qué gastas cada mes.</p>';
+    const budgetLabel=setBudgets.length?'Presupuesto disponible':'Presupuestos';
+    const budgetValue=setBudgets.length?h(money(remaining)):'Sin definir';
+    const budgetNote=setBudgets.length?(`${setBudgets.length} ${setBudgets.length===1?'categoría configurada':'categorías configuradas'}`):'Crea tus primeros límites';
+    return `<div class="v6-home">
+      ${heading('Tu dinero, de un vistazo','RESUMEN MENSUAL')}
+      <section class="balance-card" aria-label="Resumen del mes">
+        <div class="balance-title">Balance del mes</div>
+        <div class="balance-main">${h(money(balance))}</div>
+        <div class="balance-grid">
+          <div class="balance-item"><span class="balance-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5m-6 6 6-6 6 6"/></svg></span><div><span class="balance-label">Ingresos</span><span class="balance-amount">${h(money(inc))}</span></div></div>
+          <div class="balance-item"><span class="balance-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14m-6-6 6 6 6-6"/></svg></span><div><span class="balance-label">Gastos</span><span class="balance-amount">${h(money(out))}</span></div></div>
+        </div>
+      </section>
+      <div class="v6-quick-actions" aria-label="Accesos rápidos">
+        <button type="button" class="v6-action" data-action="smart-import"><span class="v6-action-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h4l2-3h6l2 3h4v13H3z"/><circle cx="12" cy="13" r="4"/></svg></span><span><b>Importar ticket</b><small>Foto, PDF o CSV</small></span></button>
+        <button type="button" class="v6-action" data-tab="stats"><span class="v6-action-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 19h18M5 16v-4h3v4m3 0V6h3v10m3 0v-7h3v7"/></svg></span><span><b>Plan de ahorro</b><small>Ver estadísticas</small></span></button>
+      </div>
+      ${cardHeader('¿En qué has gastado?','Ver movimientos','transactions')}
+      <section class="card" aria-label="Gastos por categoría">${chart}</section>
+      <div class="v6-kpi-grid" aria-label="Indicadores del mes">
+        <button type="button" class="v6-kpi-card" data-tab="stats">
+          <span class="v6-kpi-header"><span>Ahorro neto</span><span class="v6-kpi-symbol"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a3 3 0 0 1 3-3h13v16H6a3 3 0 0 1-3-3V7z"/><path d="M3 8h17v8h-5a3 3 0 0 1 0-6h5"/></svg></span></span>
+          <div class="v6-kpi-value">${h(money(saved))}</div>
+          <div class="v6-kpi-note">Ingresos menos gastos</div>
+          <span class="v6-kpi-chip ${saved<0?'warn':''}">${saved>0?'Saldo positivo':saved<0?'Saldo negativo':'Sin diferencia'}</span>
+        </button>
+        <button type="button" class="v6-kpi-card" data-tab="budgets">
+          <span class="v6-kpi-header"><span>${budgetLabel}</span><span class="v6-kpi-symbol"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg></span></span>
+          <div class="v6-kpi-value">${budgetValue}</div>
+          <div class="v6-kpi-note">${budgetNote}</div>
+          <span class="v6-kpi-chip ${budgetTotal&&remaining<0?'warn':''}">${budgetTotal?(Math.round(Math.max(0,budgetFraction)*100)+'% utilizado'):'Configurar límites'}</span>
+        </button>
+      </div>
+      <div class="tip-banner"><div class="tip-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h.01"/></svg></div><div>${tip}</div></div>
+      ${cardHeader('Evolución · 6 meses','Ver análisis','stats')}
+      <section class="card">${renderTrend()}</section>
+      ${cardHeader('Últimos movimientos','Ver todos','transactions')}
+      <section class="card movement-list">${recent.length?recent.map(txRowWithReceipt).join(''):empty('🧾','Aún no hay movimientos','Pulsa el botón + para registrar tu primer gasto o ingreso.')}</section>
+      ${setBudgets.length?`${cardHeader('Tus presupuestos','Ver todos','budgets')}
+      <section class="card"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px"><b style="font-size:14px">${h(money(spentBudget))}</b><small class="muted">de ${h(money(budgetTotal))}</small></div><div class="v6-budget-track">${progress(budgetFraction)}</div><p class="muted" style="margin:12px 0 0">${setBudgets.length} ${setBudgets.length===1?'categoría con límite':'categorías con límite'}</p></section>`:''}
+      ${cardHeader('Gastos recurrentes','Gestionar','recurring')}
+      <section class="card rec-home"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h14l-3-3m3 3-3 3M20 17H6l3-3m-3 3 3 3"/></svg></span><div><b>Automatiza tus gastos fijos</b><p>Alquiler, suministros y suscripciones.</p></div><button type="button" class="small-action" data-rec-new>Crear</button></section>
+      ${cardHeader('Importación inteligente','Abrir','smart-import')}
+      <section class="card rec-home"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h4l2-3h6l2 3h4v13H3z"/><circle cx="12" cy="13" r="4"/></svg></span><div><b>Fotos de tickets y extractos</b><p>Revisa los movimientos antes de guardarlos.</p></div><button type="button" class="small-action" data-action="smart-import">Importar</button></section>
+    </div>`;
   };
   const renderTrend = () => {
     const months=[];const [y,m]=ui.month.split('-').map(Number);
