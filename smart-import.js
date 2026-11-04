@@ -1,6 +1,6 @@
-/* Control de Gastos — Importador de tickets y extractos.
-   Procesamiento local. Nunca se guardan archivos ni se envían a un servidor propio.
-   OCR (Tesseract) y PDF.js se descargan de CDNs externos cuando se utilizan. */
+/* Budviva — importador local de tickets y extractos.
+   Los originales se conservan opcionalmente en IndexedDB.
+   OCR y PDF.js se descargan actualmente desde CDN; PDF.js con ejecución de eval desactivada. */
 (function(root){
 "use strict";
 const moneyToCents=s=>{
@@ -180,7 +180,7 @@ function build(ctx){
  async function pdfText(file){
   await script("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js",()=>!!root.pdfjsLib?.getDocument);
   root.pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-  const bytes=await file.arrayBuffer();const doc=await root.pdfjsLib.getDocument({data:bytes}).promise;
+  const bytes=await file.arrayBuffer();const doc=await root.pdfjsLib.getDocument({data:bytes,isEvalSupported:false}).promise;
   if(doc.numPages>30)throw new Error("Por seguridad, se admiten PDF de hasta 30 páginas.");
   const pages=[];
   for(let n=1;n<=doc.numPages;n++){
