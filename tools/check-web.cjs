@@ -1,12 +1,18 @@
 /* Check de liberación sin dependencias externas. */
 const fs=require("node:fs"),vm=require("node:vm"),assert=require("node:assert/strict");
-const files=["recurring.js","stats.js","reconcile.js","smart-import.js","documents.js","backup-crypto.js","sw.js"];
+const files=["recurring.js","stats.js","reconcile.js","smart-import.js","documents.js","backup-crypto.js","sw.js","shared-expenses.js","compartidos.js","shared-config.js"];
 for(const f of files) new vm.Script(fs.readFileSync(f,"utf8"),{filename:f});
 const html=fs.readFileSync("index.html","utf8");
 const inline=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)].map(x=>x[1]).filter(Boolean);
 for(const [i,src] of inline.entries())new vm.Script(src,{filename:"index.html:inline:"+i});
 const nav=[...html.match(/<nav class="bottom-nav"[\s\S]*?<\/nav>/)?.[0].matchAll(/data-tab="([^"]+)"/g)||[]].map(x=>x[1]);
 assert.deepEqual(nav,["home","transactions","budgets","savings","settings"]);
+assert(html.includes('data-action="shared-household"'));
+assert(html.includes("window.location.href='./compartidos.html'"));
+const sharedHtml=fs.readFileSync('compartidos.html','utf8');
+assert(sharedHtml.includes('id="expense-form"')&&sharedHtml.includes('id="settlement-form"'));
+assert(fs.readFileSync('shared-config.js','utf8').includes('publishableKey'));
+assert(fs.readFileSync('backend/compartidos.sql','utf8').includes('enable row level security'));
 for(const ref of ["documents.js","backup-crypto.js","smart-import.js","stats.js"])assert(html.includes('src="'+ref+'"'),"Script missing "+ref);
 assert(html.includes("saldo-diario-data-v1"),"Legacy storage key must be kept");
 assert(html.includes("data-saving-view=\"analysis\""),"Savings analysis panel missing");
