@@ -206,11 +206,7 @@ final class FinanceStore: ObservableObject {
         return url
     }
     private var dataURL: URL { supportURL.appendingPathComponent("finance.json") }
-    private var filesURL: URL {
-        let url = supportURL.appendingPathComponent("Originales", isDirectory: true)
-        try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
-        return url
-    }
+    private var filesURL: URL {supportURL.appendingPathComponent("Originales",isDirectory:true)}
     func prepareSecurity() {
         try? FileManager.default.setAttributes([.protectionKey:FileProtectionType.complete],ofItemAtPath:supportURL.path)
     }
@@ -336,6 +332,7 @@ final class FinanceStore: ObservableObject {
         guard !isCorrupt else {throw LocalFinanceError.corrupted}
         guard blob.count > 0,blob.count <= 15*1024*1024 else {throw LocalFinanceError.quotaReached}
         let id=UUID().uuidString
+        try FileManager.default.createDirectory(at:filesURL,withIntermediateDirectories:true)
         let file=filesURL.appendingPathComponent(id)
         try blob.write(to:file,options:[.atomic,.completeFileProtection])
         let previous=data
@@ -403,6 +400,7 @@ final class FinanceStore: ObservableObject {
         }
         var next=incoming;next.attachments=nil
         let encoded=try JSONEncoder().encode(next)
+        let oldMetadata=try? Data(contentsOf:originalMetadataURL)
         let oldFinance=try? Data(contentsOf:dataURL)
         let oldData=data,oldCorrupt=isCorrupt
         let oldFolder=supportURL.appendingPathComponent("old-"+UUID().uuidString,isDirectory:true)
@@ -413,6 +411,14 @@ final class FinanceStore: ObservableObject {
                     previousFiles=oldFolder
                 }
                 try fm.moveItem(at:stagedURL,to:filesURL)
+            }
+            if let docs {
+                let metadata=docs.map { d in
+                    OriginalDocument(id:d.id,name:d.name,type:d.type,size:d.size,
+                        createdAt:d.createdAt,transactionIds:d.transactionIds,base64:"")
+                }
+                let metadataJSON=try JSONEncoder().encode(metadata)
+                try metadataJSON.write(to:originalMetadataURL,options:[.atomic,.completeFileProtection])
             }
             try encoded.write(to:dataURL,options:[.atomic,.completeFileProtection])
             data=next;isCorrupt=false
@@ -426,6 +432,8 @@ final class FinanceStore: ObservableObject {
                 }
                 if fm.fileExists(atPath:stagedURL.path) {try? fm.removeItem(at:stagedURL)}
             }
+            if let oldMetadata {try? oldMetadata.write(to:originalMetadataURL,options:[.atomic,.completeFileProtection])}
+            else {try? fm.removeItem(at:originalMetadataURL)}
             if let oldFinance {try? oldFinance.write(to:dataURL,options:[.atomic,.completeFileProtection])}
             else {try? fm.removeItem(at:dataURL)}
             data=oldData;isCorrupt=oldCorrupt
@@ -460,8 +468,7 @@ final class FinanceStore: ObservableObject {
         return try JSONEncoder().encode(snapshot)
     }
     func wipe() throws {
-        guard !isCorrupt else{throw LocalFinanceError.corrupted}
-        let saved=data
+        let saved=data,wasCorrupt=isCorrupt
         let empty=try JSONEncoder().encode(FinanceData())
         try empty.write(to:dataURL,options:[.atomic,.completeFileProtection])
         do {
@@ -471,10 +478,10 @@ final class FinanceStore: ObservableObject {
             if FileManager.default.fileExists(atPath:originalMetadataURL.path) {
                 try FileManager.default.removeItem(at:originalMetadataURL)
             }
-            data=FinanceData();objectWillChange.send()
+            data=FinanceData();isCorrupt=false;objectWillChange.send()
         }catch {
-            data=saved
-            try? JSONEncoder().encode(saved).write(to:dataURL,options:[.atomic,.completeFileProtection])
+            data=saved;isCorrupt=wasCorrupt
+            if !wasCorrupt {try? JSONEncoder().encode(saved).write(to:dataURL,options:[.atomic,.completeFileProtection])}
             throw error
         }
     }
