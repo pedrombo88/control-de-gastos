@@ -80,3 +80,30 @@ jobs:
           name: budviva-ios-xctest
           path: ios-native/BudvivaTestResults.xcresult
           retention-days: 7
+      - name: Capturar inicio de Budviva en el simulador
+        if: success()
+        timeout-minutes: 4
+        run: |
+          set -euo pipefail
+          APP=$(find "$HOME/Library/Developer/Xcode/DerivedData" -path '*/Build/Products/Debug-iphonesimulator/Budviva.app' -type d | head -n 1)
+          if [ -z "$APP" ]; then echo "Budviva.app no encontrada"; exit 1; fi
+          DEVICE_ID=$(xcrun simctl list devices booted -j | python3 -c '
+          import json,sys
+          values=json.load(sys.stdin)["devices"]
+          choices=[d for group in values.values() for d in group if "iPhone" in d["name"] and d["state"]=="Booted"]
+          print(choices[0]["udid"] if choices else "")
+          ')
+          if [ -z "$DEVICE_ID" ]; then echo "Simulador iPhone no iniciado"; exit 1; fi
+          xcrun simctl install "$DEVICE_ID" "$APP"
+          xcrun simctl terminate "$DEVICE_ID" com.example.budviva || true
+          xcrun simctl launch "$DEVICE_ID" com.example.budviva
+          sleep 4
+          mkdir -p ios-native/capturas-simulador
+          xcrun simctl io "$DEVICE_ID" screenshot ios-native/capturas-simulador/inicio-iphone.png
+      - name: Guardar captura de inicio de iPhone
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: budviva-iphone-preview
+          path: ios-native/capturas-simulador/inicio-iphone.png
+          retention-days: 14
