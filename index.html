@@ -460,6 +460,20 @@ html[data-app-theme="noche"] .saving-period.selected{
   border-color:#5a7c9b;
   color:#f7fbff;
 }
+
+/* Auditoría de limpieza 6.2.1: configuración de presupuestos solo bajo demanda. */
+.budget-extra{margin:20px 0 8px}
+.budget-extra>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;
+  border-radius:16px;min-height:58px;padding:14px 15px;border:1px solid var(--border);
+  background:var(--white);color:var(--ink);box-shadow:var(--shadow)}
+.budget-extra>summary::-webkit-details-marker{display:none}
+.budget-extra-title{font-size:14px;font-weight:800;flex:1}
+.budget-extra-count{font-size:11px;font-weight:750;color:var(--ink2);white-space:nowrap}
+.budget-extra>summary:after{content:"⌄";font-size:21px;line-height:1;color:var(--ink2);margin-left:2px}
+.budget-extra[open]>summary:after{transform:rotate(180deg)}
+.budget-extra>summary:focus-visible{outline:3px solid var(--design-focus);outline-offset:2px}
+.budget-extra-list{margin-top:11px}
+.saving-no-tickets{margin-top:18px}
 </style>
   <title>Budviva · Tu dinero, más claro</title>
 </head>
@@ -793,12 +807,12 @@ root.BudvivaGoals={build,total,status};
         '<div class="saving-choices-v2" role="group" aria-label="Porcentaje simulado">'+cutButtons()+'</div>'+
         '<p class="saving-explanation">Has identificado '+h(money(a.optional))+' en compras prescindibles durante el periodo. Reducir un '+cut+
         ' % equivaldría a '+h(money(a.reduction))+' en el periodo seleccionado.</p></section>'+
-        '<div class="saving-kpis">'+savingsKpis+'</div>'+
-        '<div class="section-heading"><h2>Productos prescindibles</h2></div><section class="card saving-list">'+
-        (products||placeholder('target','Sin productos prescindibles','Importa un ticket y marca sus productos como «No necesario» para obtener propuestas de ahorro.','Importar ticket','smart-import'))+'</section>'+
-        (cats?'<div class="section-heading"><h2>Categorías con margen</h2></div><section class="card saving-list">'+cats+'</section>':'')+
-        '<div class="section-heading"><h2>Revisar tus tickets</h2></div><section class="card saving-receipts">'+
-        (receiptRows||placeholder('receipt','Todavía no hay tickets','Los movimientos sin desglose no se consideran gastos prescindibles.','Importar ticket','smart-import'))+'</section>'+
+        (receipts.length?'<div class="saving-kpis">'+savingsKpis+'</div>':'')+
+        (!receipts.length
+          ? '<section class="card saving-list saving-no-tickets">'+placeholder('receipt','Aún no hay tickets desglosados','Importa un ticket para clasificar tus compras como necesarias o prescindibles.','Importar ticket','smart-import')+'</section>'
+          : (products?'<div class="section-heading"><h2>Productos prescindibles</h2></div><section class="card saving-list">'+products+'</section>':'')+
+            (cats?'<div class="section-heading"><h2>Categorías con margen</h2></div><section class="card saving-list">'+cats+'</section>':'')+
+            '<div class="section-heading"><h2>Revisar tus tickets</h2></div><section class="card saving-receipts">'+receiptRows+'</section>')+
         '<p class="footnote">Estas cifras son estimaciones, no ahorro conseguido. Solo cuentan los productos que marques como «No necesario». Los productos pendientes y los gastos sin desglose no se consideran ahorrables. Los descuentos se prorratean si el subtotal supera el importe final del ticket. La proyección anual supone que mantienes la misma media mensual.</p>';
     }
     function renderPreview(month){
@@ -1068,9 +1082,9 @@ root.BudvivaGoals={build,total,status};
       <section class="card budget-overview"><div class="budget-top"><div><div class="balance-title" style="color:var(--muted)">Gastos con límite</div><div class="budget-amount">${h(money(configuredSpend))}</div></div><span class="total-badge">${configured.length} ${configured.length===1?'límite':'límites'}</span></div><p class="budget-sub">Presupuesto asignado: ${h(money(totalLimit))} / mes</p><div style="margin-top:15px">${progress(totalLimit?configuredSpend/totalLimit:0,'Presupuesto mensual total')}</div></section>
       ${budgetAlertView()}
       ${cardHeader('Avisos de presupuesto')}<section class="card budget-alert-config"><label class="budget-alert-control"><span><b>Activar avisos</b><small>Te avisamos dentro de la aplicación cuando una categoría alcanza el umbral.</small></span><input id="budget-alert-enabled" type="checkbox" ${(data.budgetAlerts||{enabled:true}).enabled?'checked':''}></label><label class="budget-alert-select" for="budget-alert-threshold"><span>Umbral de aviso</span><select id="budget-alert-threshold" ${(data.budgetAlerts||{enabled:true}).enabled?'':'disabled'}>${[70,80,90].map(n=>`<option value="${n}" ${(data.budgetAlerts?.threshold||80)===n?'selected':''}>${n} %</option>`).join('')}</select></label><p class="muted">Al llegar al 100 % se muestra una advertencia de límite alcanzado o superado. No enviamos notificaciones externas.</p></section>
-      ${cardHeader('Categorías con presupuesto')}<section class="card">${configured.length?rows(configured):empty('🎯','Crea tu primer presupuesto','Define un límite de gasto mensual para alguna de las categorías de abajo.')}</section>
-      ${cardHeader('Otras categorías')}<section class="card">${rows(remainder)||empty('✓','Todas configuradas','Has definido un presupuesto para todas las categorías.')}</section>
-      <p class="footnote">Los límites son mensuales y se aplican automáticamente a todos los meses. Los gastos sin presupuesto no se incluyen en el total asignado.</p>`;
+      ${configured.length?cardHeader('Categorías con presupuesto')+'<section class="card">'+rows(configured)+'</section>':''}
+      ${remainder.length?'<details class="budget-extra"><summary><span class="budget-extra-title">'+(configured.length?'Añadir más categorías':'Configurar primer presupuesto')+'</span><span class="budget-extra-count">'+remainder.length+' disponibles</span></summary><section class="card budget-extra-list">'+rows(remainder)+'</section></details>':'<p class="footnote">Todas las categorías tienen un límite configurado.</p>'}
+      <p class="footnote">Los límites se aplican mensualmente. Los gastos sin presupuesto no se incluyen en el total asignado.</p>`;
   };
   const settingsRow = (emoji,title,subtitle,action) => `<button type="button" class="settings-row" data-action="${action}"><span class="settings-emoji" aria-hidden="true">${pictogram(visualSettings[action]||"file",21)}</span><span class="content"><b>${title}</b><small>${subtitle}</small></span><span class="chevron" aria-hidden="true">›</span></button>`;
   const currentTheme=()=>{
