@@ -28,7 +28,7 @@ jobs:
           node-version: '22'
       - name: Instalar Playwright
         run: |
-          npm install --no-save --no-package-lock @playwright/test@1.57.0
+          npm install --no-save --no-package-lock @playwright/test@1.57.0 @axe-core/playwright@4.14.0
           npx playwright install --with-deps chromium
       - name: Probar navegación y funcionalidades móviles
         run: npx playwright test --config=playwright.config.cjs
