@@ -16,15 +16,19 @@ La importación admite tickets en imagen y documentos PDF/CSV/TXT con revisión 
 
 ## Compartidos (v6.3.0 beta)
 
-Se ha implementado la pantalla `compartidos.html` y la lógica de dos cuentas para registrar solo gastos comunes, calcular deudas al céntimo, invitar a la pareja y confirmar pagos de compensación. **La sincronización todavía no está activa: el archivo `shared-config.js` no tiene credenciales públicas porque aún no existe un proyecto de base de datos exclusivo para Budviva.** El acceso muestra esta situación sin borrar ni modificar ningún gasto personal.
+Se ha implementado la pantalla `compartidos.html` y la lógica de dos cuentas para registrar solo gastos comunes, calcular deudas al céntimo, invitar a la pareja y confirmar pagos de compensación. Desde cada movimiento personal de tipo gasto hay un botón **Compartir gasto** que precarga una copia para revisión, sin subir el histórico privado. El identificador de evento vinculado es determinista y evita duplicar el mismo movimiento compartido por accidente; modificar el movimiento privado posteriormente no cambia automáticamente su copia compartida.
 
-Para activarla:
-1. Crear un proyecto Supabase **nuevo y exclusivo** para Budviva en una organización elegida por su responsable. No utilizar los proyectos DropPilot.
-2. Aplicar `backend/compartidos.sql` en ese proyecto y comprobar las políticas de acceso.
-3. Poner la URL del proyecto y exclusivamente su clave **publishable** (`sb_publishable_...`) en `shared-config.js`; nunca una `service_role` ni otra clave secreta.
-4. En Supabase Auth habilitar email OTP y configurar la plantilla con `{{ .Token }}`; configurar Site URL y URLs permitidas con `https://pedrombo88.github.io/control-de-gastos/compartidos.html`.
-5. Validar de extremo a extremo en dos iPhones con dos correos diferentes, y con un tercero ajeno comprobando que no accede a otro hogar.
-6. Antes de producción, cerrar privacidad y soporte comercial, restauración y retirada de la cuenta.
+**Backend creado y migrado el 4/11/2026:** proyecto dedicado Supabase **Budviva**, región `eu-west-1`, ref `bsvtttcuqamjifnpuzlj`. `shared-config.js` solo contiene la URL y la clave pública `sb_publishable_...`. DropPilot-Staging quedó pausado (estado INACTIVE); DropPilot principal permanece activo.
+
+**Pendiente para poder iniciar sesión por correo:** configurar desde el panel del proyecto Supabase:
+1. En **Authentication → Email Templates**, cambiar las plantillas **Magic Link / OTP** (y **Confirm sign up** para nuevas cuentas) para mostrar el código de 6 dígitos mediante `{{ .Token }}`, porque esta pantalla usa la introducción de código, no la pulsación de un enlace.
+2. En **Authentication → URL Configuration**, establecer Site URL como `https://pedrombo88.github.io/control-de-gastos/compartidos.html` y autorizar esa URL como redirect.
+3. El SMTP predeterminado de Supabase solo puede enviar a direcciones de los miembros de la organización. Para vincular una pareja con dos correos externos hay que configurar un SMTP propio con proveedor compatible, por ejemplo Resend/Brevo, antes de probar el inicio de sesión. No se ha configurado SMTP ni se ha probado el envío real.
+4. Comprobar la aplicación en dos iPhones con dos correos diferentes y con un tercer usuario ajeno. Antes de producción, cerrar privacidad, políticas de protección y borrado de cuenta.
+
+En el esquema hay RLS activada para todas las tablas de Budviva (comprobado en base de datos). Las funciones RPC con privilegios elevados requieren revisión de seguridad especial; se han restringido expresamente a cuentas autenticadas y comprueban la identidad y pertenencia a cada hogar.
+
+No reutilizar los proyectos DropPilot para datos de Budviva; nunca poner claves `service_role` ni contraseñas privadas en GitHub Pages.
 
 Los pagos de compensación son registros informativos, no transferencias bancarias. Solo afectan a la deuda después de ser confirmados por quien los recibe. No hay sincronización de tickets originales, nóminas ni movimientos privados.
 
