@@ -13,6 +13,18 @@ const sharedHtml=fs.readFileSync('compartidos.html','utf8');
 assert(sharedHtml.includes('id="expense-form"')&&sharedHtml.includes('id="settlement-form"'));
 assert(fs.readFileSync('shared-config.js','utf8').includes('publishableKey'));
 assert(fs.readFileSync('backend/compartidos.sql','utf8').includes('enable row level security'));
+assert(sharedHtml.includes('id="password-form"'),"Password fallback form missing");
+assert(sharedHtml.includes('id="summary-period"'),"Monthly comparison control missing");
+assert(sharedHtml.includes('id="last-sync"'),"Last synced marker missing");
+const sharedJs=fs.readFileSync('compartidos.js','utf8');
+assert(sharedJs.includes("readAllRows('bv_expenses'"),"Expense history may be silently truncated");
+assert(sharedJs.includes("readAllRows('bv_settlements'"),"Settlement history may be silently truncated");
+assert(sharedJs.includes("x.status==='confirmed'"),"Unconfirmed settlements must not reduce debts");
+assert(sharedJs.includes("setInterval(()=>{if(!document.hidden&&session&&household)"),"Shared balances must refresh");
+const sharedSql=fs.readFileSync('backend/compartidos.sql','utf8');
+assert(sharedSql.includes('and (select count(*) from public.bv_members m where m.household_id=bv_expenses.household_id)=2'),"Only complete households may add shared expenses");
+assert(sharedSql.includes('and (select count(*) from public.bv_members m where m.household_id=bv_settlements.household_id)=2'),"Only complete households may propose settlements");
+
 for(const ref of ["documents.js","backup-crypto.js","smart-import.js","stats.js"])assert(html.includes('src="'+ref+'"'),"Script missing "+ref);
 assert(html.includes("saldo-diario-data-v1"),"Legacy storage key must be kept");
 assert(html.includes("data-saving-view=\"analysis\""),"Savings analysis panel missing");
