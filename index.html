@@ -1023,10 +1023,11 @@ root.BudvivaGoals={build,total,status};
   const txRowWithReceipt = t => {
     const row=txRow(t);
     const hasItems=Array.isArray(t.receiptItems),hasFiles=Array.isArray(t.sourceDocumentIds)&&t.sourceDocumentIds.length;
-    if(!hasItems&&!hasFiles)return row;
+    const share=t.type==='expense'?`<button type="button" class="receipt-view-button" data-share-expense="${h(t.id)}">${pictogram("home",15)} Compartir gasto</button>`:'';
+    if(!hasItems&&!hasFiles&&!share)return row;
     const items=hasItems?`<button type="button" class="receipt-view-button" data-open-receipt="${h(t.id)}">${pictogram("receipt",15)} Productos (${t.receiptItems.length})</button>`:'';
     const originals=hasFiles?`<button type="button" class="receipt-view-button" data-view-originals="${h(t.id)}">${pictogram("file",15)} Ver original${t.sourceDocumentIds.length===1?'':'es'}</button>`:'';
-    return `<div class="receipt-movement-wrap">${row}<div class="receipt-source-actions">${items}${originals}</div></div>`;
+    return `<div class="receipt-movement-wrap">${row}<div class="receipt-source-actions">${share}${items}${originals}</div></div>`;
   };
   const sorted = items => [...items].sort((a,b)=>b.date.localeCompare(a.date)||b.id.localeCompare(a.id));
   const cardHeader = (title,action='',target='') => `<div class="section-heading"><h2>${title}</h2>${action?`<button type="button" class="text-link" data-action="${target}">${action} →</button>`:''}</div>`;
@@ -1360,6 +1361,18 @@ root.BudvivaGoals={build,total,status};
     render();toast('Preferencias de avisos guardadas');
   });
   document.addEventListener('click', e => {
+    const shareButton=e.target.closest('[data-share-expense]');
+    if(shareButton){
+      const entry=data.transactions.find(t=>t.id===shareButton.dataset.shareExpense&&t.type==='expense');
+      if(!entry){toast('Gasto no encontrado');return;}
+      try{
+        sessionStorage.setItem('budviva-share-draft-v1',JSON.stringify({
+          id:entry.id,title:entry.title,date:entry.date,amountCents:entry.amount,createdAt:Date.now()
+        }));
+        window.location.href='./compartidos.html';
+      }catch(err){toast('No se ha podido preparar el gasto para compartir.');}
+      return;
+    }
     if(e.target===attachOriginalButton){
       if(!editingTx){toast('Guarda antes el movimiento para adjuntar un original.');return;}
       attachOriginalInput.click();return;
