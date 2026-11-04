@@ -1,6 +1,6 @@
 /* Control de Gastos — caché offline V2.1 */
 const CACHE_PREFIX = 'control-de-gastos-';
-const CACHE = CACHE_PREFIX + '5.5';
+const CACHE = CACHE_PREFIX + '5.5.1';
 const ASSETS = ['./','./index.html','./recurring.js','./stats.js','./reconcile.js','./smart-import.js','./savings.js','./savings.css','./manifest.webmanifest','./icon.svg'];
 self.addEventListener('install', event => {
   event.waitUntil(
