@@ -145,7 +145,7 @@ function fingerprint(item){
 }
 function build(ctx){
  const {getData,save,render,CAT,h,money,parseMoney,isRealDate,uid,toast,localDate}=ctx;
- const state={rows:[],source:"",busy:false,raw:""};
+ const state={rows:[],source:"",busy:false,raw:"",file:null};
  const fileInput=document.getElementById("smart-import-file");
  const cameraInput=document.getElementById("smart-import-camera");
  const status=document.getElementById("smart-import-status");
@@ -214,6 +214,7 @@ function build(ctx){
  async function handle(file,mode){
   if(!file||state.busy)return;
   if(file.size>15*1024*1024){status.hidden=false;status.textContent="El archivo supera el máximo de 15 MB.";return;}
+  state.file=null;
   loading("Preparando "+file.name+"…");
   try{
    const type=file.type||"",name=file.name.toLowerCase();
@@ -227,6 +228,7 @@ function build(ctx){
     text=await file.text();kind=name.endsWith(".csv")?"csv":kind;
    }else throw new Error("Formato no admitido. Usa JPG, PNG, PDF con texto, CSV o TXT.");
    if(!text.trim())throw new Error("No se ha encontrado texto legible.");
+   state.file=file;
    processText(text,kind,file.name);
   }catch(e){status.hidden=false;status.textContent="No se pudo leer: "+e.message;state.rows=[];render();}
   finally{finish();}
@@ -312,7 +314,7 @@ function build(ctx){
   // No repintar el campo mientras se escribe: se actualiza al salir del control.
   if(field==="necessity"||field==="amount")render();
  }
- function saveSelected(){
+ async function saveSelected(){
   const data=getData(),dupes=duplicates(),batch=new Set(),newTx=[],updates=[],usedLinks=new Set();
   for(const r of state.rows){
    if(!r.selected||!valid(r))continue;
@@ -329,9 +331,27 @@ function build(ctx){
   }
   if(!newTx.length&&!updates.length){toast("No hay movimientos nuevos válidos para guardar");return;}
   const old=data.transactions;
+  let docId=null;
+  if(state.file){
+    try{
+      if(!root.BudvivaDocuments)throw Error("El almacén de originales no está disponible.");
+      docId=await root.BudvivaDocuments.saveFile(state.file,[...newTx.map(tx=>tx.id),...updates.map(u=>u.id)]);
+    }catch(err){
+      if(!confirm("No se ha podido guardar el archivo original: "+err.message+"\n\n¿Guardar los movimientos SIN conservar el original?"))return;
+    }
+  }
+  if(docId){
+    for(const tx of newTx)tx.sourceDocumentIds=[docId];
+    for(const u of updates)u.tx.sourceDocumentIds=[...new Set([...(u.tx.sourceDocumentIds||[]),docId])];
+  }
   data.transactions=[...old.map(tx=>updates.find(u=>u.id===tx.id)?.tx||tx),...newTx];
-  if(!save()){data.transactions=old;return;}
-  state.rows=[];state.raw="";status.hidden=false;status.textContent=newTx.length+" movimientos nuevos y "+updates.length+" vinculados a gastos existentes.";
+  if(!save()){
+    data.transactions=old;
+    if(docId)await root.BudvivaDocuments.remove(docId).catch(()=>{});
+    return;
+  }
+  state.rows=[];state.raw="";state.file=null;status.hidden=false;
+  status.textContent=newTx.length+" movimientos nuevos y "+updates.length+" vinculados. "+(docId?"Archivo original conservado en este dispositivo.":"Sin documento original.");
   toast(newTx.length+" nuevos · "+updates.length+" conciliados");render();
  }
  document.addEventListener("click",e=>{
@@ -346,7 +366,7 @@ function build(ctx){
     render();
     return;
   }
-  if(e.target.closest("[data-import-save]")){saveSelected();return;}
+  if(e.target.closest("[data-import-save]")){void saveSelected().catch(err=>{status.hidden=false;status.textContent="Error guardando la importación: "+err.message;});return;}
   const add=e.target.closest("[data-receipt-add]");
   if(add){const r=state.rows[Number(add.dataset.receiptAdd)];if(r&&Array.isArray(r.items)){r.items.push({id:"p-"+uid(),name:"Nuevo producto",amount:1,quantity:1,necessity:"pending"});render();}return;}
   const del=e.target.closest("[data-receipt-delete]");
