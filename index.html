@@ -543,7 +543,7 @@ function build(ctx){
      '<div class="goal-progress" role="progressbar" aria-label="Progreso de '+h(g.title)+'" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+pct+'"><span style="width:'+pct+'%"></span></div>'+
      '<div class="goal-bottom"><span>'+pct+' % conseguido</span><span>Faltan '+h(money(st.remaining))+'</span></div>'+
      '<div class="goal-status goal-status-'+st.state+'">'+h(st.message)+'</div>'+
-     (st.remaining?'<p class="goal-monthly">Para cumplir la meta: <strong>'+h(money(st.monthly))+' / mes</strong></p>':'')+
+     (st.remaining&&today<g.dueDate?'<p class="goal-monthly">Para cumplir la meta: <strong>'+h(money(st.monthly))+' / mes</strong></p>':'')+
      '<button class="goal-add" type="button" data-goal-add="'+h(g.id)+'">+ Registrar aportación</button>'+
      (history.length?'<details class="goal-history"><summary>Historial de aportaciones ('+history.length+')</summary>'+
        history.slice(0,30).map(c=>'<div class="goal-history-row"><span>'+h(dateFmt(c.date))+(c.note?' · '+h(c.note):'')+'</span><b>'+h(money(c.amount))+'</b><button type="button" data-goal-delete-entry="'+h(c.id)+'" data-goal-id="'+h(g.id)+'" aria-label="Eliminar aportación">✕</button></div>').join('')+
