@@ -144,10 +144,30 @@ enum FinanceFormat {
         euro.string(from: NSNumber(value: Double(cents) / 100)) ?? "\(cents) ct"
     }
     static func cents(_ raw: String) -> Int? {
-        let cleaned = raw.replacingOccurrences(of: "€", with: "").replacingOccurrences(of: " ", with: "")
-            .replacingOccurrences(of: ".", with: "").replacingOccurrences(of: ",", with: ".")
-        guard let n = Double(cleaned), n > 0, n <= 99_999_999.99 else { return nil }
-        return Int((n * 100).rounded())
+        let cleaned=raw.replacingOccurrences(of:"€",with:"")
+            .replacingOccurrences(of:" ",with:"")
+            .replacingOccurrences(of:"\u{00a0}",with:"")
+        if cleaned.isEmpty || cleaned.contains("-") || cleaned.contains("+") {return nil}
+        let normalized:String
+        if cleaned.contains(",") {
+            let valid=cleaned.range(of:#"^(\d{1,3}(\.\d{3})+|\d+)(,\d{1,2})?$"#,options:.regularExpression) != nil
+            guard valid else {return nil}
+            normalized=cleaned.replacingOccurrences(of:".",with:"").replacingOccurrences(of:",",with:".")
+        } else if cleaned.contains(".") {
+            if cleaned.range(of:#"^\d+\.\d{1,2}$"#,options:.regularExpression) != nil {
+                normalized=cleaned
+            } else if cleaned.range(of:#"^\d{1,3}(\.\d{3})+$"#,options:.regularExpression) != nil {
+                normalized=cleaned.replacingOccurrences(of:".",with:"")
+            } else {return nil}
+        } else {
+            guard cleaned.range(of:#"^\d+$"#,options:.regularExpression) != nil else{return nil}
+            normalized=cleaned
+        }
+        guard let decimal=Decimal(string:normalized,locale:Locale(identifier:"en_US_POSIX")),
+              decimal > 0,decimal <= Decimal(99_999_999) else{return nil}
+        let cents=NSDecimalNumber(decimal:decimal*100)
+        guard cents != NSDecimalNumber.notANumber else{return nil}
+        return cents.intValue
     }
     static func date(_ date: Date = Date()) -> String {
         let f = DateFormatter(); f.locale = Locale(identifier:"en_US_POSIX")
@@ -202,6 +222,7 @@ final class FinanceStore: ObservableObject {
             if FileManager.default.fileExists(atPath: dataURL.path) {
                 data = try JSONDecoder().decode(FinanceData.self, from: Data(contentsOf: dataURL))
                 data.attachments = nil
+                syncRecurring()
             }
         } catch {
             isCorrupt = true
@@ -312,65 +333,150 @@ final class FinanceStore: ObservableObject {
     }
 
     func storeOriginal(_ blob: Data, name: String, type: String, movementIDs: [String]) throws -> String {
-        guard blob.count <= 15*1024*1024 else { throw LocalFinanceError.quotaReached }
-        let id = UUID().uuidString
-        let file = filesURL.appendingPathComponent(id, isDirectory: false)
-        try blob.write(to: file, options: [.atomic, .completeFileProtection])
-        write { model in
-            for i in model.transactions.indices where movementIDs.contains(model.transactions[i].id) {
-                var refs = model.transactions[i].sourceDocumentIds ?? []
-                if !refs.contains(id) { refs.append(id) }
-                model.transactions[i].sourceDocumentIds = refs
-            }
+        guard !isCorrupt else {throw LocalFinanceError.corrupted}
+        guard blob.count > 0,blob.count <= 15*1024*1024 else {throw LocalFinanceError.quotaReached}
+        let id=UUID().uuidString
+        let file=filesURL.appendingPathComponent(id)
+        try blob.write(to:file,options:[.atomic,.completeFileProtection])
+        let previous=data
+        for i in data.transactions.indices where movementIDs.contains(data.transactions[i].id) {
+            var refs=data.transactions[i].sourceDocumentIds ?? []
+            if !refs.contains(id) {refs.append(id)}
+            data.transactions[i].sourceDocumentIds=refs
+        }
+        do {try persist()}
+        catch {
+            data=previous
+            try? FileManager.default.removeItem(at:file)
+            throw error
+        }
+        let metadata=OriginalDocument(id:id,name:String(name.prefix(160)),type:String(type.prefix(100)),
+             size:blob.count,createdAt:FinanceFormat.date(),transactionIds:movementIDs,base64:"")
+        var info=(try? JSONDecoder().decode([OriginalDocument].self,
+                    from:Data(contentsOf:originalMetadataURL))) ?? []
+        info.append(metadata)
+        if let encoded=try? JSONEncoder().encode(info) {
+            try? encoded.write(to:originalMetadataURL,options:[.atomic,.completeFileProtection])
         }
         return id
     }
+    private var originalMetadataURL: URL {supportURL.appendingPathComponent("Originales-index.json")}
     func originalURL(_ id: String) -> URL? {
         let file = filesURL.appendingPathComponent(id)
         return FileManager.default.fileExists(atPath: file.path) ? file : nil
     }
 
-    // Se importan copias JSON antiguas de la PWA y las completas de la nueva app.
-    // La restauración es explícita: nunca se fusionan saldos automáticamente.
-    func restoreBackup(_ backup: Data) throws {
-        let incoming = try JSONDecoder().decode(FinanceData.self, from: backup)
-        guard incoming.transactions.count <= 40000, incoming.savingsGoals.count <= 60,
-              incoming.transactions.allSatisfy({ $0.amount > 0 && $0.amount <= 9_999_999_999 }),
-              incoming.savingsGoals.allSatisfy({ $0.target > 0 }) else {
-            throw LocalFinanceError.invalidBackup
+    // Compatibilidad de copias JSON PWA / iOS con y sin archivos adjuntos.
+    // El modelo solo se reemplaza tras preparar los originales y guardar el JSON.
+    func restoreBackup(_ backup:Data) throws {
+        guard backup.count <= 110*1024*1024 else {throw LocalFinanceError.invalidBackup}
+        let incoming=try JSONDecoder().decode(FinanceData.self,from:backup)
+        guard incoming.transactions.count <= 40000,incoming.savingsGoals.count<=60,
+              incoming.transactions.allSatisfy({$0.amount>0 && $0.amount<=9_999_999_999}),
+              incoming.savingsGoals.allSatisfy({$0.target>0}) else{throw LocalFinanceError.invalidBackup}
+        let docs=incoming.attachments
+        var stagedURL:URL?
+        var previousFiles:URL?
+        let fm=FileManager.default
+        if let docs {
+            guard docs.count<=200,docs.reduce(0,{$0+$1.size})<=75*1024*1024 else {
+                throw LocalFinanceError.invalidBackup
+            }
+            let ids=Set(docs.map(\.id))
+            guard ids.count==docs.count,
+                  incoming.transactions.flatMap({$0.sourceDocumentIds ?? []}).allSatisfy({ids.contains($0)}) else{
+                throw LocalFinanceError.invalidBackup
+            }
+            let folder=supportURL.appendingPathComponent("stage-"+UUID().uuidString,isDirectory:true)
+            try fm.createDirectory(at:folder,withIntermediateDirectories:true)
+            stagedURL=folder
+            do {
+                for item in docs {
+                    guard item.size > 0,item.size <= 15*1024*1024,
+                          item.id.range(of:#"^[a-zA-Z0-9_-]{1,150}$"#,options:.regularExpression) != nil,
+                          let original=Data(base64Encoded:item.base64),original.count==item.size else{
+                        throw LocalFinanceError.invalidBackup
+                    }
+                    try original.write(to:folder.appendingPathComponent(item.id),options:[.atomic,.completeFileProtection])
+                }
+            }catch{try? fm.removeItem(at:folder);throw error}
         }
-        var docs: [(URL,Data)] = []
-        for item in incoming.attachments ?? [] {
-            guard item.size <= 15*1024*1024,
-                  let raw = Data(base64Encoded: item.base64),raw.count == item.size,
-                  item.id.range(of: #"^[a-zA-Z0-9_-]{1,150}$"#,options:.regularExpression) != nil
-            else { throw LocalFinanceError.invalidBackup }
-            docs.append((filesURL.appendingPathComponent(item.id),raw))
+        var next=incoming;next.attachments=nil
+        let encoded=try JSONEncoder().encode(next)
+        let oldFinance=try? Data(contentsOf:dataURL)
+        let oldData=data,oldCorrupt=isCorrupt
+        let oldFolder=supportURL.appendingPathComponent("old-"+UUID().uuidString,isDirectory:true)
+        do {
+            if let stagedURL {
+                if fm.fileExists(atPath:filesURL.path) {
+                    try fm.moveItem(at:filesURL,to:oldFolder)
+                    previousFiles=oldFolder
+                }
+                try fm.moveItem(at:stagedURL,to:filesURL)
+            }
+            try encoded.write(to:dataURL,options:[.atomic,.completeFileProtection])
+            data=next;isCorrupt=false
+            objectWillChange.send()
+            if let previousFiles {try? fm.removeItem(at:previousFiles)}
+        }catch{
+            if let stagedURL {
+                if fm.fileExists(atPath:filesURL.path) {try? fm.removeItem(at:filesURL)}
+                if let previousFiles, fm.fileExists(atPath:previousFiles.path) {
+                    try? fm.moveItem(at:previousFiles,to:filesURL)
+                }
+                if fm.fileExists(atPath:stagedURL.path) {try? fm.removeItem(at:stagedURL)}
+            }
+            if let oldFinance {try? oldFinance.write(to:dataURL,options:[.atomic,.completeFileProtection])}
+            else {try? fm.removeItem(at:dataURL)}
+            data=oldData;isCorrupt=oldCorrupt
+            throw error
         }
-        for (url,content) in docs { try content.write(to:url, options:[.atomic,.completeFileProtection]) }
-        var next = incoming; next.attachments = nil
-        let snapshot = data, wasCorrupt=isCorrupt
-        data = next;isCorrupt=false
-        do { try persist() }
-        catch { data=snapshot;isCorrupt=wasCorrupt;throw error }
     }
+
     func exportBackup() throws -> Data {
-        if isCorrupt { throw LocalFinanceError.corrupted }
-        var snapshot = data
-        let ids = Set(data.transactions.flatMap { $0.sourceDocumentIds ?? [] })
-        snapshot.attachments = try ids.compactMap { id in
-            guard let url = originalURL(id) else { return nil }
-            let bytes = try Data(contentsOf: url)
-            return OriginalDocument(id:id,name:"Original-\(id)",type:"application/octet-stream",size:bytes.count,
-                                    createdAt:FinanceFormat.date(),transactionIds:data.transactions.filter { ($0.sourceDocumentIds ?? []).contains(id) }.map(\.id),base64:bytes.base64EncodedString())
+        if isCorrupt {throw LocalFinanceError.corrupted}
+        var snapshot=data
+        let ids=Set(data.transactions.flatMap{$0.sourceDocumentIds ?? []})
+        let metadata=(try? JSONDecoder().decode([OriginalDocument].self,
+             from:Data(contentsOf:originalMetadataURL))) ?? []
+        var docs=[OriginalDocument](),totalBytes=0
+        for id in ids.sorted() {
+            guard let url=originalURL(id) else{
+                throw LocalFinanceError.invalidBackup
+            }
+            let bytes=try Data(contentsOf:url)
+            totalBytes+=bytes.count
+            guard bytes.count<=15*1024*1024,totalBytes<=75*1024*1024 else{
+                throw LocalFinanceError.quotaReached
+            }
+            let meta=metadata.first(where:{$0.id==id})
+            docs.append(OriginalDocument(id:id,name:meta?.name ?? "Original-"+id,
+                type:meta?.type ?? "application/octet-stream",size:bytes.count,
+                createdAt:meta?.createdAt ?? FinanceFormat.date(),
+                transactionIds:data.transactions.filter{($0.sourceDocumentIds ?? []).contains(id)}.map(\.id),
+                base64:bytes.base64EncodedString()))
         }
+        snapshot.attachments=docs
         return try JSONEncoder().encode(snapshot)
     }
     func wipe() throws {
-        let old = data;data=FinanceData();isCorrupt=false
-        do { try persist() }
-        catch { data=old;throw error }
-        try? FileManager.default.removeItem(at: filesURL)
+        guard !isCorrupt else{throw LocalFinanceError.corrupted}
+        let saved=data
+        let empty=try JSONEncoder().encode(FinanceData())
+        try empty.write(to:dataURL,options:[.atomic,.completeFileProtection])
+        do {
+            if FileManager.default.fileExists(atPath:filesURL.path) {
+                try FileManager.default.removeItem(at:filesURL)
+            }
+            if FileManager.default.fileExists(atPath:originalMetadataURL.path) {
+                try FileManager.default.removeItem(at:originalMetadataURL)
+            }
+            data=FinanceData();objectWillChange.send()
+        }catch {
+            data=saved
+            try? JSONEncoder().encode(saved).write(to:dataURL,options:[.atomic,.completeFileProtection])
+            throw error
+        }
     }
     func setTheme(_ id: String) { theme=id;UserDefaults.standard.set(id, forKey:"budviva-theme") }
 }
