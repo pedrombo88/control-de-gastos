@@ -65,7 +65,7 @@ test("No document is persisted remotely by the local originals module",()=>{
 
 test("Encrypted backups are compatible with deterministic AES-GCM vector", async () => {
     const {BudvivaBackupCrypto:c}=load("backup-crypto.js");
-    const sample=${JSON.stringify(payload)};
+    const sample={"format":"budviva-encrypted-v1","kdf":"PBKDF2-SHA256","iterations":310000,"salt":"AAECAwQFBgcICQoLDA0ODw==","iv":"EBESExQVFhcYGRob","ciphertext":"5d/og+JY4wyY7vlyf4G8VRGqYMR/0jDZlKOOBH0EBwSqNGpHzsNu2SfHU3B8Fzv901lZGgRCcqQZhhzY"};
     const output=await c.decrypt(JSON.parse(sample),"Budviva-test-contraseña-2026");
-    assert.equal(output,${JSON.stringify(expected)});
+    assert.equal(output,"{\"version\":2,\"transactions\":[],\"budgets\":{}}");
 });
