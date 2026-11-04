@@ -37,7 +37,7 @@ struct HomeScreen: View {
                 if store.data.budgetAlerts.enabled && !warnings.isEmpty {
                     GroupBox {
                         VStack(alignment:.leading,spacing:6) {
-                            ForEach(warnings,id:\.0) { item in Text(item.1).font(.subheadline) }
+                            ForEach(warnings.indices,id:\.self) { i in Text(warnings[i].1).font(.subheadline) }
                             Text("Una o más categorías alcanzaron el umbral de aviso.").font(.caption).foregroundStyle(.secondary)
                         }
                     } label: { Label("Avisos de presupuesto",systemImage:"exclamationmark.triangle").foregroundStyle(.orange) }
@@ -183,7 +183,10 @@ struct EntryEditor: View {
                         .onChange(of:type) { _,next in category=next=="income" ? "nomina":"alimentacion" }
                     TextField("Concepto",text:$title)
                     Picker("Categoría",selection:$category) {
-                        ForEach(type=="income" ? FinanceCategory.income:FinanceCategory.expense,id:\.0) { id,name in Text(name).tag(id) }
+                        ForEach((type=="income" ? FinanceCategory.income:FinanceCategory.expense).indices,id:\.self) { i in
+                            let item=(type=="income" ? FinanceCategory.income:FinanceCategory.expense)[i]
+                            Text(item.1).tag(item.0)
+                        }
                     }
                     DatePicker("Fecha",selection:$date,in:...Date(),displayedComponents:.date)
                     Picker("Método",selection:$method) {
@@ -237,7 +240,8 @@ struct BudgetsScreen: View {
                 }.disabled(!store.data.budgetAlerts.enabled)
             }
             Section("Límites por categoría") {
-                ForEach(FinanceCategory.expense,id:\.0) { item in
+                ForEach(FinanceCategory.expense.indices,id:\.self) { i in
+                    let item=FinanceCategory.expense[i]
                     let used=current.filter{$0.category==item.0}.reduce(0){$0+$1.amount}
                     let limit=store.data.budgets[item.0]
                     Button {
@@ -306,7 +310,8 @@ struct StatisticsScreen: View {
                     }
                 }.frame(height:260)
                 Text("Gastos por categoría").font(.headline)
-                ForEach(FinanceCategory.expense,id:\.0) { id,name in
+                ForEach(FinanceCategory.expense.indices,id:\.self) { i in
+                    let id=FinanceCategory.expense[i].0, name=FinanceCategory.expense[i].1
                     let sum=store.data.transactions.filter { $0.type=="expense" && $0.category==id && points.map(\.month).contains(String($0.date.prefix(7))) }.reduce(0){$0+$1.amount}
                     if sum>0 { HStack {Text(name);Spacer();Text(FinanceFormat.money(sum))}.font(.subheadline) }
                 }
