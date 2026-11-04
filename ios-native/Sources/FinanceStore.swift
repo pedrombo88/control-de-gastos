@@ -236,9 +236,62 @@ final class FinanceStore: ObservableObject {
         }
     }
     func delete(_ id: String) {
-        write { $0.transactions.removeAll(where: { $0.id == id }) }
-        // Los originales quedan accesibles hasta la siguiente limpieza manual; nunca se borran automáticamente
-        // cuando un mismo archivo puede estar vinculado con otros movimientos.
+        let entry=data.transactions.first(where:{$0.id == id})
+        write { model in
+            model.transactions.removeAll(where:{$0.id == id})
+            if let rule=entry?.recurringId,let date=entry?.occurrenceDate {
+                let marker=rule+"|"+date
+                if !model.recurringSkips.contains(marker){model.recurringSkips.append(marker)}
+            }
+        }
+        // Los originales pueden compartirse; se conservan hasta una limpieza específica.
+    }
+    func saveRecurring(_ rule:RecurringRule) {
+        write { model in
+            if let i=model.recurring.firstIndex(where:{$0.id==rule.id}) {model.recurring[i]=rule}
+            else {model.recurring.append(rule)}
+        }
+        syncRecurring()
+    }
+    func removeRecurring(_ id:String) { write{$0.recurring.removeAll{$0.id==id}} }
+    func syncRecurring() {
+        if isCorrupt || data.recurring.isEmpty {return}
+        let today=FinanceFormat.date()
+        let limit=FinanceFormat.date(Calendar.current.date(byAdding:.year,value:-2,to:Date()) ?? Date())
+        let previous=Set(data.transactions.compactMap { mov -> String? in
+            guard let rule=mov.recurringId,let date=mov.occurrenceDate else{return nil}
+            return rule+"|"+date
+        })
+        let skipped=Set(data.recurringSkips)
+        var created=[Movement](),seen=previous
+        for rule in data.recurring {
+            if rule.active == false || rule.start > today {continue}
+            let start=FinanceFormat.parsedDate(rule.start)
+            let minimum=rule.from ?? rule.start
+            var index=0
+            while index<800 && created.count<1500 {
+                let next:Date?
+                switch rule.frequency {
+                case "daily":next=Calendar.current.date(byAdding:.day,value:index,to:start)
+                case "weekly":next=Calendar.current.date(byAdding:.day,value:index*7,to:start)
+                case "monthly":next=Calendar.current.date(byAdding:.month,value:index,to:start)
+                case "yearly":next=Calendar.current.date(byAdding:.year,value:index,to:start)
+                default:next=nil
+                }
+                guard let date=next else{break}
+                let key=FinanceFormat.date(date)
+                if key > today {break}
+                let candidate=rule.id+"|"+key
+                if key >= limit && key >= minimum && !seen.contains(candidate) && !skipped.contains(candidate) {
+                    created.append(Movement(type:rule.type,amount:rule.amount,date:key,title:rule.title,
+                        category:rule.category,method:rule.method ?? "card",note:"Movimiento recurrente",
+                        recurringId:rule.id,occurrenceDate:key))
+                    seen.insert(candidate)
+                }
+                index+=1
+            }
+        }
+        if !created.isEmpty {write{$0.transactions.append(contentsOf:created)}}
     }
     func setBudget(_ category: String, amount: Int?) {
         write { if let amount, amount > 0 { $0.budgets[category] = amount } else { $0.budgets.removeValue(forKey: category) } }
