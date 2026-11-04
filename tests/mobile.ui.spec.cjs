@@ -165,3 +165,25 @@ test("OCR de imagen funciona con Tesseract y español descargados desde Budviva"
   await expect(page.locator('[data-import-row]')).toHaveCount(1,{timeout:85000});
   await expect(page.locator('[data-import-field="amount"]')).toHaveValue("12,34");
 });
+
+
+test("Auditoría limpieza: presupuesto sin límites se despliega bajo demanda",async({page})=>{
+  await page.locator('[data-tab="budgets"]').click();
+  await expect(page.locator('#page-content')).not.toContainText("Crea tu primer presupuesto");
+  const disclosure=page.locator('details.budget-extra');
+  await expect(disclosure).toHaveCount(1);
+  await expect(disclosure).not.toHaveAttribute("open","");
+  await expect(disclosure.locator('[data-budget-category="alimentacion"]')).not.toBeVisible();
+  await disclosure.locator('summary').click();
+  await expect(disclosure.locator('[data-budget-category="alimentacion"]')).toBeVisible();
+  await disclosure.locator('[data-budget-category="alimentacion"]').click();
+  await expect(page.locator('#budget-dialog')).toBeVisible();
+});
+
+test("Auditoría limpieza: solo un aviso de importación en ahorro sin tickets",async({page})=>{
+  await page.locator('[data-tab="savings"]').click();
+  await expect(page.locator('.saving-no-tickets')).toHaveCount(1);
+  await expect(page.locator('.saving-no-tickets [data-action="smart-import"]')).toHaveCount(1);
+  await expect(page.locator('#page-content')).not.toContainText("Todavía no hay tickets");
+  await expect(page.locator('#page-content')).not.toContainText("Sin productos prescindibles");
+});
