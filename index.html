@@ -393,6 +393,16 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .saving-subtabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;padding:5px;margin:0 0 18px;background:var(--design-soft);border:1px solid var(--border);border-radius:15px}
 .saving-subtabs button{min-height:44px;padding:10px 7px;border:0;border-radius:11px;background:transparent;color:var(--ink2);font-size:12px;font-weight:800}
 .saving-subtabs button.selected{color:var(--design-accent);background:var(--white);box-shadow:0 4px 13px rgba(30,55,90,.08)}
+
+/* Ficheros originales y copias privadas */
+.receipt-source-actions{display:flex;flex-wrap:wrap;gap:2px 6px;margin:0 12px 10px 47px}
+.receipt-source-actions .receipt-view-button{margin:0;min-height:38px}
+.documents-list{display:grid;gap:10px;padding:14px 0}
+.document-item{padding:12px;border-radius:12px;border:1px solid var(--border);background:var(--bg)}
+.document-item b{font-size:12px;color:var(--ink);display:block;overflow-wrap:anywhere}
+.document-item small{font-size:11px;color:var(--muted);display:block;margin:5px 0 10px}
+.document-item a{min-height:40px;border:1px solid var(--design-accent);background:var(--design-soft);color:var(--design-accent);border-radius:9px;display:flex;justify-content:center;align-items:center;font-weight:800;font-size:12px;text-decoration:none}
+
 </style>
   <title>Budviva · Tu dinero, más claro</title>
 </head>
@@ -495,11 +505,35 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
     </form>
   </dialog>
 
-  <input id="backup-import" type="file" accept="application/json,.json" hidden>
+  <dialog id="documents-dialog" class="sheet-dialog" aria-labelledby="documents-dialog-title">
+ <div class="sheet-card"><div class="sheet-grabber" aria-hidden="true"></div>
+ <div class="sheet-heading"><h2 id="documents-dialog-title">Documentos originales</h2><button type="button" class="icon-button" data-close="documents-dialog" aria-label="Cerrar">✕</button></div>
+ <div id="documents-dialog-content" class="documents-list"></div>
+ <p class="footnote">Los archivos originales se conservan en este dispositivo, no se suben a un servidor.</p></div>
+</dialog>
+<dialog id="backup-password-dialog" class="sheet-dialog" aria-labelledby="backup-password-title">
+ <form id="backup-password-form" class="sheet-card" novalidate>
+ <div class="sheet-grabber" aria-hidden="true"></div>
+ <div class="sheet-heading"><h2 id="backup-password-title">Proteger copia de seguridad</h2><button type="button" class="icon-button" data-close="backup-password-dialog" aria-label="Cerrar">✕</button></div>
+ <label class="field field-wide">Contraseña de protección <input name="password" type="password" autocomplete="new-password" minlength="12" maxlength="256" required placeholder="Al menos 12 caracteres"></label>
+ <label class="field field-wide">Repite la contraseña <input name="repeat" type="password" autocomplete="new-password" minlength="12" maxlength="256" required></label>
+ <p class="footnote">La copia cifrada se protege con AES-256-GCM. Si pierdes la contraseña, no podremos recuperarla.</p>
+ <div class="form-error" id="backup-password-error" role="alert" hidden></div><div class="sheet-actions"><button class="primary-btn" type="submit">Descargar copia cifrada</button></div></form>
+</dialog>
+<dialog id="backup-unlock-dialog" class="sheet-dialog" aria-labelledby="backup-unlock-title">
+ <form id="backup-unlock-form" class="sheet-card" novalidate>
+ <div class="sheet-grabber" aria-hidden="true"></div>
+ <div class="sheet-heading"><h2 id="backup-unlock-title">Abrir copia cifrada</h2><button type="button" class="icon-button" data-close="backup-unlock-dialog" aria-label="Cerrar">✕</button></div>
+ <label class="field field-wide">Contraseña de la copia <input name="password" type="password" autocomplete="current-password" required></label>
+ <div class="form-error" id="backup-unlock-error" role="alert" hidden></div><div class="sheet-actions"><button class="primary-btn" type="submit">Restaurar copia</button></div></form>
+</dialog>
+<input id="backup-import" type="file" accept="application/json,.json,.budviva" hidden>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="recurring.js"></script>
 <script src="stats.js"></script>
 <script src="reconcile.js"></script>
+<script src="documents.js"></script>
+<script src="backup-crypto.js"></script>
 <script src="smart-import.js"></script>
 <script>
 /* Budviva V5.7 — objetivos de ahorro reales, independientes del saldo */
@@ -771,7 +805,7 @@ root.BudvivaGoals={build,total,status};
   };
   const visualIcons = {"alimentacion":"<path d=\"M3 4h2l2.4 11h11l2-8H6\"/><circle cx=\"9\" cy=\"20\" r=\"1\"/><circle cx=\"18\" cy=\"20\" r=\"1\"/>","hogar":"<path d=\"m3 10 9-7 9 7v10H3z\"/><path d=\"M9 20v-7h6v7\"/>","transporte":"<path d=\"m5 17-1 2H2v-5l3-7h14l3 7v5h-2l-1-2H5Z\"/><circle cx=\"7\" cy=\"16\" r=\"1\"/><circle cx=\"17\" cy=\"16\" r=\"1\"/><path d=\"M4 12h16\"/>","compras":"<path d=\"M4 8h16l-1 13H5L4 8Z\"/><path d=\"M9 9V6a3 3 0 0 1 6 0v3\"/>","salud":"<rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"5\"/><path d=\"M12 8v8M8 12h8\"/>","ocio":"<rect x=\"3\" y=\"5\" width=\"18\" height=\"15\" rx=\"2\"/><path d=\"m7 5 2 5 3-5 3 5 2-5M3 11h18\"/>","educacion":"<path d=\"m2 9 10-5 10 5-10 5L2 9ZM6 12v5c4 3 8 3 12 0v-5M22 9v7\"/>","suscripciones":"<rect x=\"7\" y=\"2\" width=\"10\" height=\"20\" rx=\"2\"/><path d=\"M11 18h2\"/>","otros":"<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M8 12h.01M12 12h.01M16 12h.01\"/>","nomina":"<rect x=\"3\" y=\"7\" width=\"18\" height=\"14\" rx=\"2\"/><path d=\"M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 13h18\"/>","extra":"<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 6v12M8 9c1-2 7-2 8 0s-2 3-4 3-5 1-4 3 7 2 8 0\"/>","regalos":"<rect x=\"4\" y=\"10\" width=\"16\" height=\"11\" rx=\"1\"/><path d=\"M3 7h18v3H3zM12 7v14M12 7c-7 0-7-7-3-6 2 0 3 3 3 6ZM12 7c7 0 7-7 3-6-2 0-3 3-3 6Z\"/>","otros-ingresos":"<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 6v12M8 10h8M8 14h8\"/>","download":"<path d=\"M12 3v12m-4-4 4 4 4-4M4 17v4h16v-4\"/>","upload":"<path d=\"M12 18V6m-4 4 4-4 4 4M4 17v4h16v-4\"/>","file":"<path d=\"M7 2h7l5 5v15H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Z\"/><path d=\"M14 2v6h5M9 13h6M9 17h6\"/>","chart":"<path d=\"M4 20V10M10 20V5M16 20v-9M22 20V3\"/>","camera":"<rect x=\"2\" y=\"6\" width=\"20\" height=\"15\" rx=\"3\"/><circle cx=\"12\" cy=\"13.5\" r=\"4\"/><path d=\"m7 6 2-3h6l2 3\"/>","phone":"<rect x=\"7\" y=\"2\" width=\"10\" height=\"20\" rx=\"2\"/><path d=\"M11 18h2\"/>","trash":"<path d=\"M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14M10 11v6M14 11v6\"/>","shield":"<path d=\"m12 2 9 4v6c0 6-4 9-9 10-5-1-9-4-9-10V6l9-4Z\"/><path d=\"m8 12 3 3 5-6\"/>","search":"<circle cx=\"11\" cy=\"11\" r=\"7\"/><path d=\"m16 16 5 5\"/>","receipt":"<path d=\"M5 2h14v20l-3-2-4 2-4-2-3 2V2Z\"/><path d=\"M9 7h6M9 11h6M9 15h4\"/>","repeat":"<path d=\"M4 7h14l-3-3m3 3-3 3M20 17H6l3-3m-3 3 3 3\"/>","bulb":"<path d=\"M9 18h6M10 21h4M8 14c-2-2-3-4-2-7a6 6 0 0 1 12 0c1 3 0 5-2 7l-1 3H9l-1-3Z\"/>","target":"<circle cx=\"12\" cy=\"12\" r=\"9\"/><circle cx=\"12\" cy=\"12\" r=\"5\"/><circle cx=\"12\" cy=\"12\" r=\"1\"/>","check":"<path d=\"m5 12 5 5 9-10\"/>","alert":"<path d=\"m12 3 10 18H2L12 3Z\"/><path d=\"M12 9v5M12 17h.01\"/>","arrowUp":"<path d=\"m6 16 10-10M9 6h7v7\"/>","arrowDown":"<path d=\"M6 8 16 18M9 18h7v-7\"/>"};
   const pictogram=(key,size=21)=>'<svg class="ui-pictogram" width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(visualIcons[key]||visualIcons.otros)+'</svg>';
-  const visualSettings={'export-json':'download','import-json':'upload','export-csv':'file','stats':'chart','smart-import':'camera','install-info':'phone','erase-data':'trash','recurring':'repeat','savings':'target','refresh-app':'repeat'};
+  const visualSettings={'export-secure':'shield','export-json':'download','import-json':'upload','export-csv':'file','stats':'chart','smart-import':'camera','install-info':'phone','erase-data':'trash','recurring':'repeat','savings':'target','refresh-app':'repeat'};
   const visualEmpty={'📊':'chart','🧾':'receipt','🔎':'search','🎯':'target','✓':'check'};
   const shell = document.getElementById('page-content');
   const txDialog = document.getElementById('transaction-dialog');
@@ -779,6 +813,13 @@ root.BudvivaGoals={build,total,status};
   const txForm = document.getElementById('transaction-form');
   const budgetForm = document.getElementById('budget-form');
   const importFileInput = document.getElementById('backup-import');
+  const documentsDialog=document.getElementById('documents-dialog');
+  const docsContent=document.getElementById('documents-dialog-content');
+  const backupPassDialog=document.getElementById('backup-password-dialog');
+  const backupPassForm=document.getElementById('backup-password-form');
+  const backupUnlockDialog=document.getElementById('backup-unlock-dialog');
+  const backupUnlockForm=document.getElementById('backup-unlock-form');
+  let unlockPayload=null,docObjectURLs=[];
   const uid = () => (globalThis.crypto && crypto.randomUUID) ? crypto.randomUUID() : `id-${Date.now()}-${Math.random().toString(36).slice(2)}`;
   const h = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const localDate = (date = new Date()) => `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
@@ -812,7 +853,12 @@ root.BudvivaGoals={build,total,status};
       if(used.has(id)) id=uid();
       used.add(id);
       const originalCat = CAT.find(c=>c.id===item.category && c.type===item.type);
-      clean.transactions.push({id,type:item.type,amount:item.amount,date:item.date,title:item.title.trim().slice(0,90),category:originalCat?.id || (item.type==='income'?'otros-ingresos':'otros'),method:['card','cash','other'].includes(item.method)?item.method:'other',note:String(item.note ?? '').slice(0,200),...(Array.isArray(item.receiptItems)?{receiptItems:item.receiptItems.slice(0,120).filter(p=>p&&typeof p.name==='string'&&p.name.trim()&&Number.isSafeInteger(p.amount)&&p.amount>0&&p.amount<=9999999999).map(p=>({name:p.name.trim().slice(0,90),amount:p.amount,quantity:1,necessity:['necessary','optional','pending'].includes(p.necessity)?p.necessity:'pending'}))}:{}),...(typeof item.importSource==='string'&&['ticket','bank'].includes(item.importSource)?{importSource:item.importSource}:{}),...(typeof item.recurringId==='string'&&item.recurringId.length<100&&typeof item.occurrenceDate==='string'&&isRealDate(item.occurrenceDate)?{recurringId:item.recurringId,occurrenceDate:item.occurrenceDate}:{})});
+      clean.transactions.push({id,type:item.type,amount:item.amount,date:item.date,title:item.title.trim().slice(0,90),category:originalCat?.id || (item.type==='income'?'otros-ingresos':'otros'),method:['card','cash','other'].includes(item.method)?item.method:'other',note:String(item.note ?? '').slice(0,200),...(Array.isArray(item.receiptItems)?{receiptItems:item.receiptItems.slice(0,120).filter(p=>p&&typeof p.name==='string'&&p.name.trim()&&Number.isSafeInteger(p.amount)&&p.amount>0&&p.amount<=9999999999).map(p=>({name:p.name.trim().slice(0,90),amount:p.amount,quantity:1,necessity:['necessary','optional','pending'].includes(p.necessity)?p.necessity:'pending'}))}:{}),...(typeof item.importSource==='string'&&['ticket','bank','linked'].includes(item.importSource)?{importSource:item.importSource}:{}),
+        ...(Array.isArray(item.sourceDocumentIds)?{sourceDocumentIds:[...new Set(item.sourceDocumentIds.filter(id=>typeof id==='string'&&id.length>0&&id.length<151))].slice(0,10)}:{}),
+        ...(typeof item.bankDescription==='string'?{bankDescription:item.bankDescription.slice(0,90)}:{}),
+        ...(typeof item.ticketDescription==='string'?{ticketDescription:item.ticketDescription.slice(0,90)}:{}),
+        ...(Array.isArray(item.reconciledSources)?{reconciledSources:item.reconciledSources.filter(x=>['ticket','bank','linked','unknown'].includes(x)).slice(0,4)}:{}),
+        ...(typeof item.reconciledAt==='string'?{reconciledAt:item.reconciledAt.slice(0,40)}:{}),...(typeof item.recurringId==='string'&&item.recurringId.length<100&&typeof item.occurrenceDate==='string'&&isRealDate(item.occurrenceDate)?{recurringId:item.recurringId,occurrenceDate:item.occurrenceDate}:{})});
     }
     if(raw.budgets && typeof raw.budgets === 'object' && !Array.isArray(raw.budgets)){
       for (const c of CAT.filter(x=>x.type==='expense')){
@@ -898,8 +944,11 @@ root.BudvivaGoals={build,total,status};
 
   const txRowWithReceipt = t => {
     const row=txRow(t);
-    if(!Array.isArray(t.receiptItems))return row;
-    return `<div class="receipt-movement-wrap">${row}<button type="button" class="receipt-view-button" data-open-receipt="${h(t.id)}">${pictogram("receipt",15)} Ver productos y necesidades (${t.receiptItems.length})</button></div>`;
+    const hasItems=Array.isArray(t.receiptItems),hasFiles=Array.isArray(t.sourceDocumentIds)&&t.sourceDocumentIds.length;
+    if(!hasItems&&!hasFiles)return row;
+    const items=hasItems?`<button type="button" class="receipt-view-button" data-open-receipt="${h(t.id)}">${pictogram("receipt",15)} Productos (${t.receiptItems.length})</button>`:'';
+    const originals=hasFiles?`<button type="button" class="receipt-view-button" data-view-originals="${h(t.id)}">${pictogram("file",15)} Ver original${t.sourceDocumentIds.length===1?'':'es'}</button>`:'';
+    return `<div class="receipt-movement-wrap">${row}<div class="receipt-source-actions">${items}${originals}</div></div>`;
   };
   const sorted = items => [...items].sort((a,b)=>b.date.localeCompare(a.date)||b.id.localeCompare(a.id));
   const cardHeader = (title,action='',target='') => `<div class="section-heading"><h2>${title}</h2>${action?`<button type="button" class="text-link" data-action="${target}">${action} →</button>`:''}</div>`;
@@ -975,7 +1024,8 @@ root.BudvivaGoals={build,total,status};
   };
   const renderSettings = () => `<div class="view-heading"><div><div class="eyebrow">PREFERENCIAS</div><h1 class="page-title">Ajustes</h1></div></div>
     ${cardHeader('Copias y exportación')}<section class="card settings-card">
-      ${settingsRow('📦','Descargar copia de seguridad','Guarda tus movimientos, presupuestos y objetivos.','export-json')}
+      ${settingsRow('📦','Copia completa','Incluye datos y archivos originales guardados.','export-json')}
+      ${settingsRow('🔒','Copia cifrada','Protege el archivo completo con una contraseña.','export-secure')}
       ${settingsRow('📥','Restaurar copia','Recupera los datos de un archivo JSON.','import-json')}
       ${settingsRow('📊','Exportar movimientos a CSV','Para abrir tus operaciones en Excel o Numbers.','export-csv')}
     </section>
