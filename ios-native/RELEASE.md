@@ -16,7 +16,7 @@
 
 ## Cómo comprobar la compilación sin Mac propio
 
-En GitHub: [workflow iOS](https://github.com/pedrombo88/control-de-gastos/actions/workflows/ios-build.yml). Usa macOS, Xcode 16.4 y XcodeGen.
+En GitHub: [workflow iOS](https://github.com/pedrombo88/control-de-gastos/actions/workflows/ios-build.yml). Usa macOS, Xcode 26.3 con SDK iOS 26 y XcodeGen.
 
 La ejecución genera el icono **1024×1024 RGB sin transparencia**, genera el proyecto Xcode y compila para simulador iOS sin firma. Incluye el target de pruebas XCTest y el paso `build-for-testing`. **El hecho de que compile no demuestra que funcione en un iPhone real**.
 
@@ -87,3 +87,11 @@ Tu información financiera permanece en tu dispositivo. Puedes descargar copias 
 7. Enviar a revisión cuando el binario esté listo y autorizado.
 
 La publicación requiere acciones y credenciales del titular; este repositorio no contiene ni debe contener certificados, claves ni contraseñas.
+
+## Requisito Apple verificado en noviembre de 2026
+
+Desde el **28 de abril de 2026**, Apple requiere **Xcode 26 o posterior y SDK iOS 26 o posterior** para subir apps a App Store Connect. El workflow usa Xcode 26.3, compatible con ese mínimo. Se conserva el destino mínimo de despliegue iOS 17.0 para los usuarios finales.
+
+Fuente oficial: https://developer.apple.com/news/upcoming-requirements/
+
+La compilación en CI continúa sin firma ni upload automático. Firmar requiere una cuenta Apple Developer y configuración de certificados y permisos del titular.
