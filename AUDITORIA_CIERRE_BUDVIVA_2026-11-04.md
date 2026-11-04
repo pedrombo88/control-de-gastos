@@ -1,6 +1,6 @@
 # Cierre técnico provisional de la auditoría de Budviva
 
-**Fecha:** 4 de noviembre de 2026 · **PWA:** 6.1 beta · **iOS:** proyecto SwiftUI 1.0 beta · **Estado de publicación:** NO PUBLICADA / NO ENVIABLE TODAVÍA.
+**Fecha:** 4 de noviembre de 2026 · **PWA:** 6.2 beta · **iOS:** proyecto SwiftUI 1.0 beta · **Estado de publicación:** NO PUBLICADA / NO ENVIABLE TODAVÍA.
 
 ## Resultado de las correcciones
 
@@ -39,7 +39,7 @@
 
 ## Ampliación de auditoría (continuación)
 
-**Web Budviva 6.1 — comprobaciones adicionales realizadas:**
+**Web Budviva 6.2 — comprobaciones adicionales realizadas:**
 
 - **Almacenamiento de originales:** importación y adjuntar documentos a un movimiento manual, consulta en IndexedDB, conservación de referencias y exportación en copia completa. En GitHub Actions existe una **prueba móvil con Chromium aprobada** que cubre adjuntar un justificante de prueba, visualizarlo y comprobar que el JSON exportado contiene el archivo original en base64.
 - **Copias de seguridad:** cifrado AES-256-GCM con derivación PBKDF2-SHA256; pruebas de descifrado, contraseña errónea y detección de alteraciones. La restauración de JSON antiguo descarta referencias inexistentes; la restauración con archivos valida que estén incluidos y devuelve el estado previo si falla el guardado.
@@ -50,3 +50,22 @@
 - **Otros controles:** documentación de privacidad y ayuda actualizada, AppIcon generado automáticamente, fichas de App Store y matriz de aceptación documentadas.
 
 **Limitación de esta evidencia:** Chromium móvil en GitHub Actions no sustituye Safari real, VoiceOver ni los permisos de cámara de un iPhone. La prueba de restauración completa con documentos reales entre Safari e iOS está pendiente.
+
+
+## Auditoría final de accesibilidad, OCR y SDK (4 de noviembre de 2026)
+
+- **20 combinaciones de accesibilidad automatizadas aprobadas:** cinco secciones por cuatro temas (Océano, Esmeralda, Arena y Noche), sin infracciones graves/críticas en los controles WCAG de axe-core Playwright. Correcciones en contraste, barras de progreso y avisos.
+- **9 pruebas Playwright móvil aprobadas:** navegación, movimiento registrado, copia cifrada, adjuntar y consultar documentos, copia completa con originales, PDF.js leyendo un PDF generado de prueba y Tesseract.js leyendo un PNG sintético con texto de ticket y un importe de 12,34 euros. Solo se valida Chromium móvil, no Safari físico.
+- **Pruebas SwiftUI:** 6 XCTest ejecutadas correctamente en simulador iPhone 16 Pro (iOS 18.5), Xcode 16.4, incluido vector compartido de copia cifrada. La revisión posterior contiene dos nuevas pruebas de restauración por revalidar.
+- **Requisito Apple para subir apps:** desde 28 de abril de 2026 se exige Xcode 26+ con SDK iOS 26+. El workflow ha pasado a **Xcode 26.3**; la nueva ejecución debe terminar correctamente antes de habilitar cualquier lanzamiento. Referencia: https://developer.apple.com/news/upcoming-requirements/
+- **Capturas visuales:** flujo de GitHub Actions preparado para conservar capturas de las cinco secciones y del tema Noche, y de la pantalla Inicio en simulador iPhone. No confundir capturas técnicas con materiales de marketing aprobados.
+- **Control de ejecuciones:** CI web e iOS con `concurrency` para evitar acumulación de pruebas obsoletas en futuros cambios. Algunos trabajos anteriores ya en cola no están bajo la nueva política.
+
+### Restricciones que continúan abiertas
+
+- Ensayo en Safari real, OCR de fotografías reales y permisos de cámara denegados.
+- Capturas y revisión visual/manual en iPhone físico y VoiceOver; el escáner automático no garantiza accesibilidad universal.
+- Pruebas completas PWA→iOS→PWA con copias reales y ficheros múltiples.
+- Identificador de paquete definitivo, firma Apple, TestFlight y aprobación oficial.
+- Revisión jurídico-comercial, responsabilidad RGPD, disponibilidad de la marca y canal privado de soporte.
+- Traducciones y localización adicionales al español: **no se debe publicitar soporte multilingüe como terminado**.
