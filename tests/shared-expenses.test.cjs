@@ -29,3 +29,19 @@ test('participantes y valores inválidos rechazados',()=>{
   assert.throws(()=>calculate([expense('ana',1.7)],couple));
   assert.throws(()=>calculate([expense('ana',100,10001)],couple));
 });
+
+test('redondeo de importes impares y pagos que superan la deuda',()=>{
+  const r=calculate([
+    expense('ana',10005),
+    {type:'settlement',payerId:'alex',receiverId:'ana',amountCents:10000}
+  ],couple);
+  assert.equal(r.shareCents.ana,5003);
+  assert.equal(r.shareCents.alex,5002);
+  assert.deepEqual(r.transfer,{from:'ana',to:'alex',amountCents:4998});
+});
+test('muchas operaciones nunca descuadran la suma entre personas',()=>{
+  const records=Array.from({length:2000},(_,i)=>expense(i%2?'ana':'alex',1001+i,i%3===0?7000:5000));
+  const result=calculate(records,couple);
+  assert.equal(result.netCents.ana+result.netCents.alex,0);
+  assert.equal(result.shareCents.ana+result.shareCents.alex,result.totalExpensesCents);
+});
