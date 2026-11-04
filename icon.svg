@@ -1,1 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="#12263a"/><circle cx="387" cy="125" r="70" fill="#09ad92"/><text x="256" y="310" fill="#fff" font-family="Arial,sans-serif" font-weight="bold" font-size="172" text-anchor="middle">CG</text><path d="M115 368h282" stroke="#09ad92" stroke-width="23" stroke-linecap="round"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Budviva">
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#112a57"/><stop offset="1" stop-color="#245996"/></linearGradient></defs>
+<rect width="512" height="512" rx="116" fill="url(#g)"/>
+<path d="M158 115v284h120c69 0 115-36 115-91 0-37-22-65-57-77 23-12 37-31 37-57 0-44-38-69-98-69H158" fill="none" stroke="#fff" stroke-width="37" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M180 235h104" stroke="#fff" stroke-width="32" stroke-linecap="round"/>
+<circle cx="391" cy="119" r="28" fill="#61e8cd"/><path d="M308 401h84" stroke="#61e8cd" stroke-width="20" stroke-linecap="round"/></svg>
