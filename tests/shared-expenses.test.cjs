@@ -1,0 +1,31 @@
+const test=require('node:test');
+const assert=require('node:assert/strict');
+const {calculate}=require('../shared-expenses.js');
+const couple=['ana','alex'];
+const expense=(payerId,amountCents,shareBasisPointsA)=>({type:'expense',payerId,amountCents,...(shareBasisPointsA===undefined?{}:{shareBasisPointsA})});
+test('reparto al 50 %: quien menos pagó debe la mitad de la diferencia',()=>{
+  const r=calculate([expense('ana',30000),expense('alex',10000)],couple);
+  assert.equal(r.totalExpensesCents,40000);
+  assert.deepEqual(r.transfer,{from:'alex',to:'ana',amountCents:10000});
+});
+test('gastos con porcentajes individuales, redondeo al céntimo',()=>{
+  const r=calculate([expense('ana',10001,7000)],couple);
+  assert.deepEqual(r.transfer,{from:'alex',to:'ana',amountCents:3000});
+  assert.equal(r.shareCents.ana,7001);
+});
+test('liquidar deuda no crea gasto personal ni altera gasto total',()=>{
+  const r=calculate([expense('ana',10000),{type:'settlement',payerId:'alex',receiverId:'ana',amountCents:5000}],couple);
+  assert.equal(r.transfer,null);
+  assert.equal(r.totalExpensesCents,10000);
+  assert.equal(r.totalSettlementsCents,5000);
+});
+test('la deuda cambia de sentido tras pagos de ambos',()=>{
+  const r=calculate([expense('ana',10000),expense('alex',30000)],couple);
+  assert.deepEqual(r.transfer,{from:'ana',to:'alex',amountCents:10000});
+});
+test('participantes y valores inválidos rechazados',()=>{
+  assert.throws(()=>calculate([expense('otro',100)],couple));
+  assert.throws(()=>calculate([expense('ana',-1)],couple));
+  assert.throws(()=>calculate([expense('ana',1.7)],couple));
+  assert.throws(()=>calculate([expense('ana',100,10001)],couple));
+});
