@@ -1,6 +1,6 @@
 # Budviva — Tu dinero, más claro
 
-**Estado:** versión web instalable (PWA) **5.8 beta**, en preparación para una futura versión iOS comercial. **No publicada en App Store.**
+**Estado:** versión web instalable (PWA) **6.1 beta**, en preparación para una futura versión iOS comercial. **No publicada en App Store.**
 
 [Probar Budviva](https://pedrombo88.github.io/control-de-gastos/) · [Privacidad](https://pedrombo88.github.io/control-de-gastos/privacidad.html) · [Ayuda](https://pedrombo88.github.io/control-de-gastos/soporte.html) · [Auditoría para publicación](./AUDITORIA_BUDVIVA_2026-11-04.md)
 
@@ -12,7 +12,7 @@
 - **Ahorro:** vistas independientes **Analizar compras** (simulación de ahorro potencial) y **Mis objetivos** (aportaciones reales y progreso).
 - **Ajustes:** copias JSON, CSV, temas, actualización, privacidad, ayuda y borrado de datos.
 
-La importación admite tickets en imagen y documentos PDF/CSV/TXT con revisión previa. La extracción puede equivocarse. En esta versión **no se guardan los archivos originales de los tickets y PDF**, solo los datos extraídos.
+La importación admite tickets en imagen y documentos PDF/CSV/TXT con revisión previa. La extracción puede equivocarse. Budviva **conserva los originales asociados a los movimientos** en IndexedDB y permite incluirlos en copias completas o cifradas. Debes verificar la carga y restauración en Safari antes de confiar en ellos.
 
 ## Datos y privacidad
 
@@ -20,7 +20,7 @@ Los movimientos, objetivos y reglas se guardan en el almacenamiento local del na
 
 **Compatibilidad importante:** se mantiene la clave histórica `saldo-diario-data-v1` para conservar registros al actualizar en el mismo origen web. No cambiar la clave ni el ID PWA sin una migración.
 
-El módulo de OCR y PDF puede descargar bibliotecas externas cuando se activa; consulta [privacidad](./privacidad.html). No introduzcas claves bancarias.
+Las bibliotecas OCR y PDF.js se empaquetan con versiones fijadas en `vendor/` y se sirven desde el mismo origen; los recursos OCR se descargan la primera vez que se utilizan. Consulta [privacidad](./privacidad.html). No introduzcas claves bancarias.
 
 ## Instalación de la PWA en iPhone
 
