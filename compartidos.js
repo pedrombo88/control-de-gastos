@@ -13,7 +13,14 @@ const esc=x=>String(x??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'
 const today=()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');};
 const setVisible=(id,visible)=>$(id).classList.toggle('hidden',!visible);
 const status=(message,error=false)=>{const el=$('status');el.textContent=message;el.className='status'+(error?' error':'');};
-const fail=e=>status(e?.message||String(e),true);
+const fail=e=>{
+ const raw=String(e?.message||e||'Error desconocido');
+ const msg=/email address not authorized/i.test(raw)?'El proveedor de correo todavía no está configurado para esta dirección. Si ya tienes una cuenta con contraseña, utiliza el acceso alternativo.':
+   /invalid login credentials|invalid credentials/i.test(raw)?'Correo o contraseña incorrectos.':
+   /email not confirmed/i.test(raw)?'Todavía tienes que confirmar tu dirección de correo.':
+   /token has expired|otp.*expired|invalid.*otp|token.*invalid/i.test(raw)?'El código ha caducado o es incorrecto. Solicita otro.':raw;
+ status(msg,true);
+};
 const moneyToCents=value=>{
   const s=String(value).trim().replace(/\s|€/g,'');
   if(!/^\d{1,7}(?:[.,]\d{1,2})?$/.test(s))throw Error('Introduce un importe válido con dos decimales como máximo.');
@@ -30,7 +37,10 @@ async function request(path,{method='GET',data,authenticated=true,prefer}={}){
   const response=await fetch(config.url.replace(/\/$/,'')+path,{method,headers,body:data===undefined?undefined:JSON.stringify(data),cache:'no-store'});
   let body=null;
   try{body=await response.json();}catch(_){}
-  if(!response.ok)throw Error(body?.msg||body?.error_description||body?.message||body?.hint||'Error de conexión ('+response.status+')');
+  if(!response.ok){
+    const error=new Error(body?.msg||body?.error_description||body?.message||body?.hint||'Error de conexión ('+response.status+')');
+    error.status=response.status;throw error;
+  }
   return body;
 }
 function persist(){if(session)localStorage.setItem(authKey,JSON.stringify(session));else localStorage.removeItem(authKey);}
@@ -77,7 +87,10 @@ async function load(){
     household=homes[0]||null;members=people;expenses=bills;settlements=payments;
     if(!household)throw Error('No se puede acceder al hogar.');
     renderRoot();
-  }catch(e){fail(e);}
+  }catch(e){
+    if(e?.status===401){session=null;user=null;household=null;members=[];expenses=[];settlements=[];persist();renderRoot();}
+    fail(e);
+  }
 }
 function renderRoot(){
   setVisible('not-configured',false);
@@ -117,13 +130,25 @@ function applyDraft(){
  draftApplied=true;
  status('Gasto personal preparado. Revisa el reparto y pulsa «Guardar gasto compartido». Los cambios posteriores en tu movimiento privado no modifican automáticamente esta copia.');
 }
+function monthForPeriod(period){
+ if(period==='all')return '';
+ const [year,month]=today().slice(0,7).split('-').map(Number);
+ if(period==='last'){
+   const d=new Date(year,month-2,1);
+   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+ }
+ return today().slice(0,7);
+}
 function renderDashboard(){
   $('home-name').textContent=household.title;
   const sortedMembers=[...members].sort((a,b)=>a.joined_at.localeCompare(b.joined_at)||a.user_id.localeCompare(b.user_id));
   members=sortedMembers;
   const ids=members.map(m=>m.user_id);
   const eligible=members.length===2;
-  $('members').innerHTML=members.map(m=>'<div class="stat"><small>'+esc(m.display_name)+(m.user_id===user.id?' (tú)':'')+'</small><b>'+euro(expenses.filter(x=>x.payer_id===m.user_id).reduce((s,x)=>s+x.amount_cents,0))+'</b><small>Pagado en gastos comunes</small></div>').join('');
+  const month=monthForPeriod($('summary-period').value);
+  const selected=expenses.filter(x=>!month||x.spent_on.startsWith(month));
+  const split=eligible?window.BudvivaShared.calculate(selected.map(x=>({type:'expense',payerId:x.payer_id,amountCents:x.amount_cents,shareBasisPointsA:x.share_basis_points_a})),ids):null;
+  $('members').innerHTML=members.map(m=>'<div class="stat"><small>'+esc(m.display_name)+(m.user_id===user.id?' (tú)':'')+'</small><b>'+euro(selected.filter(x=>x.payer_id===m.user_id).reduce((s,x)=>s+x.amount_cents,0))+'</b><small>Pagado '+($('summary-period').value==='all'?'en total':$('summary-period').value==='last'?'el mes anterior':'este mes')+'</small>'+(split?'<small>Cuota proporcional: '+euro(split.shareCents[m.user_id])+'</small>':'')+'</div>').join('');
   if(members.length===1)$('members').insertAdjacentHTML('beforeend','<div class="stat"><small>Segunda persona</small><b>Sin vincular</b><small>Comparte una invitación</small></div>');
   setVisible('invite-section',!eligible&&household.owner_id===user.id);
   ['expense-payer','settlement-payer'].forEach(id=>{
@@ -179,6 +204,15 @@ onSubmit('verify-form',async()=>{
   await verifyCode($('email').value.trim(),$('otp').value.trim());
   $('verify-form').reset();await load();
 });
+onSubmit('password-form',async f=>{
+ const body=await request('/auth/v1/token?grant_type=password',{
+   method:'POST',authenticated:false,
+   data:{email:f.elements.email.value.trim(),password:f.elements.password.value}
+ });
+ if(!body.access_token||!body.user?.id)throw Error('No se ha obtenido sesión.');
+ session=body;user=body.user;persist();
+ f.reset();await load();
+});
 onSubmit('create-form',async f=>{
   await rpc('bv_create_household',{p_title:f.elements.title.value.trim(),p_name:f.elements.name.value.trim()});
   f.reset();await load();
@@ -213,6 +247,7 @@ $('invite').addEventListener('click',async()=>{try{inviteCode=await rpc('bv_crea
 $('copy-invite').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(inviteCode);status('Código copiado.');}catch(_){status('Selecciona y copia el código mostrado.');}});
 $('refresh').addEventListener('click',()=>load());
 $('period').addEventListener('change',renderHistory);
+$('summary-period').addEventListener('change',()=>{if(household)renderDashboard();});
 $('logout').addEventListener('click',logout);
 $('setup-logout').addEventListener('click',logout);
 $('expense-list').addEventListener('click',async e=>{
@@ -230,4 +265,6 @@ $('expense-form').elements.date.value=today();
 try{session=JSON.parse(localStorage.getItem(authKey)||'null');}catch(_){session=null;}
 if(session)load();else renderRoot();
 window.addEventListener('visibilitychange',()=>{if(!document.hidden&&session&&household)load();});
+// Refresco incremental de lectura. No mantiene conexiones ni consume datos cuando la pestaña está oculta.
+setInterval(()=>{if(!document.hidden&&session&&household)void load();},30000);
 })();
