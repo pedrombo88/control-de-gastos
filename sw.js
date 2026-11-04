@@ -1,6 +1,6 @@
 /* Control de Gastos — caché offline V2.1 */
 const CACHE_PREFIX = 'control-de-gastos-';
-const CACHE = CACHE_PREFIX + '5.5.1';
+const CACHE = CACHE_PREFIX + '5.5.2';
 const ASSETS = ['./','./index.html','./recurring.js','./stats.js','./reconcile.js','./smart-import.js','./savings.js','./savings.css','./manifest.webmanifest','./icon.svg'];
 self.addEventListener('install', event => {
   event.waitUntil(
@@ -20,6 +20,6 @@ self.addEventListener('fetch', event => {
   if (request.mode === 'navigate') {
     event.respondWith(fetch(request).catch(() => caches.match('./index.html')));
   } else {
-    event.respondWith(caches.match(request).then(hit => hit || fetch(request)));
+    event.respondWith(fetch(request).then(response => { if(response.ok) { const copy=response.clone(); caches.open(CACHE).then(cache => cache.put(request,copy)).catch(()=>{}); } return response; }).catch(() => caches.match(request)));
   }
 });
