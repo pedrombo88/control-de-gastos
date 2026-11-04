@@ -40,20 +40,20 @@ function build(ctx){
    const rows=items.map(r=>{
      const cat=CAT.find(c=>c.id===r.category);
      const when=nextDate(r,localDate());
-     return '<article class="rec-item"><span class="rec-emoji" aria-hidden="true">'+(cat?.emoji||"🔁")+'</span><div class="rec-body"><strong>'+tag(r.title)+'</strong><small>'+tag(frequencies[r.frequency])+' · '+tag(cat?.name||"Otros")+'</small><small>'+(r.active?(when?'Próximo: '+tag(when.split("-").reverse().join("/")):'Sin próximos cargos'):'En pausa')+'</small></div><div class="rec-end"><strong class="'+(r.type==="income"?"positive":"")+'">'+(r.type==="income"?"+":"−")+tag(money(r.amount))+'</strong><button class="small-action" type="button" data-rec-edit="'+tag(r.id)+'" aria-label="Editar '+tag(r.title)+'">Editar</button></div></article>';
+     return '<article class="rec-item"><span class="rec-emoji" aria-hidden="true">'+(cat?.name?.slice(0,1)||'R')+'</span><div class="rec-body"><strong>'+tag(r.title)+'</strong><small>'+tag(frequencies[r.frequency])+' · '+tag(cat?.name||"Otros")+'</small><small>'+(r.active?(when?'Próximo: '+tag(when.split("-").reverse().join("/")):'Sin próximos cargos'):'En pausa')+'</small></div><div class="rec-end"><strong class="'+(r.type==="income"?"positive":"")+'">'+(r.type==="income"?"+":"−")+tag(money(r.amount))+'</strong><button class="small-action" type="button" data-rec-edit="'+tag(r.id)+'" aria-label="Editar '+tag(r.title)+'">Editar</button></div></article>';
    }).join("");
-   return '<div class="view-heading"><div><div class="eyebrow">AUTOMATIZA TUS FINANZAS</div><h1 class="page-title">Recurrentes</h1></div><span class="tag">v2.0</span></div>'
+   return '<div class="view-heading"><div><div class="eyebrow">AUTOMATIZA TUS FINANZAS</div><h1 class="page-title">Recurrentes</h1></div></div>'
     +'<div class="card rec-summary"><div><small>Gastos previstos / mes*</small><strong>'+tag(money(totals.expense))+'</strong></div><div><small>Ingresos previstos / mes*</small><strong class="positive">'+tag(money(totals.income))+'</strong></div></div>'
-    +'<button class="primary-btn rec-new" type="button" data-rec-new>＋ Nuevo movimiento recurrente</button>'
+    +'<button class="primary-btn rec-new" type="button" data-rec-new>Nuevo movimiento recurrente</button>'
     +'<div class="section-heading"><h2>Mis reglas ('+items.length+')</h2></div>'
-    +'<section class="card rec-list">'+(rows||'<div class="empty"><div class="empty-icon">🔁</div><strong>Sin movimientos recurrentes</strong><p>Crea una regla para registrar automáticamente la nómina, alquiler o suscripciones cuando llegue su fecha.</p></div>')+'</section>'
+    +'<section class="card rec-list">'+(rows||'<div class="empty"><div class="empty-icon">↻</div><strong>Sin movimientos recurrentes</strong><p>Crea una regla para registrar automáticamente la nómina, alquiler o suscripciones cuando llegue su fecha.</p></div>')+'</section>'
     +'<p class="footnote">*Estimación mensual: 30 días por mes y 52 semanas al año. Los vencimientos desde el día en que creas o editas una regla se registran al abrir la aplicación; no se ejecutan en segundo plano. Editar o pausar una regla no modifica los movimientos anteriores.</p>';
  };
  function changeType(type,selected){
    form.dataset.type=type;
    form.querySelectorAll("[data-rec-type]").forEach(btn=>{const on=btn.dataset.recType===type;btn.classList.toggle("is-active",on);btn.setAttribute("aria-pressed",String(on));});
    const cat=form.elements.category;
-   cat.innerHTML=CAT.filter(c=>c.type===type).map(c=>'<option value="'+c.id+'">'+c.emoji+" "+tag(c.name)+"</option>").join("");
+   cat.innerHTML=CAT.filter(c=>c.type===type).map(c=>'<option value="'+c.id+'">'+tag(c.name)+"</option>").join("");
    if(selected&&Array.from(cat.options).some(x=>x.value===selected))cat.value=selected;
  }
  function open(id=null){
