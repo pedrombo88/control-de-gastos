@@ -59,8 +59,8 @@ final class FinanceModelTests: XCTestCase {
     }
 
     func testDecryptsWebCompatibleKnownVector() throws {
-        let fixture = #"${payload}"#
+        let fixture = #"{"format":"budviva-encrypted-v1","kdf":"PBKDF2-SHA256","iterations":310000,"salt":"AAECAwQFBgcICQoLDA0ODw==","iv":"EBESExQVFhcYGRob","ciphertext":"5d/og+JY4wyY7vlyf4G8VRGqYMR/0jDZlKOOBH0EBwSqNGpHzsNu2SfHU3B8Fzv901lZGgRCcqQZhhzY"}"#
         let value=try BackupCipher.decrypt(Data(fixture.utf8),password:"Budviva-test-contraseña-2026")
-        XCTAssertEqual(String(data:value,encoding:.utf8),#"${expected}"#)
+        XCTAssertEqual(String(data:value,encoding:.utf8),#"{"version":2,"transactions":[],"budgets":{}}"#)
     }
 }
