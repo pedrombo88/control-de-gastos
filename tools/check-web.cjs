@@ -17,6 +17,10 @@ assert(!html.includes("Cargar datos de demostración"),"Destructive demo button 
 const manifest=JSON.parse(fs.readFileSync("manifest.webmanifest","utf8"));
 assert.equal(manifest.id,"./");assert.equal(manifest.short_name,"Budviva");
 for(const page of ["privacidad.html","soporte.html"])assert(fs.readFileSync(page,"utf8").includes("<html lang=\"es\">"),page+" must exist");
+const sw=fs.readFileSync("sw.js","utf8");
+assert(sw.includes("navigationFallback(request.url)"),"Offline navigation must be routed by page");
+assert(sw.includes("cache.put(fallback, copy)"),"Navigations must be cached to their own route");
+assert(!sw.includes("cache.put('./index.html',copy)"),"Never overwrite home with another page");
 console.log("✅ Budviva Web audit: 5 navigation tabs, JS syntax, source documents, privacy and data compatibility");
 
 const crypto=require("node:crypto");
