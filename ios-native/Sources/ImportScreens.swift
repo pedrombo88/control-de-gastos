@@ -167,6 +167,8 @@ enum NativeImportParser {
 struct ImportScreen: View {
     @EnvironmentObject var store:FinanceStore
     @State private var showingPicker=false
+    @State private var showingCamera=false
+    @State private var cameraUnavailable=false
     @State private var mode="ticket"
     @State private var drafts=[ImportDraft]()
     @State private var rawData:Data?
@@ -183,6 +185,13 @@ struct ImportScreen: View {
                 }.pickerStyle(.segmented)
                 Button { showingPicker=true } label: { Label("Seleccionar documento",systemImage:"doc.text.viewfinder").frame(maxWidth:.infinity) }
                     .buttonStyle(.borderedProminent)
+                if mode=="ticket" {
+                    Button {
+                        if UIImagePickerController.isSourceTypeAvailable(.camera) {showingCamera=true}
+                        else {cameraUnavailable=true}
+                    } label: { Label("Hacer foto del ticket",systemImage:"camera").frame(maxWidth:.infinity) }
+                    .buttonStyle(.bordered)
+                }
                 if busy {ProgressView("Analizando documento…")}
                 Text(message).font(.caption).foregroundStyle(isError ? .red:.secondary)
                 if !drafts.isEmpty {
@@ -238,34 +247,52 @@ struct ImportScreen: View {
             case .failure(let e):message=e.localizedDescription;isError=true
             }
         }
+        .sheet(isPresented:$showingCamera) {
+            CameraCapture { data in
+                analyze(data,name:"ticket-"+FinanceFormat.date()+".jpg",ext:"jpg")
+            }
+            .ignoresSafeArea()
+        }
+        .alert("Cámara no disponible",isPresented:$cameraUnavailable){
+            Button("Aceptar",role:.cancel){}
+        } message:{Text("La cámara no está disponible en este dispositivo o simulador. Puedes seleccionar una fotografía guardada.")}
+
     }
     private func load(_ url:URL) {
         let granted=url.startAccessingSecurityScopedResource()
         defer {if granted {url.stopAccessingSecurityScopedResource()}}
         do {
-            let data=try Data(contentsOf:url)
-            if data.count>15*1024*1024 {throw NSError(domain:"Budviva",code:6,userInfo:[NSLocalizedDescriptionKey:"Máximo 15 MB por archivo."])}
-            rawData=data;name=url.lastPathComponent;type=url.pathExtension.lowercased()
-            busy=true;isError=false;drafts=[];message="Analizando \(name)…"
-            let current=mode,ext=type
-            Task.detached(priority:.userInitiated) {
-                do {
-                    let text=try NativeImportParser.text(from:data,fileExtension:ext)
-                    let parsed:[ImportDraft]
-                    if ext=="csv" {parsed=NativeImportParser.parseCSV(text)}
-                    else if current=="ticket" {parsed=NativeImportParser.parseTicket(text)}
-                    else {parsed=NativeImportParser.parseStatementText(text)}
-                    await MainActor.run {
-                        drafts=parsed
-                        busy=false;message=parsed.isEmpty ? "No se identificaron movimientos. Revisa el archivo o introduce los datos manualmente.":
-                          "Se han detectado \(parsed.count) posibles movimientos. Marca solo los correctos."
-                        isError=parsed.isEmpty
-                    }
-                }catch {
-                    await MainActor.run {busy=false;message=error.localizedDescription;isError=true}
+            try analyze(Data(contentsOf:url),name:url.lastPathComponent,ext:url.pathExtension.lowercased())
+        }catch {
+            message=error.localizedDescription;isError=true;busy=false
+        }
+    }
+    private func analyze(_ data:Data,name filename:String,ext extensionName:String) {
+        guard !busy else{return}
+        guard data.count<=15*1024*1024 else {
+            message="Máximo 15 MB por documento.";isError=true;return
+        }
+        rawData=data;name=filename;type=extensionName
+        busy=true;isError=false;drafts=[];message="Analizando "+filename+"…"
+        let current=mode
+        let ext=extensionName
+        Task.detached(priority:.userInitiated) {
+            do {
+                let text=try NativeImportParser.text(from:data,fileExtension:ext)
+                let parsed:[ImportDraft]
+                if ext=="csv" {parsed=NativeImportParser.parseCSV(text)}
+                else if current=="ticket" {parsed=NativeImportParser.parseTicket(text)}
+                else {parsed=NativeImportParser.parseStatementText(text)}
+                await MainActor.run {
+                    drafts=parsed;busy=false
+                    message=parsed.isEmpty ? "No se identificaron movimientos. Revisa el archivo o introduce los datos manualmente.":
+                        "Se han detectado \(parsed.count) posibles movimientos. Marca solo los correctos."
+                    isError=parsed.isEmpty
                 }
+            }catch {
+                await MainActor.run {busy=false;message=error.localizedDescription;isError=true}
             }
-        }catch {message=error.localizedDescription;isError=true;busy=false}
+        }
     }
     private func save() {
         guard let original=rawData else {message="Selecciona de nuevo el original.";return}
@@ -284,15 +311,46 @@ struct ImportScreen: View {
                 method:"card",note:"Importado de documento",receiptItems:item.items.isEmpty ? nil:item.items,
                 importSource:mode=="ticket" ? "ticket":"bank"))
         }
-        for m in movements {store.save(m)}
         do {
             let mime=type=="pdf" ? "application/pdf":type=="csv" ? "text/csv":type=="txt" ? "text/plain":"image/"+type
-            _=try store.storeOriginal(original,name:name,type:mime,movementIDs:movements.map(\.id))
+            try store.importMovements(movements,withOriginal:original,name:name,type:mime)
             drafts=[];rawData=nil
-            message="Guardados \(movements.count) movimientos y el original en el dispositivo.";isError=false
+            message="Guardados \(movements.count) movimientos y su documento original.";isError=false
         }catch {
-            message="Movimientos guardados, pero hubo un problema con el original: "+error.localizedDescription
+            message="No se ha guardado nada: "+error.localizedDescription
             isError=true
+        }
+    }
+}
+
+struct CameraCapture:UIViewControllerRepresentable {
+    var onCapture:(Data)->Void
+    @Environment(\.dismiss) private var dismiss
+
+    func makeUIViewController(context:Context)->UIImagePickerController {
+        let picker=UIImagePickerController()
+        picker.sourceType = .camera
+        picker.cameraCaptureMode = .photo
+        picker.allowsEditing = false
+        picker.delegate=context.coordinator
+        return picker
+    }
+    func updateUIViewController(_ uiViewController:UIImagePickerController,context:Context){}
+    func makeCoordinator()->Coordinator {Coordinator(self)}
+    final class Coordinator:NSObject,UIImagePickerControllerDelegate,UINavigationControllerDelegate {
+        let parent:CameraCapture
+        init(_ parent:CameraCapture){self.parent=parent}
+        func imagePickerControllerDidCancel(_ picker:UIImagePickerController) {
+            parent.dismiss()
+        }
+        func imagePickerController(_ picker:UIImagePickerController,didFinishPickingMediaWithInfo info:[UIImagePickerController.InfoKey:Any]) {
+            if let image=info[.originalImage] as? UIImage,
+               let bytes=image.jpegData(compressionQuality:0.83) {
+                parent.dismiss()
+                parent.onCapture(bytes)
+            }else {
+                parent.dismiss()
+            }
         }
     }
 }
