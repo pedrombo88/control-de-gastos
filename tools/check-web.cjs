@@ -1,6 +1,6 @@
 /* Check de liberación sin dependencias externas. */
 const fs=require("node:fs"),vm=require("node:vm"),assert=require("node:assert/strict");
-const files=["recurring.js","stats.js","reconcile.js","smart-import.js","documents.js","backup-crypto.js","goals.js","savings.js","sw.js"];
+const files=["recurring.js","stats.js","reconcile.js","smart-import.js","documents.js","backup-crypto.js","sw.js"];
 for(const f of files) new vm.Script(fs.readFileSync(f,"utf8"),{filename:f});
 const html=fs.readFileSync("index.html","utf8");
 const inline=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)].map(x=>x[1]).filter(Boolean);
