@@ -102,3 +102,8 @@ html[data-finance-theme="premium"] .v6-home .balance-card{background:linear-grad
 @media(min-width:700px){.app-shell{margin:16px auto;border-radius:28px;min-height:calc(100dvh - 32px)}.v6-preview-banner{border-radius:15px 15px 0 0;margin-top:12px}}
 @media(max-width:380px){main{padding-inline:15px}.site-header{padding-inline:16px}.v6-home .balance-card{padding:22px 19px}.v6-home .donut-wrap{width:126px;height:126px}.v6-home .overview-chart{gap:8px}.v6-home .legend-row{font-size:10px}.v6-home .v6-kpi-card{padding:13px}.v6-home .balance-amount{font-size:13px}}
 @media(prefers-reduced-motion:reduce){.v6-home .v6-kpi-card,.header-add{transition:none}}
+
+.finance-swatch-violet-studio{background:linear-gradient(135deg,#7771ff,#4337a9)!important;color:#fff!important;border:1px solid #ffffff20}
+.finance-theme-choice:has(.finance-swatch-violet-studio){min-width:0}
+.v6-home .rec-home>span:first-child svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.v6-home .rec-home>span:first-child{font-size:0}
