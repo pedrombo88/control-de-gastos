@@ -1,0 +1,42 @@
+name: Compilar Budviva iOS
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'ios-native/**'
+      - '.github/workflows/ios-build.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'ios-native/**'
+      - '.github/workflows/ios-build.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  simulator:
+    runs-on: macos-15
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configurar Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '16.4'
+      - name: Instalar generador de proyectos
+        run: brew install xcodegen
+      - name: Generar icono de la aplicación
+        run: swift ios-native/tools/generate-icon.swift
+      - name: Generar proyecto Xcode
+        run: |
+          cd ios-native
+          xcodegen generate --spec project.yml
+      - name: Compilar para simulador iOS (sin firma)
+        run: |
+          xcodebuild -project ios-native/Budviva.xcodeproj \
+            -scheme Budviva \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO \
+            build
