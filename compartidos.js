@@ -100,7 +100,7 @@ function renderDashboard(){
   setVisible('invite-section',!eligible&&household.owner_id===user.id);
   ['expense-payer','settlement-payer'].forEach(id=>{
     const previous=$(id).value;
-    $(id).innerHTML=members.map(m=>'<option value="'+esc(m.user_id)+'">'+esc(m.display_name)+'</option>').join('');
+    $(id).innerHTML=members.filter(m=>m.user_id===user.id).map(m=>'<option value="'+esc(m.user_id)+'">'+esc(m.display_name)+'</option>').join('');
     $(id).value=ids.includes(previous)?previous:user.id;
   });
   $('shares-help').textContent=eligible?'La primera proporción corresponde a '+members[0].display_name+' y la segunda a '+members[1].display_name+'.':'El 50/50 se activará al vincular a la segunda persona.';
@@ -160,7 +160,7 @@ onSubmit('join-form',async f=>{
 });
 onSubmit('expense-form',async f=>{
   if(members.length!==2)throw Error('Debes vincular antes a la segunda persona.');
-  const body={household_id:household.id,author_id:user.id,payer_id:f.elements.payer.value,
+  const body={household_id:household.id,author_id:user.id,payer_id:user.id,
     title:f.elements.title.value.trim(),category:'otros',amount_cents:moneyToCents(f.elements.amount.value),
     spent_on:f.elements.date.value,share_basis_points_a:Number(f.elements.share.value),client_event_id:crypto.randomUUID()};
   if(!body.title||body.title.length>100||!body.spent_on)throw Error('Revisa el concepto y la fecha.');
@@ -168,7 +168,7 @@ onSubmit('expense-form',async f=>{
   f.reset();f.elements.date.value=today();await load();
 });
 onSubmit('settlement-form',async f=>{
-  const payer=f.elements.payer.value,other=members.find(m=>m.user_id!==payer);
+  const payer=user.id,other=members.find(m=>m.user_id!==payer);
   if(!other)throw Error('Necesitas dos personas vinculadas.');
   const amount=moneyToCents(f.elements.amount.value);
   if(!confirm('¿Proponer una compensación de '+euro(amount)+'? La otra persona deberá confirmarla.'))return;
