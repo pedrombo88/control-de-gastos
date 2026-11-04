@@ -1220,9 +1220,22 @@ root.BudvivaGoals={build,total,status};
     if(action==='refresh-app'){refreshBudviva();return;}
     if(action==='install-info'){toast('En Safari: Compartir → Añadir a pantalla de inicio');return;}
     if(action==='erase-data'){
-      if(!confirm('¿Borrar definitivamente tus movimientos, presupuestos, objetivos de ahorro y reglas recurrentes de este dispositivo? No elimina las copias de seguridad descargadas. Exporta una copia si quieres conservarlos.'))return;
-      const prev=data,corruptBefore=dataLoadCorrupt;data=defaults();dataLoadCorrupt=false;if(!save()){data=prev;dataLoadCorrupt=corruptBefore;return;}
-      ui.month=nowMonth();ui.tab='home';ui.filter='all';ui.query='';render();toast('Datos borrados');
+      if(!confirm('¿Eliminar TODOS los movimientos, presupuestos, objetivos y originales de tickets y extractos de este dispositivo? Esta acción no borra las copias descargadas.'))return;
+      void (async()=>{
+        const oldData=data,corruptBefore=dataLoadCorrupt;
+        try{
+          const prevDocs=await window.BudvivaDocuments.getAll();
+          data=defaults();dataLoadCorrupt=false;
+          if(!save()){data=oldData;dataLoadCorrupt=corruptBefore;return;}
+          try{await window.BudvivaDocuments.clear();}
+          catch(err){
+            data=oldData;dataLoadCorrupt=corruptBefore;save();
+            await window.BudvivaDocuments.replaceAll(prevDocs).catch(()=>{});
+            throw err;
+          }
+          ui.month=nowMonth();ui.tab='home';ui.filter='all';ui.query='';render();toast('Movimientos y originales eliminados.');
+        }catch(err){alert('No se pudo completar el borrado: '+err.message);}
+      })();
     }
   };
   document.addEventListener('change', e=>{
@@ -1279,7 +1292,11 @@ root.BudvivaGoals={build,total,status};
     if(!editingTx || !confirm('¿Eliminar este movimiento?'))return;
     const prev=data.transactions,prevSkips=data.recurringSkips.slice();const old=data.transactions.find(x=>x.id===editingTx);if(old?.recurringId&&old?.occurrenceDate){const key=old.recurringId+'|'+old.occurrenceDate;if(!data.recurringSkips.includes(key))data.recurringSkips.push(key);}data.transactions=prev.filter(x=>x.id!==editingTx);
     if(!save()){data.transactions=prev;data.recurringSkips=prevSkips;return;}
+    const removedId=editingTx;
     txDialog.close();render();toast('Movimiento eliminado');
+    if(removedId&&window.BudvivaDocuments){
+      void window.BudvivaDocuments.unlinkTransaction(removedId).catch(err=>console.warn('Original pendiente de limpieza',err));
+    }
   });
   budgetForm.addEventListener('submit',e=>{
     e.preventDefault();const amount=parseMoney(document.getElementById('budget-amount').value);
