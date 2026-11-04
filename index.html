@@ -848,7 +848,7 @@ root.BudvivaGoals={build,total,status};
 
 </script>
   <script>
-/* Budviva — versión 6.2.1. Datos exclusivamente en este dispositivo. */
+/* Budviva — versión 6.3.0. Datos exclusivamente en este dispositivo. */
 (() => {
   'use strict';
   const STORAGE_KEY = 'saldo-diario-data-v1';
@@ -1055,6 +1055,7 @@ root.BudvivaGoals={build,total,status};
        <button type="button" data-action="smart-import">${pictogram('camera',18)}<span>Importar</span></button>
        <button type="button" data-action="recurring">${pictogram('repeat',18)}<span>Recurrentes</span></button>
        <button type="button" data-action="stats">${pictogram('chart',18)}<span>Estadísticas</span></button>
+       <button type="button" data-action="shared-household">${pictogram('home',18)}<span>Compartidos</span></button>
     </div>
     <div class="filter-bar" aria-label="Filtrar por tipo">${[['all','Todos'],['expense','Gastos'],['income','Ingresos']].map(([id,label])=>`<button type="button" data-filter="${id}" class="filter-pill ${ui.filter===id?'is-active':''}" aria-pressed="${ui.filter===id}">${label}</button>`).join('')}</div>
     <label class="search-field"><span aria-hidden="true">${pictogram("search",19)}</span><input id="search-transactions" value="${h(ui.query)}" placeholder="Buscar por concepto o categoría..." aria-label="Buscar movimientos" autocomplete="off"></label>
@@ -1120,7 +1121,7 @@ root.BudvivaGoals={build,total,status};
       ${settingsRow('🗑️','Borrar datos financieros','Elimina movimientos, presupuestos, reglas y objetivos.','erase-data')}
     </section>
     ${dataLoadCorrupt?'<p class="form-error">Los datos guardados no se pueden leer. Restaura una copia de seguridad antes de introducir nuevos registros.</p>':(!storageOK?'<p class="form-error">No se puede acceder al almacenamiento local; evita registrar datos hasta solucionarlo.</p>':'')}
-    <p class="footnote">Tus registros se conservan en este dispositivo. Haz una copia de seguridad periódica para evitar pérdidas. Budviva · versión 6.2.1 (beta).</p>`;
+    <p class="footnote">Tus registros se conservan en este dispositivo. Haz una copia de seguridad periódica para evitar pérdidas. Budviva · versión 6.3.0 (beta).</p>`;
   const render = () => {
     const selectedReceipt=ui.tab==='transactions'&&ui.receiptId?data.transactions.find(t=>t.id===ui.receiptId):null;
     shell.innerHTML = ({home:renderHome,transactions:renderTransactions,budgets:renderBudgets,recurring:recurring.renderPage,stats:stats.renderPage,'smart-import':smartImport.renderPage,savings:savings.renderPage,settings:renderSettings})[ui.tab]();
@@ -1295,6 +1296,7 @@ root.BudvivaGoals={build,total,status};
     }
   };
   const handleAction = action => {
+    if(action==='shared-household'){window.location.href='./compartidos.html';return;}
     if(action==='savings-goals'||action==='savings-analysis'){savings.showPanel(action==='savings-goals'?'goals':'analysis');ui.tab='savings';render();return;}
     if(action==='transactions'||action==='budgets'||action==='recurring'||action==='stats'||action==='smart-import'||action==='savings'){ui.tab=action;ui.query='';render();return;}
     if(action==='export-json'){void exportJson();return;}
