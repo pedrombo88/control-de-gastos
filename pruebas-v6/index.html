@@ -299,6 +299,14 @@ button{touch-action:manipulation}
 .rec-home>span:first-child .cg-pro-icon{width:23px;height:23px}
 .privacy-note .cg-pro-icon{width:21px;height:21px}
 
+
+/* V6.4 — estados vacíos sin emojis, círculos ni logos de aspecto infantil */
+.cg-empty-pro{min-height:210px;padding:27px 18px 31px;gap:0}
+.cg-empty-illustration{width:min(174px,75%);height:100px;color:var(--mint);margin:0 auto 13px;opacity:.86}
+.cg-empty-illustration svg{width:100%;height:100%;display:block}
+.cg-empty-pro strong{font-size:16px;letter-spacing:-.35px;font-weight:760;color:var(--ink)}
+.cg-empty-pro p{font-size:12px;line-height:1.65;color:var(--muted);max-width:275px;margin:7px auto 0}
+.cg-empty-pro .empty-icon{display:none}
 </style>
   <title>Finance · Tu dinero, más claro</title>
 </head>
@@ -504,7 +512,7 @@ button{touch-action:manipulation}
     const [y,m]=ui.month.split('-').map(Number);const d=new Date(y,m-1+n,1);ui.month=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
   };
   const heading = (title,eyebrow='TU DINERO') => `<div class="view-heading"><div><div class="eyebrow">${eyebrow}</div><h1 class="page-title">${title}</h1></div>${monthSelector()}</div>`;
-  const empty = (symbol,title,subtitle) => `<div class="empty"><div class="empty-icon">${symbol}</div><strong>${title}</strong><p>${subtitle}</p></div>`;
+  const empty = (symbol,title,subtitle) => `<div class="empty cg-empty-pro"><div class="cg-empty-illustration" aria-hidden="true"><svg viewBox="0 0 168 96" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M17 78H151" stroke="currentColor" stroke-opacity=".18" stroke-width="1.5" stroke-linecap="round"/><path d="M30 78V54C30 50.686 32.686 48 36 48H49C52.314 48 55 50.686 55 54V78" fill="currentColor" fill-opacity=".06"/><path d="M71 78V36C71 32.686 73.686 30 77 30H90C93.314 30 96 32.686 96 36V78" fill="currentColor" fill-opacity=".11"/><path d="M112 78V20C112 16.686 114.686 14 118 14H131C134.314 14 137 16.686 137 20V78" fill="currentColor" fill-opacity=".17"/><path d="M25 54L65 42L88 48L129 21" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="25" cy="54" r="3.5" fill="var(--white)" stroke="currentColor" stroke-width="2"/><circle cx="65" cy="42" r="3.5" fill="var(--white)" stroke="currentColor" stroke-width="2"/><circle cx="88" cy="48" r="3.5" fill="var(--white)" stroke="currentColor" stroke-width="2"/><circle cx="129" cy="21" r="4" fill="var(--mint)" stroke="currentColor" stroke-width="1.5"/></svg></div><strong>${title}</strong><p>${subtitle}</p></div>`;
   const categoryMark = cat => `<div class="category-mark" style="background:${cat.color}20;color:${cat.color}" aria-hidden="true">${cat.emoji}</div>`;
   const txRow = t => {const cat=catById(t.category);return `<button type="button" class="transaction-row" data-edit-id="${h(t.id)}" aria-label="Editar ${h(t.title)}, ${h(money(t.amount))}">${categoryMark(cat)}<span class="transaction-main"><span class="transaction-title" style="display:block">${h(t.title)}</span><span class="transaction-sub" style="display:block">${h(cat.name)} · ${h(methodNames[t.method]||'Otro')}${t.recurringId?' · 🔁':''}</span></span><span class="transaction-amount ${t.type==='income'?'income':''}">${t.type==='income'?'+':'−'}${h(money(t.amount))}</span></button>`;};
 
