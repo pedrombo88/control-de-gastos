@@ -1,25 +1,51 @@
-/* Control de Gastos — caché offline V2.1 */
+/* Budviva 5.6 — recursos actualizados de red, uso offline conservado. */
 const CACHE_PREFIX = 'control-de-gastos-';
-const CACHE = CACHE_PREFIX + '5.5.2';
-const ASSETS = ['./','./index.html','./recurring.js','./stats.js','./reconcile.js','./smart-import.js','./savings.js','./savings.css','./manifest.webmanifest','./icon.svg'];
+const CACHE = CACHE_PREFIX + '5.6';
+const CORE = ['./','./index.html','./recurring.js','./stats.js','./reconcile.js','./smart-import.js','./manifest.webmanifest','./icon.svg'];
+
 self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE).then(cache => cache.addAll(ASSETS)).then(() => self.skipWaiting())
-  );
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE);
+    const requests = CORE.map(path => new Request(new URL(path, self.registration.scope).href, {cache:'reload'}));
+    await cache.addAll(requests);
+    await self.skipWaiting();
+  })());
 });
 self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys()
-      .then(keys => Promise.all(keys.filter(key => key.startsWith(CACHE_PREFIX) && key !== CACHE).map(key => caches.delete(key))))
-      .then(() => self.clients.claim())
-  );
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(keys.filter(k => k.startsWith(CACHE_PREFIX) && k !== CACHE).map(k => caches.delete(k)));
+    await self.clients.claim();
+  })());
 });
 self.addEventListener('fetch', event => {
   const request = event.request;
-  if (request.method !== 'GET' || new URL(request.url).origin !== self.location.origin) return;
-  if (request.mode === 'navigate') {
-    event.respondWith(fetch(request).catch(() => caches.match('./index.html')));
-  } else {
-    event.respondWith(fetch(request).then(response => { if(response.ok) { const copy=response.clone(); caches.open(CACHE).then(cache => cache.put(request,copy)).catch(()=>{}); } return response; }).catch(() => caches.match(request)));
+  if(request.method !== 'GET' || new URL(request.url).origin !== self.location.origin)return;
+  if(request.mode === 'navigate'){
+    event.respondWith((async () => {
+      try {
+        const response = await fetch(request,{cache:'no-store'});
+        if(response.ok){
+          const copy = response.clone();
+          event.waitUntil(caches.open(CACHE).then(cache => cache.put('./index.html',copy)).catch(() => {}));
+        }
+        return response;
+      }catch(err){
+        return await caches.match('./index.html') || Response.error();
+      }
+    })());
+  }else{
+    event.respondWith((async () => {
+      try {
+        const response = await fetch(request,{cache:'no-store'});
+        if(response.ok){
+          const copy=response.clone();
+          event.waitUntil(caches.open(CACHE).then(cache => cache.put(request,copy)).catch(() => {}));
+        }
+        return response;
+      }catch(err){
+        return await caches.match(request) || Response.error();
+      }
+    })());
   }
 });
