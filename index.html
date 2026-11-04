@@ -407,6 +407,32 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .attachment-field{margin:13px 0;padding:12px;border:1px solid var(--border);border-radius:13px;background:var(--design-soft)}
 .attachment-field .small-action{min-height:43px;width:100%}
 .attachment-field .receipt-hint{margin:7px 0 0}
+
+/* Auditoría accesibilidad 6.2: colores de texto AA para fondos claros. */
+:root,html[data-app-theme="oceano"],html:not([data-app-theme]){
+  --muted:#526579;
+  --mint:#125f9c;
+  --design-accent:#145c9d;
+}
+html[data-app-theme="esmeralda"]{
+  --muted:#526872;
+  --mint:#087862;
+  --design-accent:#087761;
+}
+html[data-app-theme="arena"]{
+  --muted:#67574a;
+  --mint:#845021;
+  --design-accent:#865020;
+}
+html[data-app-theme="noche"]{
+  --muted:#b5c5d9;
+  --mint:#7bc9ff;
+  --design-accent:#80cdff;
+}
+html:not([data-app-theme="noche"]) .saving-kpi-necessary strong{color:#126b59}
+html:not([data-app-theme="noche"]) .saving-kpi-optional strong{color:#a53d48}
+html:not([data-app-theme="noche"]) .saving-choice.selected,
+html:not([data-app-theme="noche"]) .hero-quick-actions .quick-expense{color:#fff}
 </style>
   <title>Budviva · Tu dinero, más claro</title>
 </head>
@@ -992,7 +1018,7 @@ root.BudvivaGoals={build,total,status};
     <div class="filter-bar" aria-label="Filtrar por tipo">${[['all','Todos'],['expense','Gastos'],['income','Ingresos']].map(([id,label])=>`<button type="button" data-filter="${id}" class="filter-pill ${ui.filter===id?'is-active':''}" aria-pressed="${ui.filter===id}">${label}</button>`).join('')}</div>
     <label class="search-field"><span aria-hidden="true">${pictogram("search",19)}</span><input id="search-transactions" value="${h(ui.query)}" placeholder="Buscar por concepto o categoría..." aria-label="Buscar movimientos" autocomplete="off"></label>
     <div id="transactions-list">${transactionListing()}</div>`;
-  const progress = fraction => `<div class="progress ${fraction>=1?'danger':fraction>=.8?'warning':''}" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.min(100,Math.round(fraction*100))}"><span style="width:${Math.min(100,fraction*100)}%"></span></div>`;
+  const progress = (fraction,label) => `<div class="progress ${fraction>=1?'danger':fraction>=.8?'warning':''}" role="progressbar" aria-label="${h(label)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.min(100,Math.round(fraction*100))}"><span style="width:${Math.min(100,fraction*100)}%"></span></div>`;
   const budgetAlertView = () => {
     const config=data.budgetAlerts||{enabled:true,threshold:80};
     if(!config.enabled)return '';
@@ -1010,9 +1036,9 @@ root.BudvivaGoals={build,total,status};
     const configured=cats.filter(c=>data.budgets[c.id]);const remainder=cats.filter(c=>!data.budgets[c.id]);
     const totalLimit=configured.reduce((n,c)=>n+data.budgets[c.id],0);
     const configuredSpend=configured.reduce((n,c)=>n+total(currentTx().filter(t=>t.category===c.id),'expense'),0);
-    const rows=cs=>cs.map(c=>{const limit=data.budgets[c.id]||0,spent=total(currentTx().filter(t=>t.category===c.id),'expense');return `<div class="budget-row">${categoryMark(c)}<div class="budget-details"><div class="transaction-title">${h(c.name)}</div><div class="budget-values">${h(shortMoney(spent))} <span class="secondary">${limit?'de '+h(shortMoney(limit))+' / mes':'gastados este mes'}</span></div>${limit?progress(spent/limit):''}</div><button type="button" class="small-action" data-budget-category="${c.id}" aria-label="${limit?'Editar':'Fijar'} límite de ${h(c.name)}">${limit?'Editar':'Fijar'}</button></div>`}).join('');
+    const rows=cs=>cs.map(c=>{const limit=data.budgets[c.id]||0,spent=total(currentTx().filter(t=>t.category===c.id),'expense');return `<div class="budget-row">${categoryMark(c)}<div class="budget-details"><div class="transaction-title">${h(c.name)}</div><div class="budget-values">${h(shortMoney(spent))} <span class="secondary">${limit?'de '+h(shortMoney(limit))+' / mes':'gastados este mes'}</span></div>${limit?progress(spent/limit,'Presupuesto de '+c.name):''}</div><button type="button" class="small-action" data-budget-category="${c.id}" aria-label="${limit?'Editar':'Fijar'} límite de ${h(c.name)}">${limit?'Editar':'Fijar'}</button></div>`}).join('');
     return `${heading('Presupuestos','PLANIFICA TUS GASTOS')}
-      <section class="card budget-overview"><div class="budget-top"><div><div class="balance-title" style="color:var(--muted)">Gastos con límite</div><div class="budget-amount">${h(money(configuredSpend))}</div></div><span class="total-badge">${configured.length} ${configured.length===1?'límite':'límites'}</span></div><p class="budget-sub">Presupuesto asignado: ${h(money(totalLimit))} / mes</p><div style="margin-top:15px">${progress(totalLimit?configuredSpend/totalLimit:0)}</div></section>
+      <section class="card budget-overview"><div class="budget-top"><div><div class="balance-title" style="color:var(--muted)">Gastos con límite</div><div class="budget-amount">${h(money(configuredSpend))}</div></div><span class="total-badge">${configured.length} ${configured.length===1?'límite':'límites'}</span></div><p class="budget-sub">Presupuesto asignado: ${h(money(totalLimit))} / mes</p><div style="margin-top:15px">${progress(totalLimit?configuredSpend/totalLimit:0,'Presupuesto mensual total')}</div></section>
       ${budgetAlertView()}
       ${cardHeader('Avisos de presupuesto')}<section class="card budget-alert-config"><label class="budget-alert-control"><span><b>Activar avisos</b><small>Te avisamos dentro de la aplicación cuando una categoría alcanza el umbral.</small></span><input id="budget-alert-enabled" type="checkbox" ${(data.budgetAlerts||{enabled:true}).enabled?'checked':''}></label><label class="budget-alert-select" for="budget-alert-threshold"><span>Umbral de aviso</span><select id="budget-alert-threshold" ${(data.budgetAlerts||{enabled:true}).enabled?'':'disabled'}>${[70,80,90].map(n=>`<option value="${n}" ${(data.budgetAlerts?.threshold||80)===n?'selected':''}>${n} %</option>`).join('')}</select></label><p class="muted">Al llegar al 100 % se muestra una advertencia de límite alcanzado o superado. No enviamos notificaciones externas.</p></section>
       ${cardHeader('Categorías con presupuesto')}<section class="card">${configured.length?rows(configured):empty('🎯','Crea tu primer presupuesto','Define un límite de gasto mensual para alguna de las categorías de abajo.')}</section>
