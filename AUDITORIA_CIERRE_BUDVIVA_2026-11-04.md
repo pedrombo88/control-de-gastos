@@ -35,3 +35,18 @@
 7. **Idiomas:** la aplicación actual es española; no publicitar inglés u otros idiomas antes de completar la traducción y los formatos locales.
 
 **Decisión:** mantener Budviva como beta de prueba. No publicar ni introducir credenciales reales de Apple en el repositorio. Los cambios de código no equivalen a aprobación por Apple ni sustituyen la auditoría física y legal.
+
+
+## Ampliación de auditoría (continuación)
+
+**Web Budviva 6.1 — comprobaciones adicionales realizadas:**
+
+- **Almacenamiento de originales:** importación y adjuntar documentos a un movimiento manual, consulta en IndexedDB, conservación de referencias y exportación en copia completa. En GitHub Actions existe una **prueba móvil con Chromium aprobada** que cubre adjuntar un justificante de prueba, visualizarlo y comprobar que el JSON exportado contiene el archivo original en base64.
+- **Copias de seguridad:** cifrado AES-256-GCM con derivación PBKDF2-SHA256; pruebas de descifrado, contraseña errónea y detección de alteraciones. La restauración de JSON antiguo descarta referencias inexistentes; la restauración con archivos valida que estén incluidos y devuelve el estado previo si falla el guardado.
+- **Bibliotecas locales:** Tesseract 5.1.1, núcleo OCR 5.0.0, datos de idioma español y PDF.js 6.5.438. Recursos servidos por GitHub Pages en origen propio, sin inyección de código de CDN; verificación de SHA-256 integrada en el control de release.
+- **Limpieza de archivos:** 28 archivos de versiones V4, V5 y V6, antiguo comprobador y fuentes duplicadas han desaparecido de la rama de publicación; permanecen en el historial del repositorio.
+- **Pruebas:** verificación automatizada Node y pruebas móviles Playwright con ejecución correcta. Se ha añadido además análisis WCAG automatizado; su último resultado se debe consultar en el workflow, no debe asumirse superado.
+- **iOS nativa:** compilación para simulador y `build-for-testing` XCTest con ejecución correcta en un commit; workflow posterior preparado para ejecutar los tests dentro de simulador. Las modificaciones siguientes necesitan revalidación.
+- **Otros controles:** documentación de privacidad y ayuda actualizada, AppIcon generado automáticamente, fichas de App Store y matriz de aceptación documentadas.
+
+**Limitación de esta evidencia:** Chromium móvil en GitHub Actions no sustituye Safari real, VoiceOver ni los permisos de cámara de un iPhone. La prueba de restauración completa con documentos reales entre Safari e iOS está pendiente.
