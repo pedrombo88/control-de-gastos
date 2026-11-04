@@ -137,6 +137,7 @@ test("El importador lee un PDF auténtico desde la biblioteca local PDF.js",asyn
   });
   await expect(page.locator('[data-import-row]')).toHaveCount(1,{timeout:20000});
   await expect(page.locator('#smart-import-status')).toContainText("1 posibles movimientos");
-  await expect(page.locator('#page-content')).toContainText("TIENDA PRUEBA");
-  await expect(page.locator('#page-content')).toContainText("PAN");
+  await expect(page.locator('[data-import-field="title"]')).toHaveValue("TIENDA PRUEBA");
+  await expect(page.locator('[data-receipt-field="name"]')).toHaveValue("PAN");
+  await expect(page.locator('[data-import-field="amount"]')).toHaveValue("2,50");
 });
