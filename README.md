@@ -99,3 +99,7 @@ Cierre definitivo del hogar con confirmación explícita y doble consentimiento 
 ### Versión 6.8.0 beta — Desvinculación segura
 
 La gestión del hogar está agrupada en un panel plegado para reducir acciones destructivas visibles. Una persona puede salir de un hogar sin gastos ni compensaciones. Si hay historial, el servidor bloquea la salida individual y exige el cierre por consentimiento mutuo. Si sale quien creó un hogar vacío y queda otro miembro, se transfiere la administración. Se cancelan invitaciones y autorizaciones anteriores. La cuenta de acceso sigue activa. La baja de Auth aún no está automatizada.
+
+### 6.8.1 — Preparación de baja de cuenta
+
+Se ha separado en la interfaz el cierre de un hogar de la eliminación de la cuenta de acceso. El borrado de cuentas no está activado desde el navegador: se requiere un canal de atención privado, verificación de identidad y pruebas de extremo a extremo. No se deben utilizar incidencias públicas de GitHub para datos personales ni solicitudes de baja.
