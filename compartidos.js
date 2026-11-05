@@ -352,7 +352,7 @@ onSubmit('password-form',async f=>{
 });
 onSubmit('delete-account-form',async f=>{
   if(!session||!user)throw Error('Debes iniciar sesión para eliminar tu cuenta.');
-  if(household)throw Error('Primero debes cerrar o abandonar el grupo de compartidos compartido.');
+  if(household)throw Error('Primero debes cerrar o abandonar el grupo de compartidos.');
   const confirmation=f.elements.confirmation.value.trim();
   if(confirmation!=='ELIMINAR CUENTA')throw Error('Escribe exactamente ELIMINAR CUENTA.');
   const password=f.elements.password.value;
@@ -453,7 +453,7 @@ $('closure-approve').addEventListener('click',async e=>{
   const outcome=await rpc('bv_manage_household_closure',{p_household:household.id,p_action:'approve'});
   if(outcome==='deleted'){
     household=null;members=[];expenses=[];settlements=[];closureApprovals=[];
-    renderRoot();status('El grupo de compartidos compartido se ha eliminado. Tu cuenta sigue activa.');
+    renderRoot();status('El grupo de compartidos se ha eliminado. Tu cuenta sigue activa.');
   }else{await load();status('Solicitud registrada. El grupo de compartidos seguirá activo hasta que todos autoricen el cierre.');}
  }catch(err){fail(err);}finally{if($('closure-approve'))$('closure-approve').disabled=false;}
 });
