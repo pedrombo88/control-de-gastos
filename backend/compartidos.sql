@@ -145,3 +145,52 @@ revoke all on function public.bv_create_household(text,text),public.bv_create_in
 grant execute on function public.bv_create_household(text,text),public.bv_create_invite(uuid),public.bv_join_household(text,text),public.bv_review_settlement(uuid,boolean) to authenticated;
 create index if not exists bv_expenses_household_date on public.bv_expenses(household_id,spent_on desc);
 create index if not exists bv_settlements_household_date on public.bv_settlements(household_id,created_at desc);
+
+-- 6.7: doble consentimiento para cerrar y borrar un hogar. No elimina usuarios auth.
+create table if not exists public.bv_household_closure_approvals (
+ household_id uuid not null references public.bv_households(id) on delete cascade,
+ user_id uuid not null references auth.users(id),
+ approved_at timestamptz not null default now(),
+ primary key (household_id,user_id)
+);
+alter table public.bv_household_closure_approvals enable row level security;
+revoke all on public.bv_household_closure_approvals from public,anon,authenticated;
+grant select on public.bv_household_closure_approvals to authenticated;
+drop policy if exists "bv closure approvals read" on public.bv_household_closure_approvals;
+create policy "bv closure approvals read" on public.bv_household_closure_approvals
+ for select to authenticated using(private.bv_is_member(household_id));
+
+create or replace function public.bv_manage_household_closure(p_household uuid,p_action text)
+returns text language plpgsql security definer set search_path='' as $$
+declare v_count integer; v_approvals integer;
+begin
+ if auth.uid() is null then raise exception 'Inicio de sesión obligatorio'; end if;
+ -- Serializa las decisiones y altas sobre el mismo hogar.
+ perform 1 from public.bv_households where id=p_household for update;
+ if not found then raise exception 'Hogar no encontrado'; end if;
+ if not exists(select 1 from public.bv_members where household_id=p_household and user_id=auth.uid())
+ then raise exception 'No perteneces a este hogar'; end if;
+ if p_action='cancel' then
+   delete from public.bv_household_closure_approvals where household_id=p_household and user_id=auth.uid();
+   return 'cancelled';
+ end if;
+ if p_action<>'approve' then raise exception 'Acción no permitida'; end if;
+ select count(*) into v_count from public.bv_members where household_id=p_household;
+ if v_count not between 1 and 2 then raise exception 'Composición del hogar no válida'; end if;
+ insert into public.bv_household_closure_approvals(household_id,user_id)
+ values(p_household,auth.uid()) on conflict(household_id,user_id) do nothing;
+ select count(*) into v_approvals from public.bv_household_closure_approvals a
+ join public.bv_members m on m.household_id=a.household_id and m.user_id=a.user_id
+ where a.household_id=p_household;
+ if v_approvals=v_count then
+   -- Borrado transaccional, cascada para invitaciones, gastos, compensaciones y autorizaciones.
+   delete from public.bv_settlements where household_id=p_household;
+   delete from public.bv_expenses where household_id=p_household;
+   delete from public.bv_members where household_id=p_household;
+   delete from public.bv_households where id=p_household;
+   return 'deleted';
+ end if;
+ return 'waiting';
+end; $$;
+revoke all on function public.bv_manage_household_closure(uuid,text) from public,anon;
+grant execute on function public.bv_manage_household_closure(uuid,text) to authenticated;
