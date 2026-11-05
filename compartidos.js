@@ -350,6 +350,29 @@ onSubmit('password-form',async f=>{
  session=body;user=body.user;persist();
  f.reset();await load();
 });
+// Consulta no destructiva: puede ejecutarse incluso con gastos compartidos existentes.
+document.querySelectorAll('[data-account-check]').forEach(btn=>btn.addEventListener('click',async()=>{
+  const output=btn.closest('details')?.querySelector('[data-account-check-result]');
+  if(!output)return;
+  btn.disabled=true;
+  output.textContent='Comprobando únicamente las referencias de tu cuenta…';
+  try{
+    if(!session||!user)throw Error('Debes iniciar sesión para comprobar tu cuenta.');
+    await ensureSession();
+    const response=await fetch(config.url.replace(/\/$/,'')+'/functions/v1/bv-delete-account',{
+      method:'POST',
+      headers:{apikey:config.publishableKey,Authorization:'Bearer '+session.access_token,'Content-Type':'application/json'},
+      body:JSON.stringify({action:'check'}),
+      cache:'no-store'
+    });
+    const result=await response.json().catch(()=>null);
+    if(response.status!==200&&response.status!==409)throw Error(result?.message||'No se ha podido comprobar la protección.');
+    output.textContent=(response.status===409?'Protección activada. ':'')+
+      (result?.message||'No se han obtenido detalles.')+' No se ha borrado ningún dato.';
+  }catch(e){
+    output.textContent='No se ha podido completar la comprobación: '+String(e?.message||e);
+  }finally{btn.disabled=false;}
+}));
 onSubmit('delete-account-form',async f=>{
   if(!session||!user)throw Error('Debes iniciar sesión para eliminar tu cuenta.');
   if(household)throw Error('Primero debes cerrar o abandonar el grupo de compartidos.');
