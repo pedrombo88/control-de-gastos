@@ -123,3 +123,7 @@ En la interfaz de gastos compartidos se reemplaza la denominación «hogar» por
 ### 6.9.2 — Pruebas automáticas de seguridad
 
 Se añaden pruebas de regresión de la baja de cuenta y un workflow de GitHub Actions que ejecuta `npm run check` en cada actualización. Cada lunes y bajo ejecución manual se ejecuta también una comprobación no destructiva de CORS y rechazo de peticiones anónimas. No se crean ni eliminan cuentas durante las pruebas. La validación integral con una cuenta desechable sigue pendiente.
+
+### 6.9.5 — Logotipo de Budviva unificado
+
+El icono de la PWA y del iPhone reproduce el logotipo de la cabecera: B blanca y punto turquesa sobre fondo azul. La cabecera original no se modifica. El iPhone utiliza un archivo PNG real; ya no se incrusta la imagen anterior en la página. El servicio de caché incorpora el nuevo recurso.
