@@ -228,7 +228,7 @@ function saveSharedFile(content,filename,type){
 function csvCell(value){
  let str=String(value??'');
  // Evita ejecutar fórmulas si se abre un concepto escrito por otra persona en Excel.
- if(/^[\\s\\x00-\\x1f]*[=+@-]/.test(str))str="'"+str;
+ if(/^[\s\x00-\x1f]*[=+@-]/.test(str))str="'"+str;
  return '"'+str.replace(/"/g,'""')+'"';
 }
 function csvSheet(rows){
