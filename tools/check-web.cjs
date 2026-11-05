@@ -16,6 +16,11 @@ assert(fs.readFileSync('backend/compartidos.sql','utf8').includes('enable row le
 assert(sharedHtml.includes('id="password-form"'),"Password fallback form missing");
 assert(sharedHtml.includes('id="summary-period"'),"Monthly comparison control missing");
 assert(sharedHtml.includes('id="last-sync"'),"Last synced marker missing");
+assert(sharedHtml.includes('id="settle-exact"'),"Exact settlement control missing");
+assert(sharedHtml.includes('id="profile-form"'),"Shared profile editor missing");
+assert(sharedHtml.includes('id="share-comparison"'),"Individual balance missing");
+assert(sharedJs.includes("result.shareCents[m.user_id]"),"Per-person share not displayed");
+assert(sharedJs.includes("x.reviewed_at||x.created_at"),"Settlement review date not displayed");
 const sharedJs=fs.readFileSync('compartidos.js','utf8');
 assert(sharedJs.includes("readAllRows('bv_expenses'"),"Expense history may be silently truncated");
 assert(sharedJs.includes("readAllRows('bv_settlements'"),"Settlement history may be silently truncated");
