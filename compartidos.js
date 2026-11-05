@@ -201,6 +201,54 @@ function renderActivity(){
     '<div class="row"><div><strong>'+esc(x.title)+(seenSet.has(x.id)?'':' · Nuevo')+'</strong><small>'+esc(x.detail)+'</small><small>'+new Date(x.at).toLocaleString('es-ES')+'</small></div></div>'
   ).join(''):'<p class="muted">Sin actividad reciente.</p>';
 }
+function sharedExportData(){
+ if(!household||!user)throw Error('Inicia sesión y carga el hogar antes de exportar.');
+ if(!navigator.onLine)throw Error('Conéctate a Internet y actualiza el historial antes de exportar.');
+ return {
+  format:'budviva-shared-export-v1',exportedAt:new Date().toISOString(),
+  household:{id:household.id,title:household.title},
+  members:members.map(m=>({id:m.user_id,name:m.display_name,joinedAt:m.joined_at})),
+  expenses:expenses.map(x=>({id:x.id,date:x.spent_on,concept:x.title,category:x.category,
+    payerId:x.payer_id,authorId:x.author_id,amountCents:x.amount_cents,
+    shareBasisPointsA:x.share_basis_points_a,createdAt:x.created_at})),
+  settlements:settlements.map(x=>({id:x.id,payerId:x.payer_id,receiverId:x.receiver_id,
+    amountCents:x.amount_cents,status:x.status,createdAt:x.created_at,reviewedAt:x.reviewed_at}))
+ };
+}
+function saveSharedFile(content,filename,type){
+ const blob=new Blob([content],{type});
+ const url=URL.createObjectURL(blob);
+ const a=document.createElement('a');a.href=url;a.download=filename;
+ document.body.appendChild(a);a.click();a.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),30000);
+}
+function csvCell(value){
+ const str=String(value??'');
+ return '"'+str.replace(/"/g,'""')+'"';
+}
+function csvSheet(rows){
+ return '\uFEFF'+rows.map(row=>row.map(csvCell).join(';')).join('\r\n');
+}
+async function exportShared(format){
+ await load();
+ if(!household||!user)throw Error('No se ha podido actualizar el hogar para exportar.');
+ const data=sharedExportData();
+ const filename='budviva-compartidos-'+today();
+ if(format==='json'){
+   saveSharedFile(JSON.stringify(data,null,2),filename+'.json','application/json;charset=utf-8');
+ }else{
+   const rows=[['Tipo','ID','Fecha','Concepto','Categoría','Pagador','Receptor','Importe EUR','Reparto A (%)','Estado','Fecha de revisión']];
+   for(const x of data.expenses)rows.push(['Gasto',x.id,x.date,x.concept,x.category,
+     members.find(m=>m.user_id===x.payerId)?.display_name||x.payerId,'',
+     (x.amountCents/100).toFixed(2).replace('.',','),x.shareBasisPointsA/100,'','']);
+   for(const x of data.settlements)rows.push(['Compensación',x.id,x.createdAt.slice(0,10),'','',
+     members.find(m=>m.user_id===x.payerId)?.display_name||x.payerId,
+     members.find(m=>m.user_id===x.receiverId)?.display_name||x.receiverId,
+     (x.amountCents/100).toFixed(2).replace('.',','),'',x.status,x.reviewedAt||'']);
+   saveSharedFile(csvSheet(rows),filename+'.csv','text/csv;charset=utf-8');
+ }
+ status('Copia '+format.toUpperCase()+' preparada. Revisa la carpeta de descargas del dispositivo.');
+}
 function renderDashboard(){
   $('home-name').textContent=household.title;
   $('profile-form').elements.display_name.value=members.find(m=>m.user_id===user.id)?.display_name||'';
@@ -338,6 +386,13 @@ $('activity-read').addEventListener('click',()=>{
  try{localStorage.setItem(activityKey(),JSON.stringify(ids));}catch(_){status('No se ha podido guardar el estado de lectura.',true);return;}
  renderActivity();
 });
+for(const format of ['json','csv']){
+ $('export-shared-'+format).addEventListener('click',async e=>{
+  const button=e.currentTarget;button.disabled=true;
+  try{await exportShared(format);}catch(err){fail(err);}
+  finally{button.disabled=false;}
+ });
+}
 $('refresh').addEventListener('click',()=>load());
 $('period').addEventListener('change',renderHistory);
 $('summary-period').addEventListener('change',()=>{if(household)renderDashboard();});
