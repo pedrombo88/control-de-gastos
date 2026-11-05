@@ -21,6 +21,7 @@ assert.deepEqual(nav,["home","transactions","budgets","savings","settings"]);
 assert(html.includes('data-action="shared-household"'));
 assert(html.includes("window.location.href='./compartidos.html'"));
 const sharedJsSource=fs.readFileSync('compartidos.js','utf8');
+const sharedJs=sharedJsSource;
 const csvFnSource=sharedJsSource.match(/function csvCell\(value\)\{[\s\S]*?\n\}/)?.[0];
 assert(csvFnSource,'CSV sanitization missing');
 const csvFn=new Function(csvFnSource+';return csvCell;')();
@@ -60,7 +61,6 @@ assert(fs.readFileSync('backend/compartidos.sql','utf8').includes("v_approvals=v
 assert(sharedJs.includes('function sharedExportData()'),"Shared export payload missing");
 assert(sharedJs.includes('lastLoadedGeneration!==loadGeneration'),"Shared export must require fresh data");
 assert(sharedJs.includes('function renderActivity()'),"Shared activity logic missing");
-const sharedJs=sharedJsSource;
 assert(sharedJs.includes("result.shareCents[m.user_id]"),"Per-person share not displayed");
 assert(sharedJs.includes("x.reviewed_at||x.created_at"),"Settlement review date not displayed");
 assert(sharedJs.includes("readAllRows('bv_expenses'"),"Expense history may be silently truncated");
