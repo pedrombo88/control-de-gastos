@@ -15,24 +15,27 @@ Deno.serve(async(req:Request)=>{
   const {data:identity,error:authError}=await userClient.auth.getUser(token);
   if(authError||!identity.user?.email)return reply(401,"Sesión no válida");
   const body=await req.json().catch(()=>null);
-  if(!body||typeof body.password!=="string"||body.password.length<8||body.confirm!=="ELIMINAR CUENTA")
+  // Comprobación no destructiva: disponible con sesión propia. Nunca borra cuentas.
+  const checkOnly=body?.action==="check";
+  if(!checkOnly&&(!body||typeof body.password!=="string"||body.password.length<8||body.confirm!=="ELIMINAR CUENTA"))
     return reply(400,"Debes confirmar la baja e introducir tu contraseña");
-  // Confirmar conocimiento de la contraseña de la cuenta, no basta un token de sesión robado.
-  const {data:verified,error:verifyError}=await userClient.auth.signInWithPassword({
-    email:identity.user.email,password:body.password
-  });
-  if(verifyError||verified.user?.id!==identity.user.id)return reply(403,"Contraseña incorrecta");
   const admin=createClient(url,service,{auth:{persistSession:false,autoRefreshToken:false}});
   const {data:members,error:memberError}=await admin.from("bv_members").select("user_id").eq("user_id",identity.user.id).limit(1);
-  if(memberError)return reply(503,"No se ha podido verificar la pertenencia a hogares");
-  if(members?.length)return reply(409,"Debes salir del hogar o cerrarlo antes de eliminar tu cuenta");
-  // Protección adicional: no eliminar usuarios todavía referenciados en libros históricos.
+  if(memberError)return reply(503,"No se ha podido verificar la pertenencia a grupos compartidos");
+  if(members?.length)return reply(409,"Tu cuenta está vinculada a Compartidos. Para eliminarla, primero debes salir del grupo o cerrarlo.");
+  // Protección adicional: bloquear la baja si existe cualquier referencia financiera.
   for(const [table,column] of [["bv_households","owner_id"],["bv_expenses","author_id"],
     ["bv_expenses","payer_id"],["bv_settlements","payer_id"],["bv_settlements","receiver_id"]] as const){
     const {data,error}=await admin.from(table).select("id").eq(column,identity.user.id).limit(1);
     if(error)return reply(503,"No se ha podido completar la verificación de seguridad");
-    if(data?.length)return reply(409,"Tu cuenta tiene referencias en un historial compartido; contacta con soporte");
+    if(data?.length)return reply(409,"Tu cuenta figura en un historial compartido y no puede eliminarse todavía.");
   }
+  if(checkOnly)return reply(200,"Comprobación superada: no hay referencias compartidas que bloqueen la baja. No se ha borrado nada.");
+  // La baja definitiva siempre exige contraseña y confirmación, además de sesión válida.
+  const {data:verified,error:verifyError}=await userClient.auth.signInWithPassword({
+    email:identity.user.email,password:body.password
+  });
+  if(verifyError||verified.user?.id!==identity.user.id)return reply(403,"Contraseña incorrecta");
   const {error:deleteError}=await admin.auth.admin.deleteUser(identity.user.id);
   if(deleteError)return reply(503,"No se ha podido eliminar la cuenta. Contacta con soporte.");
   return reply(200,"Cuenta de acceso eliminada");
