@@ -254,6 +254,7 @@ async function exportShared(format){
  status('Copia '+format.toUpperCase()+' preparada. Revisa la carpeta de descargas del dispositivo.');
 }
 function renderClosure(){
+ $('leave-empty').disabled=expenses.length>0||settlements.length>0;
  const own=closureApprovals.some(x=>x.user_id===user?.id);
  const count=closureApprovals.filter(x=>members.some(m=>m.user_id===x.user_id)).length;
  $('closure-status').textContent=own?
@@ -407,6 +408,17 @@ for(const format of ['json','csv']){
   finally{button.disabled=false;}
  });
 }
+$('leave-empty').addEventListener('click',async e=>{
+ if(!household||!user)return;
+ if(expenses.length||settlements.length){status('No puedes salir individualmente porque existen movimientos. Utiliza el cierre conjunto.',true);return;}
+ if(!confirm('¿Quieres desvincularte de este hogar sin movimientos? Se cancelarán las invitaciones y tu cuenta seguirá activa.'))return;
+ e.currentTarget.disabled=true;
+ try{
+  await rpc('bv_leave_empty_household',{p_household:household.id});
+  household=null;members=[];expenses=[];settlements=[];closureApprovals=[];
+  renderRoot();status('Has salido del hogar. Puedes crear otro o unirte mediante invitación.');
+ }catch(err){fail(err);}finally{e.currentTarget.disabled=false;}
+});
 $('closure-approve').addEventListener('click',async e=>{
  if(!household||!user)return;
  const title=household.title;
