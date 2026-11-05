@@ -10,7 +10,7 @@
   "lang": "es-ES",
   "icons": [
     {
-      "src": "icon.svg",
+      "src": "icon.svg?v=6.9.3",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
