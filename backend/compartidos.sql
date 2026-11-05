@@ -194,3 +194,10 @@ begin
 end; $$;
 revoke all on function public.bv_manage_household_closure(uuid,text) from public,anon;
 grant execute on function public.bv_manage_household_closure(uuid,text) to authenticated;
+
+create index if not exists bv_expenses_payer_idx on public.bv_expenses(payer_id);
+create index if not exists bv_closure_user_idx on public.bv_household_closure_approvals(user_id);
+create index if not exists bv_household_owner_idx on public.bv_households(owner_id);
+create index if not exists bv_invitation_household_idx on public.bv_invitations(household_id);
+create index if not exists bv_settlements_payer_idx on public.bv_settlements(payer_id);
+create index if not exists bv_settlements_receiver_idx on public.bv_settlements(receiver_id);
