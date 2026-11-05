@@ -127,3 +127,7 @@ Se añaden pruebas de regresión de la baja de cuenta y un workflow de GitHub Ac
 ### 6.9.5 — Logotipo de Budviva unificado
 
 El icono de la PWA y del iPhone reproduce el logotipo de la cabecera: B blanca y punto turquesa sobre fondo azul. La cabecera original no se modifica. El iPhone utiliza un archivo PNG real; ya no se incrusta la imagen anterior en la página. El servicio de caché incorpora el nuevo recurso.
+
+### 6.9.6 — Comprobación segura de protección de cuenta
+
+Se añade el botón «Comprobar protección de mi cuenta (sin borrar datos)» en Compartidos, tanto dentro como fuera de un grupo. El servicio Edge `bv-delete-account` v3 admite `action: check` autenticado, consulta pertenencia y referencias históricas, devuelve bloqueo (409) o aptitud preliminar (200) y nunca ejecuta el borrado para esa acción. La baja definitiva sigue exigiendo contraseña y confirmación. Se incorporan pruebas aisladas con simuladores, incluidas pruebas de bloqueo, fallo de base de datos y contraseña incorrecta. Ninguna prueba crea o borra cuentas reales.
