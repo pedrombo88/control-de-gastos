@@ -6,7 +6,7 @@ const $=id=>document.getElementById(id);
 const authKey='budviva-shared-session-v1';
 const enc=encodeURIComponent;
 let session=null, user=null, household=null, members=[], expenses=[], settlements=[], inviteCode='';
-let draftApplied=false, loadGeneration=0, currentTransfer=null;
+let draftApplied=false, loadGeneration=0, currentTransfer=null, lastLoadedGeneration=0;
 const fmt=new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR'});
 const euro=n=>fmt.format(n/100);
 const esc=x=>String(x??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
@@ -110,6 +110,7 @@ async function load(){
     household=homes[0]||null;members=people;expenses=bills;settlements=payments;
     if(!household)throw Error('No se puede acceder al hogar.');
     renderRoot();
+    lastLoadedGeneration=generation;
     $('last-sync').textContent='Actualizado a las '+new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
   }catch(e){
     if(generation!==loadGeneration)return;
@@ -231,7 +232,7 @@ function csvSheet(rows){
 }
 async function exportShared(format){
  await load();
- if(!household||!user)throw Error('No se ha podido actualizar el hogar para exportar.');
+ if(lastLoadedGeneration!==loadGeneration||!household||!user)throw Error('No se ha podido actualizar el historial completo. No se ha exportado una copia incompleta.');
  const data=sharedExportData();
  const filename='budviva-compartidos-'+today();
  if(format==='json'){
