@@ -103,3 +103,7 @@ La gestión del hogar está agrupada en un panel plegado para reducir acciones d
 ### 6.8.1 — Preparación de baja de cuenta
 
 Se ha separado en la interfaz el cierre de un hogar de la eliminación de la cuenta de acceso. El borrado de cuentas no está activado desde el navegador: se requiere un canal de atención privado, verificación de identidad y pruebas de extremo a extremo. No se deben utilizar incidencias públicas de GitHub para datos personales ni solicitudes de baja.
+
+### 6.8.2 — Correcciones de seguridad previas a la baja de cuenta
+
+Se corrige la neutralización de fórmulas en exportaciones CSV, incluso cuando el texto comienza por espacios o caracteres de control. Se eliminan los datos antiguos de memoria al salir de un hogar y se rechazan cargas que no confirmen el hogar esperado. Se añaden pruebas de regresión. La eliminación automática de cuentas todavía no se ofrece en el navegador hasta verificar la seguridad y la integración del servicio.
