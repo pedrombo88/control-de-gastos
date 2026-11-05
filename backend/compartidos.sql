@@ -201,3 +201,32 @@ create index if not exists bv_household_owner_idx on public.bv_households(owner_
 create index if not exists bv_invitation_household_idx on public.bv_invitations(household_id);
 create index if not exists bv_settlements_payer_idx on public.bv_settlements(payer_id);
 create index if not exists bv_settlements_receiver_idx on public.bv_settlements(receiver_id);
+
+-- 6.8: salida individual permitida solo sin gastos ni compensaciones.
+create or replace function public.bv_leave_empty_household(p_household uuid)
+returns text language plpgsql security definer set search_path='' as $$
+declare v_owner uuid; v_remaining uuid;
+begin
+ if auth.uid() is null then raise exception 'Inicio de sesión obligatorio'; end if;
+ select owner_id into v_owner from public.bv_households where id=p_household for update;
+ if not found then raise exception 'Hogar no encontrado'; end if;
+ if not exists(select 1 from public.bv_members where household_id=p_household and user_id=auth.uid())
+ then raise exception 'No perteneces al hogar'; end if;
+ if exists(select 1 from public.bv_expenses where household_id=p_household)
+ or exists(select 1 from public.bv_settlements where household_id=p_household)
+ then raise exception 'Este hogar tiene movimientos. Exportad el historial y solicitad el cierre conjunto.'; end if;
+ select user_id into v_remaining from public.bv_members
+ where household_id=p_household and user_id<>auth.uid() limit 1;
+ delete from public.bv_invitations where household_id=p_household;
+ delete from public.bv_household_closure_approvals where household_id=p_household;
+ if v_remaining is null then
+   delete from public.bv_members where household_id=p_household and user_id=auth.uid();
+   delete from public.bv_households where id=p_household;
+   return 'empty_household_deleted';
+ end if;
+ if v_owner=auth.uid() then update public.bv_households set owner_id=v_remaining where id=p_household; end if;
+ delete from public.bv_members where household_id=p_household and user_id=auth.uid();
+ return 'left';
+end; $$;
+revoke all on function public.bv_leave_empty_household(uuid) from public,anon;
+grant execute on function public.bv_leave_empty_household(uuid) to authenticated;
