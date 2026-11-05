@@ -350,6 +350,27 @@ onSubmit('password-form',async f=>{
  session=body;user=body.user;persist();
  f.reset();await load();
 });
+onSubmit('delete-account-form',async f=>{
+  if(!session||!user)throw Error('Debes iniciar sesión para eliminar tu cuenta.');
+  if(household)throw Error('Primero debes cerrar o abandonar el hogar compartido.');
+  const confirmation=f.elements.confirmation.value.trim();
+  if(confirmation!=='ELIMINAR CUENTA')throw Error('Escribe exactamente ELIMINAR CUENTA.');
+  const password=f.elements.password.value;
+  if(password.length<8)throw Error('Introduce tu contraseña actual.');
+  if(!confirm('Esta acción eliminará definitivamente tu cuenta de acceso. No se puede deshacer. ¿Quieres continuar?'))return;
+  await ensureSession();
+  const response=await fetch(config.url.replace(/\/$/,'')+'/functions/v1/bv-delete-account',{
+    method:'POST',
+    headers:{'apikey':config.publishableKey,'Authorization':'Bearer '+session.access_token,'Content-Type':'application/json'},
+    body:JSON.stringify({password,confirm:confirmation}),cache:'no-store'
+  });
+  const result=await response.json().catch(()=>null);
+  if(!response.ok)throw Error(result?.message||'No se ha podido eliminar la cuenta ('+response.status+').');
+  f.reset();
+  loadGeneration++;session=null;user=null;household=null;members=[];expenses=[];settlements=[];closureApprovals=[];
+  currentTransfer=null;lastLoadedGeneration=0;persist();renderRoot();
+  status('Cuenta de acceso eliminada. Tus datos privados guardados en este dispositivo no se han borrado.');
+});
 onSubmit('create-form',async f=>{
   await rpc('bv_create_household',{p_title:f.elements.title.value.trim(),p_name:f.elements.name.value.trim()});
   f.reset();await load();
