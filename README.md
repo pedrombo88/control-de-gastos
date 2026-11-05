@@ -1,6 +1,6 @@
 # Budviva — Tu dinero, más claro
 
-**Estado:** versión web instalable (PWA) **6.6.0 beta**, en preparación para una futura versión iOS comercial. **No publicada en App Store.**
+**Estado:** versión web instalable (PWA) **6.7.0 beta**, en preparación para una futura versión iOS comercial. **No publicada en App Store.**
 
 [Probar Budviva](https://pedrombo88.github.io/control-de-gastos/) · [Privacidad](https://pedrombo88.github.io/control-de-gastos/privacidad.html) · [Ayuda](https://pedrombo88.github.io/control-de-gastos/soporte.html) · [Auditoría para publicación](./AUDITORIA_BUDVIVA_2026-11-04.md)
 
@@ -14,7 +14,7 @@
 
 La importación admite tickets en imagen y documentos PDF/CSV/TXT con revisión previa. La extracción puede equivocarse. Budviva **conserva los originales asociados a los movimientos** en IndexedDB, también al adjuntarlos manualmente desde la edición de un movimiento y permite incluirlos en copias completas o cifradas. Debes verificar la carga y restauración en Safari antes de confiar en ellos.
 
-## Compartidos (v6.6.0 beta)
+## Compartidos (v6.7.0 beta)
 
 Se ha implementado la pantalla `compartidos.html` y la lógica de dos cuentas para registrar solo gastos comunes, calcular deudas al céntimo, invitar a la pareja y confirmar pagos de compensación. Desde cada movimiento personal de tipo gasto hay un botón **Compartir gasto** que precarga una copia para revisión, sin subir el histórico privado. El identificador de evento vinculado es determinista y evita duplicar el mismo movimiento compartido por accidente; modificar el movimiento privado posteriormente no cambia automáticamente su copia compartida.
 
@@ -82,10 +82,16 @@ Antes de enviar a App Store se requiere una compilación de iOS preparada para r
 
 Repositorio público de pruebas de un producto de software. Este README no concede ninguna licencia de reutilización o redistribución del código. No deben añadirse a este repositorio credenciales, extractos bancarios reales ni copias de seguridad.
 
-### Versión 6.6.0 beta — Actividad compartida
+### Versión 6.7.0 beta — Actividad compartida
 
 La pantalla Compartidos incorpora un historial de avisos dentro de la aplicación: gastos añadidos por la otra persona, compensaciones pendientes de confirmación y compensaciones aceptadas o rechazadas. El estado de lectura se almacena en el navegador por cuenta y hogar; la primera visita establece una línea base sin marcar todo el histórico como nuevo. Se muestran hasta 12 eventos recientes, y se consulta el servidor al volver a la pestaña o cada 30 segundos con la página visible. **No son notificaciones push ni llegan con la app cerrada.** El historial financiero sigue residiendo en Supabase, no en el almacenamiento local de avisos. Queda pendiente el borrado completo de cuenta/hogar con verificación y controles de conservación.
 
-### Versión 6.6.0 beta — Exportación del hogar
+### Versión 6.7.0 beta — Exportación del hogar
 
 Desde Compartidos se pueden descargar los gastos y las compensaciones de todo el hogar en JSON y CSV, incluyendo estado de confirmación y fechas. La exportación fuerza la lectura completa del servidor y se cancela si falla la sincronización. El CSV utiliza separador de punto y coma, BOM UTF-8 y neutraliza conceptos que podrían interpretarse como fórmulas en hojas de cálculo. Los datos no se envían a servicios de terceros para generar el archivo. La exportación no elimina datos ni sustituye el proceso de baja de cuenta, todavía pendiente.
+
+### Versión 6.7.0 beta — Cierre del hogar por consentimiento mutuo
+
+Cierre definitivo del hogar con confirmación explícita y doble consentimiento cuando hay dos miembros. La autorización puede retirarse mientras no se complete. Al aprobar todos, el servidor borra de forma transaccional gastos, compensaciones, invitaciones, miembros y hogar. No elimina usuarios de Supabase Auth ni datos personales locales; la baja de la cuenta de acceso requiere un procedimiento separado. Nunca usar esta operación como prueba en hogares con datos que deban conservarse. Se añadieron índices para claves foráneas tras revisión de los avisos de rendimiento.
+
+**Auditoría pendiente para lanzamiento público:** configuración de correo SMTP y recuperación de contraseña, protección de contraseñas filtradas (según disponibilidad del plan), procedimiento de borrado de cuenta Auth, identificación legal del responsable y política de privacidad definitiva, pruebas de permisos con tres cuentas y pruebas reales en iPhone. Las funciones SECURITY DEFINER expuestas a usuarios autenticados están señaladas por el asesor; su acceso se restringe en código, pero deben someterse a pruebas de seguridad antes de producción.
