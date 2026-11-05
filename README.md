@@ -107,3 +107,7 @@ Se ha separado en la interfaz el cierre de un hogar de la eliminación de la cue
 ### 6.8.2 — Correcciones de seguridad previas a la baja de cuenta
 
 Se corrige la neutralización de fórmulas en exportaciones CSV, incluso cuando el texto comienza por espacios o caracteres de control. Se eliminan los datos antiguos de memoria al salir de un hogar y se rechazan cargas que no confirmen el hogar esperado. Se añaden pruebas de regresión. La eliminación automática de cuentas todavía no se ofrece en el navegador hasta verificar la seguridad y la integración del servicio.
+
+### 6.8.3 — Accesibilidad de privacidad y revisión de baja
+
+La información de baja de cuenta se muestra también a usuarios autenticados sin hogar (antes solo aparecía dentro del panel de un hogar). La sección de eliminación en hogares activos ahora está plegada. No se ha habilitado la baja automática: la función de servidor existente carece de configuración CORS validada para Safari, y faltan pruebas reales de identidad, rechazo y eliminación. El usuario no debe introducir contraseñas en formularios de baja hasta completar esa verificación.
