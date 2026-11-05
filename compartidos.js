@@ -98,7 +98,7 @@ async function load(){
     user=who;
     const own=await readRows('bv_members','household_id,user_id,display_name','&user_id=eq.'+enc(user.id)+'&limit=1');
     if(generation!==loadGeneration||!session)return;
-    if(!own.length){household=null;members=[];renderRoot();return;}
+    if(!own.length){household=null;members=[];expenses=[];settlements=[];closureApprovals=[];currentTransfer=null;lastLoadedGeneration=0;renderRoot();return;}
     const id=own[0].household_id;
     const [homes,people,bills,payments,approvals]=await Promise.all([
       readRows('bv_households','id,title,owner_id','&id=eq.'+id+'&limit=1'),
@@ -108,6 +108,7 @@ async function load(){
       readRows('bv_household_closure_approvals','user_id,approved_at','&household_id=eq.'+id)
     ]);
     if(generation!==loadGeneration||!session)return;
+    if(homes.length!==1)throw Error('No se ha podido verificar el hogar. Vuelve a actualizar antes de realizar cambios.');
     household=homes[0]||null;members=people;expenses=bills;settlements=payments;closureApprovals=approvals;
     if(!household)throw Error('No se puede acceder al hogar.');
     renderRoot();
