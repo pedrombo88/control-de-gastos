@@ -119,3 +119,7 @@ Servicio Supabase bv-delete-account v2 con CORS y formulario para cuentas sin ho
 ### 6.9.1 — Terminología Compartidos
 
 En la interfaz de gastos compartidos se reemplaza la denominación «hogar» por «Compartidos» y «grupo de compartidos». Se mantiene la nomenclatura interna de Supabase para compatibilidad. No se cambian ni eliminan registros. La categoría de gasto personal «Hogar» no se renombra, ya que representa vivienda y no el grupo compartido.
+
+### 6.9.2 — Pruebas automáticas de seguridad
+
+Se añaden pruebas de regresión de la baja de cuenta y un workflow de GitHub Actions que ejecuta `npm run check` en cada actualización. Cada lunes y bajo ejecución manual se ejecuta también una comprobación no destructiva de CORS y rechazo de peticiones anónimas. No se crean ni eliminan cuentas durante las pruebas. La validación integral con una cuenta desechable sigue pendiente.
