@@ -5,7 +5,7 @@ const config=window.BUDVIVA_SHARED_CONFIG||{};
 const $=id=>document.getElementById(id);
 const authKey='budviva-shared-session-v1';
 const enc=encodeURIComponent;
-let session=null, user=null, household=null, members=[], expenses=[], settlements=[], inviteCode='';
+let session=null, user=null, household=null, members=[], expenses=[], settlements=[], closureApprovals=[], inviteCode='';
 let draftApplied=false, loadGeneration=0, currentTransfer=null, lastLoadedGeneration=0;
 const fmt=new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR'});
 const euro=n=>fmt.format(n/100);
@@ -66,7 +66,7 @@ async function verifyCode(email,token){
 async function logout(){
   loadGeneration++;
   if(session){try{await request('/auth/v1/logout',{method:'POST'});}catch(_){}}
-  session=null;user=null;household=null;members=[];expenses=[];settlements=[];persist();
+  session=null;user=null;household=null;members=[];expenses=[];settlements=[];closureApprovals=[];persist();
   try{sessionStorage.removeItem('budviva-share-draft-v1');}catch(_){}
   renderRoot();
 }
@@ -100,21 +100,22 @@ async function load(){
     if(generation!==loadGeneration||!session)return;
     if(!own.length){household=null;members=[];renderRoot();return;}
     const id=own[0].household_id;
-    const [homes,people,bills,payments]=await Promise.all([
+    const [homes,people,bills,payments,approvals]=await Promise.all([
       readRows('bv_households','id,title,owner_id','&id=eq.'+id+'&limit=1'),
       readRows('bv_members','user_id,display_name,joined_at','&household_id=eq.'+id+'&order=joined_at.asc'),
       readAllRows('bv_expenses','id,author_id,payer_id,title,category,amount_cents,share_basis_points_a,spent_on,created_at','&household_id=eq.'+id+'&order=spent_on.desc,id.desc'),
-      readAllRows('bv_settlements','id,payer_id,receiver_id,amount_cents,status,created_at,reviewed_at','&household_id=eq.'+id+'&order=created_at.desc,id.desc')
+      readAllRows('bv_settlements','id,payer_id,receiver_id,amount_cents,status,created_at,reviewed_at','&household_id=eq.'+id+'&order=created_at.desc,id.desc'),
+      readRows('bv_household_closure_approvals','user_id,approved_at','&household_id=eq.'+id)
     ]);
     if(generation!==loadGeneration||!session)return;
-    household=homes[0]||null;members=people;expenses=bills;settlements=payments;
+    household=homes[0]||null;members=people;expenses=bills;settlements=payments;closureApprovals=approvals;
     if(!household)throw Error('No se puede acceder al hogar.');
     renderRoot();
     lastLoadedGeneration=generation;
     $('last-sync').textContent='Actualizado a las '+new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
   }catch(e){
     if(generation!==loadGeneration)return;
-    if(e?.status===401){session=null;user=null;household=null;members=[];expenses=[];settlements=[];persist();renderRoot();}
+    if(e?.status===401){session=null;user=null;household=null;members=[];expenses=[];settlements=[];closureApprovals=[];persist();renderRoot();}
     fail(e);
   }
 }
@@ -252,6 +253,15 @@ async function exportShared(format){
  }
  status('Copia '+format.toUpperCase()+' preparada. Revisa la carpeta de descargas del dispositivo.');
 }
+function renderClosure(){
+ const own=closureApprovals.some(x=>x.user_id===user?.id);
+ const count=closureApprovals.filter(x=>members.some(m=>m.user_id===x.user_id)).length;
+ $('closure-status').textContent=own?
+  'Has autorizado el cierre ('+count+' de '+members.length+'). Puedes cancelar mientras no se complete.':
+  'Autorizaciones de cierre: '+count+' de '+members.length+'. El historial sigue disponible.';
+ $('closure-approve').disabled=own;
+ $('closure-cancel').disabled=!own;
+}
 function renderDashboard(){
   $('home-name').textContent=household.title;
   $('profile-form').elements.display_name.value=members.find(m=>m.user_id===user.id)?.display_name||'';
@@ -297,6 +307,7 @@ function renderDashboard(){
   }
   renderHistory();
   renderActivity();
+  renderClosure();
   applyDraft();
 }
 function renderHistory(){
@@ -396,6 +407,27 @@ for(const format of ['json','csv']){
   finally{button.disabled=false;}
  });
 }
+$('closure-approve').addEventListener('click',async e=>{
+ if(!household||!user)return;
+ const title=household.title;
+ if(!confirm('ATENCIÓN: quieres solicitar el borrado permanente del hogar «'+title+'». Los gastos y compensaciones compartidos no se podrán recuperar. ¿Continuar?'))return;
+ const typed=prompt('Para confirmar, escribe exactamente ELIMINAR HOGAR:');
+ if(typed!=='ELIMINAR HOGAR'){status('Cierre cancelado: no se ha confirmado la frase.',true);return;}
+ e.currentTarget.disabled=true;
+ try{
+  const outcome=await rpc('bv_manage_household_closure',{p_household:household.id,p_action:'approve'});
+  if(outcome==='deleted'){
+    household=null;members=[];expenses=[];settlements=[];closureApprovals=[];
+    renderRoot();status('El hogar compartido se ha eliminado. Tu cuenta sigue activa.');
+  }else{await load();status('Solicitud registrada. El hogar seguirá activo hasta que todos autoricen el cierre.');}
+ }catch(err){fail(err);}finally{if($('closure-approve'))$('closure-approve').disabled=false;}
+});
+$('closure-cancel').addEventListener('click',async e=>{
+ if(!household||!confirm('¿Retirar tu autorización de cierre?'))return;
+ e.currentTarget.disabled=true;
+ try{await rpc('bv_manage_household_closure',{p_household:household.id,p_action:'cancel'});await load();status('Has retirado tu autorización de cierre.');}
+ catch(err){fail(err);}finally{e.currentTarget.disabled=false;}
+});
 $('refresh').addEventListener('click',()=>load());
 $('period').addEventListener('change',renderHistory);
 $('summary-period').addEventListener('change',()=>{if(household)renderDashboard();});
