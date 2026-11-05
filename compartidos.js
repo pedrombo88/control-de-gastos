@@ -164,6 +164,43 @@ function monthForPeriod(period){
  }
  return today().slice(0,7);
 }
+function activityKey(){return 'budviva-shared-activity-v1:'+user.id+':'+household.id;}
+function activityItems(){
+  const incoming=expenses.filter(x=>x.author_id!==user.id).map(x=>({
+    id:'expense:'+x.id,at:x.created_at,title:'Nuevo gasto compartido',
+    detail:x.title+' · '+euro(x.amount_cents)+' · '+label(x.payer_id)
+  }));
+  const approvals=settlements.filter(x=>x.receiver_id===user.id&&x.status==='pending').map(x=>({
+    id:'approval:'+x.id,at:x.created_at,title:'Compensación pendiente de confirmar',
+    detail:label(x.payer_id)+' propone '+euro(x.amount_cents)
+  }));
+  const reviews=settlements.filter(x=>x.payer_id===user.id&&x.status!=='pending').map(x=>({
+    id:'review:'+x.id+':'+x.status,at:x.reviewed_at||x.created_at,
+    title:x.status==='confirmed'?'Compensación confirmada':'Compensación rechazada',
+    detail:euro(x.amount_cents)+' · '+label(x.receiver_id)
+  }));
+  return [...incoming,...approvals,...reviews].sort((a,b)=>String(b.at).localeCompare(String(a.at))).slice(0,40);
+}
+function renderActivity(){
+  const items=activityItems();
+  let seen=[];
+  try{
+    const saved=JSON.parse(localStorage.getItem(activityKey())||'null');
+    if(Array.isArray(saved))seen=saved.filter(x=>typeof x==='string').slice(-250);
+    else{
+      // La primera vez se establece un punto de partida: no avisar de gastos antiguos.
+      seen=items.map(x=>x.id);
+      localStorage.setItem(activityKey(),JSON.stringify(seen));
+    }
+  }catch(_){seen=items.map(x=>x.id);}
+  const seenSet=new Set(seen);
+  const unread=items.filter(x=>!seenSet.has(x.id));
+  $('activity-count').textContent=unread.length?'('+unread.length+' nuevos)':'';
+  $('activity-read').disabled=!unread.length;
+  $('activity-list').innerHTML=items.length?items.slice(0,12).map(x=>
+    '<div class="row"><div><strong>'+esc(x.title)+(seenSet.has(x.id)?'':' · Nuevo')+'</strong><small>'+esc(x.detail)+'</small><small>'+new Date(x.at).toLocaleString('es-ES')+'</small></div></div>'
+  ).join(''):'<p class="muted">Sin actividad reciente.</p>';
+}
 function renderDashboard(){
   $('home-name').textContent=household.title;
   $('profile-form').elements.display_name.value=members.find(m=>m.user_id===user.id)?.display_name||'';
@@ -208,6 +245,7 @@ function renderDashboard(){
     }catch(e){fail(e);}
   }
   renderHistory();
+  renderActivity();
   applyDraft();
 }
 function renderHistory(){
@@ -294,6 +332,12 @@ onSubmit('settlement-form',async f=>{
 });
 $('invite').addEventListener('click',async()=>{try{inviteCode=await rpc('bv_create_invite',{p_household:household.id});$('invite-code').textContent=inviteCode;setVisible('copy-invite',true);status('Invitación válida durante 48 horas.');}catch(e){fail(e);}});
 $('copy-invite').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(inviteCode);status('Código copiado.');}catch(_){status('Selecciona y copia el código mostrado.');}});
+$('activity-read').addEventListener('click',()=>{
+ if(!user||!household)return;
+ const ids=activityItems().map(x=>x.id);
+ try{localStorage.setItem(activityKey(),JSON.stringify(ids));}catch(_){status('No se ha podido guardar el estado de lectura.',true);return;}
+ renderActivity();
+});
 $('refresh').addEventListener('click',()=>load());
 $('period').addEventListener('change',renderHistory);
 $('summary-period').addEventListener('change',()=>{if(household)renderDashboard();});
