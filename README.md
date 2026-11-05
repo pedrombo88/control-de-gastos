@@ -115,3 +115,7 @@ La información de baja de cuenta se muestra también a usuarios autenticados si
 ### 6.9.0 beta — Integración de baja de cuenta
 
 Servicio Supabase bv-delete-account v2 con CORS y formulario para cuentas sin hogar. La operación exige contraseña y confirmación textual; el servidor comprueba las referencias compartidas. No elimina datos locales. Pendiente prueba de extremo a extremo con cuenta desechable y Safari.
+
+### 6.9.1 — Terminología Compartidos
+
+En la interfaz de gastos compartidos se reemplaza la denominación «hogar» por «Compartidos» y «grupo de compartidos». Se mantiene la nomenclatura interna de Supabase para compatibilidad. No se cambian ni eliminan registros. La categoría de gasto personal «Hogar» no se renombra, ya que representa vivienda y no el grupo compartido.
