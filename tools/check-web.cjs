@@ -9,6 +9,13 @@ const nav=[...html.match(/<nav class="bottom-nav"[\s\S]*?<\/nav>/)?.[0].matchAll
 assert.deepEqual(nav,["home","transactions","budgets","savings","settings"]);
 assert(html.includes('data-action="shared-household"'));
 assert(html.includes("window.location.href='./compartidos.html'"));
+const sharedJsSource=fs.readFileSync('compartidos.js','utf8');
+const csvFnSource=sharedJsSource.match(/function csvCell\(value\)\{[\s\S]*?\n\}/)?.[0];
+assert(csvFnSource,'CSV sanitization missing');
+const csvFn=new Function(csvFnSource+';return csvCell;')();
+for(const unsafe of ['=2+2','  =SUM(A1)','\t@evil','+2','-2']) assert(csvFn(unsafe).charAt(1)==="'",'CSV formula escaped');
+assert.equal(csvFn('compra'),'"compra"');
+assert(sharedJsSource.includes('expenses=[];settlements=[];closureApprovals=[];currentTransfer=null;lastLoadedGeneration=0;'),'Clear data when household disappears');
 const sharedHtml=fs.readFileSync('compartidos.html','utf8');
 assert(sharedHtml.includes('id="expense-form"')&&sharedHtml.includes('id="settlement-form"'));
 assert(fs.readFileSync('shared-config.js','utf8').includes('publishableKey'));
