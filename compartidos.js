@@ -328,7 +328,7 @@ function renderHistory(){
 function onSubmit(id,fn){$(id).addEventListener('submit',async e=>{
   e.preventDefault();const form=e.currentTarget,btn=form.querySelector('button[type="submit"],button:not([type])');
   if(btn)btn.disabled=true;
-  try{await fn(form);status('Operación completada.');}
+  try{const outcome=await fn(form);if(outcome!=='deleted-account')status('Operación completada.');}
   catch(err){fail(err);}
   finally{if(btn)btn.disabled=false;}
 });}
@@ -370,6 +370,7 @@ onSubmit('delete-account-form',async f=>{
   loadGeneration++;session=null;user=null;household=null;members=[];expenses=[];settlements=[];closureApprovals=[];
   currentTransfer=null;lastLoadedGeneration=0;persist();renderRoot();
   status('Cuenta de acceso eliminada. Tus datos privados guardados en este dispositivo no se han borrado.');
+  return 'deleted-account';
 });
 onSubmit('create-form',async f=>{
   await rpc('bv_create_household',{p_title:f.elements.title.value.trim(),p_name:f.elements.name.value.trim()});
