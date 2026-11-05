@@ -224,7 +224,9 @@ function saveSharedFile(content,filename,type){
  setTimeout(()=>URL.revokeObjectURL(url),30000);
 }
 function csvCell(value){
- const str=String(value??'');
+ let str=String(value??'');
+ // Evita ejecutar fórmulas si se abre un concepto escrito por otra persona en Excel.
+ if(/^[\\s\\x00-\\x1f]*[=+@-]/.test(str))str="'"+str;
  return '"'+str.replace(/"/g,'""')+'"';
 }
 function csvSheet(rows){
