@@ -19,6 +19,8 @@ assert(sharedHtml.includes('id="last-sync"'),"Last synced marker missing");
 assert(sharedHtml.includes('id="settle-exact"'),"Exact settlement control missing");
 assert(sharedHtml.includes('id="profile-form"'),"Shared profile editor missing");
 assert(sharedHtml.includes('id="share-comparison"'),"Individual balance missing");
+assert(sharedHtml.includes('id="activity-list"'),"Shared activity feed missing");
+assert(sharedJs.includes('function renderActivity()'),"Shared activity logic missing");
 const sharedJs=fs.readFileSync('compartidos.js','utf8');
 assert(sharedJs.includes("result.shareCents[m.user_id]"),"Per-person share not displayed");
 assert(sharedJs.includes("x.reviewed_at||x.created_at"),"Settlement review date not displayed");
