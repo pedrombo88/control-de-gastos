@@ -32,6 +32,16 @@ assert(sharedHtml.includes('id="closure-approve"')&&sharedHtml.includes('id="clo
 assert(sharedHtml.includes('id="leave-empty"')&&sharedHtml.includes('id="household-management"'),"Safe household leave controls missing");
 assert(sharedHtml.includes('Eliminar mi cuenta de acceso'),"Account deletion guidance missing");
 assert(sharedHtml.includes('Privacidad y baja de cuenta'),"Privacy information must be visible before joining a household");
+
+assert(sharedHtml.includes('id="delete-account-form"'),"Account deletion form missing");
+assert(sharedJs.includes("'/functions/v1/bv-delete-account'"),"Account deletion endpoint missing");
+assert(sharedJs.includes("confirmation!=='ELIMINAR CUENTA'"),"Typed confirmation missing");
+const deleteEdge=fs.readFileSync('backend/functions/bv-delete-account/index.ts','utf8');
+assert(deleteEdge.includes('Access-Control-Allow-Origin')&&deleteEdge.includes('OPTIONS'),"Deletion CORS preflight missing");
+assert(deleteEdge.includes('signInWithPassword')&&deleteEdge.includes('auth.admin.deleteUser'),"Reauthentication or deletion missing");
+assert(deleteEdge.includes('bv_members')&&deleteEdge.includes('bv_expenses'),"Shared ledger guard missing");
+assert(!sharedJs.includes('SUPABASE_SERVICE_ROLE_KEY'),"Server secret must not appear in browser");
+
 assert(sharedJs.includes('bv_leave_empty_household'),"Safe household leave RPC missing");
 assert(fs.readFileSync('backend/compartidos.sql','utf8').includes("if exists(select 1 from public.bv_expenses"),"Safe leave ledger guard missing");
 assert(sharedJs.includes("bv_manage_household_closure"),"Mutual closure RPC missing");
