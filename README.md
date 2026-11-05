@@ -1,6 +1,6 @@
 # Budviva — Tu dinero, más claro
 
-**Estado:** versión web instalable (PWA) **6.3.2 beta**, en preparación para una futura versión iOS comercial. **No publicada en App Store.**
+**Estado:** versión web instalable (PWA) **6.4.0 beta**, en preparación para una futura versión iOS comercial. **No publicada en App Store.**
 
 [Probar Budviva](https://pedrombo88.github.io/control-de-gastos/) · [Privacidad](https://pedrombo88.github.io/control-de-gastos/privacidad.html) · [Ayuda](https://pedrombo88.github.io/control-de-gastos/soporte.html) · [Auditoría para publicación](./AUDITORIA_BUDVIVA_2026-11-04.md)
 
@@ -14,11 +14,13 @@
 
 La importación admite tickets en imagen y documentos PDF/CSV/TXT con revisión previa. La extracción puede equivocarse. Budviva **conserva los originales asociados a los movimientos** en IndexedDB, también al adjuntarlos manualmente desde la edición de un movimiento y permite incluirlos en copias completas o cifradas. Debes verificar la carga y restauración en Safari antes de confiar en ellos.
 
-## Compartidos (v6.3.2 beta)
+## Compartidos (v6.4.0 beta)
 
 Se ha implementado la pantalla `compartidos.html` y la lógica de dos cuentas para registrar solo gastos comunes, calcular deudas al céntimo, invitar a la pareja y confirmar pagos de compensación. Desde cada movimiento personal de tipo gasto hay un botón **Compartir gasto** que precarga una copia para revisión, sin subir el histórico privado. El identificador de evento vinculado es determinista y evita duplicar el mismo movimiento compartido por accidente; modificar el movimiento privado posteriormente no cambia automáticamente su copia compartida.
 
 **Backend creado y migrado el 4/11/2026:** proyecto dedicado Supabase **Budviva**, región `eu-west-1`, ref `bsvtttcuqamjifnpuzlj`. `shared-config.js` solo contiene la URL y la clave pública `sb_publishable_...`. DropPilot-Staging quedó pausado (estado INACTIVE); DropPilot principal permanece activo.
+
+**Versión 6.4:** balance individual con importe pagado, cuota proporcional y diferencia; botón para rellenar la deuda exacta (solo para quien debe dinero, con confirmación posterior del receptor), fechas de las compensaciones y edición del nombre visible del perfil. El botón no mueve dinero ni crea transferencias bancarias. Se bloquea el rellenado automático si existe otra compensación pendiente del mismo pagador.
 
 **Comparativas y sincronización:** existe una comparativa del mes actual, mes anterior o histórico acumulado; la deuda acumulada siempre considera todas las operaciones confirmadas. Cuando ambas personas abren Compartidos, se actualiza al volver a la pestaña y automáticamente cada 30 segundos si permanece visible. Cada gasto se autoriza en servidor solo después de que el hogar tenga dos miembros. Para cuentas creadas manualmente con contraseña en el panel de Supabase hay un acceso alternativo sin OTP; no es un sistema público de alta de usuarios.
 
