@@ -25,6 +25,14 @@ test('Eliminación: UI protegida y sin clave administrativa',()=>{
   assert(js.includes("confirmation!=='ELIMINAR CUENTA'"));
   assert(!js.includes('SUPABASE_SERVICE_ROLE_KEY'));
 });
+test('Comprobación segura: acción de solo lectura disponible también con Compartidos',()=>{
+  assert(edge.includes('const checkOnly=body?.action==="check"'));
+  assert(edge.includes('if(checkOnly)return reply(200'));
+  assert(edge.indexOf('if(checkOnly)return reply(200')<edge.indexOf('auth.admin.deleteUser'));
+  assert.equal((html.match(/data-account-check class=/g)||[]).length,2);
+  assert(js.includes("body:JSON.stringify({action:'check'})"));
+  assert(js.includes('response.status!==200&&response.status!==409'));
+});
 test('Eliminación: no se utiliza la cuenta real en las pruebas',()=>{
   assert(!edge.includes('pedrombo88@'));
 });
@@ -36,4 +44,9 @@ test('Endpoint público: comprobación opcional sin credenciales ni borrado',asy
   assert.equal(options.headers.get('access-control-allow-origin'),'https://pedrombo88.github.io');
   const response=await fetch(url,{method:'POST',headers:{Origin:'https://pedrombo88.github.io','Content-Type':'application/json'},body:'{}',signal:AbortSignal.timeout(10000)});
   assert.equal(response.status,401);
+  const preview=await fetch(url,{method:'POST',
+    headers:{Origin:'https://pedrombo88.github.io','Content-Type':'application/json'},
+    body:JSON.stringify({action:'check'}),signal:AbortSignal.timeout(10000)});
+  assert.equal(preview.status,401,'Check-only must reject anonymous sessions');
+
 });
