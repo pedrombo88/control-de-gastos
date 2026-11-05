@@ -1,7 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" role="img" aria-label="Budviva">
-<rect width="180" height="180" rx="32" fill="#07343a"/>
-<g fill="none" stroke="#fff" stroke-width="17" stroke-linecap="round" stroke-linejoin="round">
-<path d="M55 43v92M55 43h37c19 0 29 11 29 23s-10 23-29 23H55M55 89h41c22 0 33 11 33 23s-11 23-33 23H55"/>
-</g>
-<path d="M105 139l34-34m-14 0h14v14" fill="none" stroke="#4ddcaf" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Budviva"><defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#087b66"/><stop offset="1" stop-color="#062e2b"/></linearGradient><linearGradient id="up" x1="0" y1="1" x2="1" y2="0"><stop stop-color="#43d65b"/><stop offset="1" stop-color="#b7ff4c"/></linearGradient></defs><rect width="512" height="512" rx="110" fill="url(#bg)"/><path fill="#fff" fill-rule="evenodd" d="M132 89H261C337 89 375 123 375 183C375 217 359 241 332 253C368 265 388 292 388 332C388 394 346 427 266 427H132ZM202 154V226H253C286 226 303 214 303 190C303 165 285 154 253 154ZM202 290V362H262C296 362 315 350 315 326C315 301 296 290 262 290Z"/><path d="M101 410C190 440 317 394 407 294" fill="none" stroke="url(#up)" stroke-width="22" stroke-linecap="round"/><path d="M390 284L434 264L421 312Z" fill="#b7ff4c"/></svg>
