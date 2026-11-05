@@ -111,3 +111,7 @@ Se corrige la neutralización de fórmulas en exportaciones CSV, incluso cuando 
 ### 6.8.3 — Accesibilidad de privacidad y revisión de baja
 
 La información de baja de cuenta se muestra también a usuarios autenticados sin hogar (antes solo aparecía dentro del panel de un hogar). La sección de eliminación en hogares activos ahora está plegada. No se ha habilitado la baja automática: la función de servidor existente carece de configuración CORS validada para Safari, y faltan pruebas reales de identidad, rechazo y eliminación. El usuario no debe introducir contraseñas en formularios de baja hasta completar esa verificación.
+
+### 6.9.0 beta — Integración de baja de cuenta
+
+Servicio Supabase bv-delete-account v2 con CORS y formulario para cuentas sin hogar. La operación exige contraseña y confirmación textual; el servidor comprueba las referencias compartidas. No elimina datos locales. Pendiente prueba de extremo a extremo con cuenta desechable y Safari.
