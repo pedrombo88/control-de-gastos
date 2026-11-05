@@ -108,9 +108,9 @@ async function load(){
       readRows('bv_household_closure_approvals','user_id,approved_at','&household_id=eq.'+id)
     ]);
     if(generation!==loadGeneration||!session)return;
-    if(homes.length!==1)throw Error('No se ha podido verificar el hogar. Vuelve a actualizar antes de realizar cambios.');
+    if(homes.length!==1)throw Error('No se ha podido verificar el grupo de compartidos. Vuelve a actualizar antes de realizar cambios.');
     household=homes[0]||null;members=people;expenses=bills;settlements=payments;closureApprovals=approvals;
-    if(!household)throw Error('No se puede acceder al hogar.');
+    if(!household)throw Error('No se puede acceder al grupo de compartidos.');
     renderRoot();
     lastLoadedGeneration=generation;
     $('last-sync').textContent='Actualizado a las '+new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
@@ -205,7 +205,7 @@ function renderActivity(){
   ).join(''):'<p class="muted">Sin actividad reciente.</p>';
 }
 function sharedExportData(){
- if(!household||!user)throw Error('Inicia sesión y carga el hogar antes de exportar.');
+ if(!household||!user)throw Error('Inicia sesión y carga el grupo de compartidos antes de exportar.');
  if(!navigator.onLine)throw Error('Conéctate a Internet y actualiza el historial antes de exportar.');
  return {
   format:'budviva-shared-export-v1',exportedAt:new Date().toISOString(),
@@ -352,7 +352,7 @@ onSubmit('password-form',async f=>{
 });
 onSubmit('delete-account-form',async f=>{
   if(!session||!user)throw Error('Debes iniciar sesión para eliminar tu cuenta.');
-  if(household)throw Error('Primero debes cerrar o abandonar el hogar compartido.');
+  if(household)throw Error('Primero debes cerrar o abandonar el grupo de compartidos compartido.');
   const confirmation=f.elements.confirmation.value.trim();
   if(confirmation!=='ELIMINAR CUENTA')throw Error('Escribe exactamente ELIMINAR CUENTA.');
   const password=f.elements.password.value;
@@ -434,27 +434,27 @@ for(const format of ['json','csv']){
 $('leave-empty').addEventListener('click',async e=>{
  if(!household||!user)return;
  if(expenses.length||settlements.length){status('No puedes salir individualmente porque existen movimientos. Utiliza el cierre conjunto.',true);return;}
- if(!confirm('¿Quieres desvincularte de este hogar sin movimientos? Se cancelarán las invitaciones y tu cuenta seguirá activa.'))return;
+ if(!confirm('¿Quieres desvincularte de este grupo de compartidos sin movimientos? Se cancelarán las invitaciones y tu cuenta seguirá activa.'))return;
  e.currentTarget.disabled=true;
  try{
   await rpc('bv_leave_empty_household',{p_household:household.id});
   household=null;members=[];expenses=[];settlements=[];closureApprovals=[];
-  renderRoot();status('Has salido del hogar. Puedes crear otro o unirte mediante invitación.');
+  renderRoot();status('Has salido del grupo de compartidos. Puedes crear otro o unirte mediante invitación.');
  }catch(err){fail(err);}finally{e.currentTarget.disabled=false;}
 });
 $('closure-approve').addEventListener('click',async e=>{
  if(!household||!user)return;
  const title=household.title;
- if(!confirm('ATENCIÓN: quieres solicitar el borrado permanente del hogar «'+title+'». Los gastos y compensaciones compartidos no se podrán recuperar. ¿Continuar?'))return;
- const typed=prompt('Para confirmar, escribe exactamente ELIMINAR HOGAR:');
- if(typed!=='ELIMINAR HOGAR'){status('Cierre cancelado: no se ha confirmado la frase.',true);return;}
+ if(!confirm('ATENCIÓN: quieres solicitar el borrado permanente del grupo de compartidos «'+title+'». Los gastos y compensaciones compartidos no se podrán recuperar. ¿Continuar?'))return;
+ const typed=prompt('Para confirmar, escribe exactamente ELIMINAR COMPARTIDOS:');
+ if(typed!=='ELIMINAR COMPARTIDOS'){status('Cierre cancelado: no se ha confirmado la frase.',true);return;}
  e.currentTarget.disabled=true;
  try{
   const outcome=await rpc('bv_manage_household_closure',{p_household:household.id,p_action:'approve'});
   if(outcome==='deleted'){
     household=null;members=[];expenses=[];settlements=[];closureApprovals=[];
-    renderRoot();status('El hogar compartido se ha eliminado. Tu cuenta sigue activa.');
-  }else{await load();status('Solicitud registrada. El hogar seguirá activo hasta que todos autoricen el cierre.');}
+    renderRoot();status('El grupo de compartidos compartido se ha eliminado. Tu cuenta sigue activa.');
+  }else{await load();status('Solicitud registrada. El grupo de compartidos seguirá activo hasta que todos autoricen el cierre.');}
  }catch(err){fail(err);}finally{if($('closure-approve'))$('closure-approve').disabled=false;}
 });
 $('closure-cancel').addEventListener('click',async e=>{
