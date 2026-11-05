@@ -20,7 +20,7 @@ jobs:
       - name: Validate UI and run regression tests
         run: npm run check
       - name: Safe live smoke test (no credentials, no account deletion)
-        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        if: github.event_name != 'pull_request'
         env:
           BUDVIVA_LIVE_SMOKE: '1'
         run: node --test tests/account-deletion.test.cjs
