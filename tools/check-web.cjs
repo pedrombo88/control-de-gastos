@@ -21,6 +21,9 @@ assert(sharedHtml.includes('id="profile-form"'),"Shared profile editor missing")
 assert(sharedHtml.includes('id="share-comparison"'),"Individual balance missing");
 assert(sharedHtml.includes('id="activity-list"'),"Shared activity feed missing");
 assert(sharedHtml.includes('id="export-shared-json"')&&sharedHtml.includes('id="export-shared-csv"'),"Shared export actions missing");
+assert(sharedHtml.includes('id="closure-approve"')&&sharedHtml.includes('id="closure-cancel"'),"Mutual closure controls missing");
+assert(sharedJs.includes("bv_manage_household_closure"),"Mutual closure RPC missing");
+assert(fs.readFileSync('backend/compartidos.sql','utf8').includes("v_approvals=v_count"),"Mutual approval rule missing");
 assert(sharedJs.includes('function sharedExportData()'),"Shared export payload missing");
 assert(sharedJs.includes('lastLoadedGeneration!==loadGeneration'),"Shared export must require fresh data");
 assert(sharedJs.includes('function renderActivity()'),"Shared activity logic missing");
