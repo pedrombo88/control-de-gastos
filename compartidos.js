@@ -6,7 +6,7 @@ const $=id=>document.getElementById(id);
 const authKey='budviva-shared-session-v1';
 const enc=encodeURIComponent;
 let session=null, user=null, household=null, members=[], expenses=[], settlements=[], inviteCode='';
-let draftApplied=false, loadGeneration=0;
+let draftApplied=false, loadGeneration=0, currentTransfer=null;
 const fmt=new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR'});
 const euro=n=>fmt.format(n/100);
 const esc=x=>String(x??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
@@ -104,7 +104,7 @@ async function load(){
       readRows('bv_households','id,title,owner_id','&id=eq.'+id+'&limit=1'),
       readRows('bv_members','user_id,display_name,joined_at','&household_id=eq.'+id+'&order=joined_at.asc'),
       readAllRows('bv_expenses','id,author_id,payer_id,title,category,amount_cents,share_basis_points_a,spent_on,created_at','&household_id=eq.'+id+'&order=spent_on.desc,id.desc'),
-      readAllRows('bv_settlements','id,payer_id,receiver_id,amount_cents,status,created_at','&household_id=eq.'+id+'&order=created_at.desc,id.desc')
+      readAllRows('bv_settlements','id,payer_id,receiver_id,amount_cents,status,created_at,reviewed_at','&household_id=eq.'+id+'&order=created_at.desc,id.desc')
     ]);
     if(generation!==loadGeneration||!session)return;
     household=homes[0]||null;members=people;expenses=bills;settlements=payments;
@@ -166,6 +166,7 @@ function monthForPeriod(period){
 }
 function renderDashboard(){
   $('home-name').textContent=household.title;
+  $('profile-form').elements.display_name.value=members.find(m=>m.user_id===user.id)?.display_name||'';
   const sortedMembers=[...members].sort((a,b)=>a.joined_at.localeCompare(b.joined_at)||a.user_id.localeCompare(b.user_id));
   members=sortedMembers;
   const ids=members.map(m=>m.user_id);
@@ -184,7 +185,11 @@ function renderDashboard(){
   $('shares-help').textContent=eligible?'La primera proporción corresponde a '+members[0].display_name+' y la segunda a '+members[1].display_name+'.':'El 50/50 se activará al vincular a la segunda persona.';
   $('expense-form').querySelector('button').disabled=!eligible;
   $('settlement-form').querySelector('button').disabled=!eligible;
+  currentTransfer=null;
+  $('settle-exact').disabled=true;
+  $('settlement-help').textContent='';
   if(!eligible){
+    $('share-comparison').textContent='';
     $('balance-total').textContent='—';$('balance-message').textContent='Esperando al segundo miembro.';
   }else{
     const records=[
@@ -193,8 +198,13 @@ function renderDashboard(){
     ];
     try{
       const result=window.BudvivaShared.calculate(records,ids);
+      currentTransfer=result.transfer;
       $('balance-total').textContent=euro(result.transfer?.amountCents||0);
       $('balance-message').textContent=result.transfer?label(result.transfer.from)+' debe '+euro(result.transfer.amountCents)+' a '+label(result.transfer.to)+'.':'Estáis al día.';
+      const pending=settlements.filter(x=>x.status==='pending');
+      $('share-comparison').textContent=members.map(m=>m.display_name+': pagó '+euro(result.paidCents[m.user_id])+', le corresponde '+euro(result.shareCents[m.user_id])+' y su saldo es '+(result.netCents[m.user_id]>=0?'+':'−')+euro(Math.abs(result.netCents[m.user_id]))).join(' · ');
+      $('settle-exact').disabled=!result.transfer||result.transfer.from!==user.id||pending.some(x=>x.payer_id===user.id);
+      $('settlement-help').textContent=pending.some(x=>x.payer_id===user.id)?'Ya tienes una compensación pendiente. Espera a que la otra persona la revise para evitar duplicarla.':result.transfer&&result.transfer.from===user.id?'Puedes proponer la cantidad exacta que debes.':'Solo quien debe dinero puede usar el botón de deuda exacta.';
     }catch(e){fail(e);}
   }
   renderHistory();
@@ -209,7 +219,7 @@ function renderHistory(){
     '<div class="row"><div><strong>'+esc(x.title)+'</strong><small>'+esc(x.spent_on)+' · '+esc(label(x.payer_id))+' pagó · '+(x.share_basis_points_a/100)+' % / '+((10000-x.share_basis_points_a)/100)+' %</small></div><div><span class="amount">'+euro(x.amount_cents)+'</span>'+ (x.author_id===user.id?'<br><button type="button" class="danger" style="margin-top:5px;padding:4px 9px;min-height:32px" data-remove="'+esc(x.id)+'">Eliminar</button>':'')+'</div></div>'
   ).join(''):'<p class="muted">No hay gastos comunes en este periodo.</p>';
   $('settlement-list').innerHTML=settlements.length?settlements.map(x=>
-    '<div class="row"><div><strong>'+euro(x.amount_cents)+'</strong><small>'+esc(label(x.payer_id))+' → '+esc(label(x.receiver_id))+'</small><small>'+({pending:'Pendiente de confirmar',confirmed:'Confirmada',rejected:'Rechazada'}[x.status]||'')+'</small></div>'+
+    '<div class="row"><div><strong>'+euro(x.amount_cents)+'</strong><small>'+esc(label(x.payer_id))+' → '+esc(label(x.receiver_id))+'</small><small>'+({pending:'Pendiente de confirmar',confirmed:'Confirmada',rejected:'Rechazada'}[x.status]||'')+(x.status==='pending'?' · propuesta '+new Date(x.created_at).toLocaleDateString('es-ES'):' · '+new Date(x.reviewed_at||x.created_at).toLocaleDateString('es-ES'))+'</small></div>'+
     (x.status==='pending'&&x.receiver_id===user.id?'<div><button data-review="'+esc(x.id)+'" data-accept="true">Aceptar</button> <button class="danger" data-review="'+esc(x.id)+'" data-accept="false">Rechazar</button></div>':'')+'</div>'
   ).join(''):'<p class="muted">Todavía no hay compensaciones.</p>';
 }
@@ -260,10 +270,24 @@ onSubmit('expense-form',async f=>{
   }
   f.reset();f.elements.date.value=today();await load();
 });
+onSubmit('profile-form',async f=>{
+ const name=f.elements.display_name.value.trim();
+ if(!name||name.length>40)throw Error('Introduce un nombre de 1 a 40 caracteres.');
+ await request('/rest/v1/bv_members?household_id=eq.'+enc(household.id)+'&user_id=eq.'+enc(user.id),{method:'PATCH',data:{display_name:name}});
+ await load();
+});
+$('settle-exact').addEventListener('click',()=>{
+ if(!currentTransfer||currentTransfer.from!==user?.id)return;
+ const pending=settlements.some(x=>x.status==='pending'&&x.payer_id===user.id);
+ if(pending){status('Tienes una compensación pendiente de confirmar.',true);return;}
+ $('settlement-form').elements.amount.value=(currentTransfer.amountCents/100).toFixed(2).replace('.',',');
+ $('settlement-form').scrollIntoView({behavior:'smooth',block:'center'});
+});
 onSubmit('settlement-form',async f=>{
   const payer=user.id,other=members.find(m=>m.user_id!==payer);
   if(!other)throw Error('Necesitas dos personas vinculadas.');
   const amount=moneyToCents(f.elements.amount.value);
+  if(settlements.some(x=>x.status==='pending'&&x.payer_id===user.id))throw Error('Ya tienes una compensación pendiente. Espera a su confirmación o rechazo.');
   if(!confirm('¿Proponer una compensación de '+euro(amount)+'? La otra persona deberá confirmarla.'))return;
   await request('/rest/v1/bv_settlements',{method:'POST',data:{household_id:household.id,payer_id:payer,receiver_id:other.user_id,amount_cents:amount,status:'pending'}});
   f.reset();await load();
