@@ -3,6 +3,17 @@ const fs=require("node:fs"),vm=require("node:vm"),assert=require("node:assert/st
 const files=["recurring.js","stats.js","reconcile.js","smart-import.js","documents.js","backup-crypto.js","sw.js","shared-expenses.js","compartidos.js","shared-config.js"];
 for(const f of files) new vm.Script(fs.readFileSync(f,"utf8"),{filename:f});
 const html=fs.readFileSync("index.html","utf8");
+
+// Branding: Apple icon must match the header's B + mint dot identity.
+const brandSvg=fs.readFileSync('icon.svg','utf8');
+const appleIcon=fs.readFileSync('apple-touch-icon.png');
+assert(html.includes('class="brand-mark"')&&html.includes('brand-mark-dot'),'In-app logo missing');
+assert(html.includes('href="./apple-touch-icon.png?v=6.9.5"'),'iPhone must load the unified icon');
+assert(brandSvg.includes('>B</text>')&&brandSvg.includes('#6cebd0'),'Favicon must match in-app B and mint dot');
+assert.equal(appleIcon.subarray(0,8).toString('hex'),'89504e470d0a1a0a','Apple icon must be PNG');
+assert.equal(appleIcon.readUInt32BE(16),180,'Apple icon must be 180px wide');
+assert.equal(appleIcon.readUInt32BE(20),180,'Apple icon must be 180px tall');
+
 const inline=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)].map(x=>x[1]).filter(Boolean);
 for(const [i,src] of inline.entries())new vm.Script(src,{filename:"index.html:inline:"+i});
 const nav=[...html.match(/<nav class="bottom-nav"[\s\S]*?<\/nav>/)?.[0].matchAll(/data-tab="([^"]+)"/g)||[]].map(x=>x[1]);
