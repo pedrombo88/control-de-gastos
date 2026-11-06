@@ -14,6 +14,10 @@
 
 La importación admite tickets en imagen y documentos PDF/CSV/TXT con revisión previa. La extracción puede equivocarse. Budviva **conserva los originales asociados a los movimientos** en IndexedDB, también al adjuntarlos manualmente desde la edición de un movimiento y permite incluirlos en copias completas o cifradas. Debes verificar la carga y restauración en Safari antes de confiar en ellos.
 
+## Avance iOS 1.1 beta
+
+El proyecto SwiftUI dispone ahora de acceso a **Compartidos** dentro de Movimientos mediante un navegador seguro de SafariServices. Permite usar la gestión común de gastos existente sin instalar otra aplicación, pero exige conexión y cuenta de Compartidos independiente. **No sincroniza el histórico financiero personal con la web** y la interfaz común aún no se ha reimplementado en SwiftUI. La compilación XCTest de la nueva revisión se comprueba en [GitHub Actions](./ios-native/RELEASE.md); TestFlight y App Store siguen pendientes.
+
 ## Compartidos (función opcional)
 
 Se ha implementado la pantalla `compartidos.html` y la lógica de dos cuentas para registrar solo gastos comunes, calcular deudas al céntimo, invitar a la pareja y confirmar pagos de compensación. Desde cada movimiento personal de tipo gasto hay un botón **Compartir gasto** que precarga una copia para revisión, sin subir el histórico privado. El identificador de evento vinculado es determinista y evita duplicar el mismo movimiento compartido por accidente; modificar el movimiento privado posteriormente no cambia automáticamente su copia compartida.
