@@ -15,6 +15,9 @@ assert(refreshPart&&refreshPart.includes("next.searchParams.set('v',APP_VERSION)
 assert(!refreshPart.includes('caches.delete('),'Manual refresh must preserve offline caches');
 assert(refreshPart.includes('navigator.onLine===false'),'Offline refresh must be non-destructive');
 assert(html.includes('current!==lastPersistedRaw')&&html.includes('lastPersistedRaw=serialized'),'Prevent overwriting data from another tab');
+assert(html.includes('dataLoadCorrupt?settingsRow(')&&html.includes("'export-emergency'"),'Corrupt local storage should offer an emergency export');
+assert(html.includes('Los datos cambiaron en otra pestaña. Actualiza Budviva antes de restaurar'),'Backup restore must check for concurrent edits before touching original files');
+
 
 assert(html.includes('href="./apple-touch-icon.png?v='+releaseVersion+'"'),'iPhone must load the unified icon for the current release');
 assert(brandSvg.includes('>B</text>')&&brandSvg.includes('#6cebd0'),'Favicon must match in-app B and mint dot');
