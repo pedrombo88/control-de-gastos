@@ -240,13 +240,17 @@ final class FinanceStore: ObservableObject {
         try? FileManager.default.setAttributes([.protectionKey:FileProtectionType.complete], ofItemAtPath:dataURL.path)
         objectWillChange.send()
     }
-    func write(_ operation: (inout FinanceData) -> Void) {
-        if isCorrupt { errorMessage = LocalFinanceError.corrupted.localizedDescription; return }
+    /// Comunicar los errores de persistencia al formulario evita cerrar una edición
+    /// cuyo movimiento no se haya podido guardar realmente en el dispositivo.
+    @discardableResult
+    func write(_ operation: (inout FinanceData) -> Void) -> Bool {
+        if isCorrupt { errorMessage = LocalFinanceError.corrupted.localizedDescription; return false }
         let old = data; operation(&data)
-        do { try persist() }
-        catch { data = old; errorMessage = error.localizedDescription }
+        do { try persist(); return true }
+        catch { data = old; errorMessage = error.localizedDescription; return false }
     }
-    func save(_ entry: Movement) {
+    @discardableResult
+    func save(_ entry: Movement) -> Bool {
         write { model in
             if let index = model.transactions.firstIndex(where: { $0.id == entry.id }) { model.transactions[index] = entry }
             else { model.transactions.append(entry) }
