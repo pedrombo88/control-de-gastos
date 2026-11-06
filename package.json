@@ -1,7 +1,7 @@
 {
   "name": "budviva",
   "private": true,
-  "version": "6.9.8",
+  "version": "6.9.9",
   "description": "Budviva PWA — control de gastos y ahorro",
   "scripts": {
     "test": "node --test tests/*.test.cjs",
