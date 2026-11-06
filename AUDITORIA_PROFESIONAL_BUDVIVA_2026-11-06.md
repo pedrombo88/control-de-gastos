@@ -5,6 +5,8 @@
 
 > Auditoría interna sobre código, pruebas de CI, reglas de almacenamiento y permisos de Supabase. No sustituye una auditoría de penetración externa, una revisión jurídica, las pruebas con un iPhone real ni la aprobación de Apple.
 
+**Ampliación iOS 1.1 beta:** Compartidos dispone de un acceso dentro de la app nativa mediante SafariServices, enlazado al servicio web existente. Es una integración de acceso sin transferencia de datos privados ni sesión compartida: las pantallas, autenticación y operaciones de Compartidos siguen siendo web. La paridad nativa completa continúa pendiente. El test de la URL segura está automatizado y la compilación de esta revisión debe confirmarse en GitHub Actions.
+
 ## 1. Resumen ejecutivo
 
 **Resultado:** la PWA está suficientemente estructurada y tiene controles de seguridad adecuados para continuar la beta. La navegación principal, los movimientos, presupuestos, ahorro, importaciones, originales y Compartidos están implementados. Hay pruebas automatizadas de los cálculos, CSV, cifrado, PDF, OCR y una suite móvil con Chromium y Axe. Durante esta auditoría se han corregido defectos reales sin borrar datos.
@@ -48,7 +50,7 @@
 | ID | Riesgo / evidencia | Criterio de cierre |
 |---|---|---|
 | P0-01 | **No existe IPA firmada, distribución TestFlight ni alta definitiva.** `ios-native/project.yml` utiliza `com.example.budviva`. | Bundle ID propio, equipo de firma, build firmado, TestFlight y ficha completa en App Store Connect |
-| P0-02 | **Paridad nativa incompleta:** SwiftUI no implementa Compartidos, autenticación ni sincronización Supabase. La PWA sí. | Incorporar Compartidos a iOS o lanzar nativa con alcance expresamente limitado, sin prometer paridad |
+| P0-02 | **Paridad nativa incompleta:** SwiftUI no implementa Compartidos, autenticación ni sincronización Supabase. La PWA sí; desde iOS 1.1 se accede mediante SafariServices, pero no son pantallas nativas. | Mantener ese alcance transparente, verificar acceso real y valorar migración a SwiftUI |
 | P0-03 | **QA físico no realizado:** permisos de cámara, OCR, documentos, VoiceOver, almacenamiento lleno, reinstalación y restauración en iPhone real. | Matriz de pruebas de aceptación superada en iPhone y, en su caso, TestFlight |
 | P0-04 | **Información legal y soporte incompletos:** política beta sin identificación final del responsable; no hay canal privado de soporte confirmado. | Revisar RGPD/AEPD, responsable, contacto, plazos, destinatarios, derechos y política definitiva |
 | P0-05 | **Correo OTP de Compartidos no validado en condiciones reales** y sin evidencia de SMTP operativo. La baja protegida está implementada pero no probada extremo a extremo. | Enviar/recibir código con cuenta de ensayo, probar acceso, bloqueo, baja autorizada y rechazo posterior sin tocar cuentas ajenas |
