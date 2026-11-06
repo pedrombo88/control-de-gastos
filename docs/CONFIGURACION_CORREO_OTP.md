@@ -1,6 +1,6 @@
 # Configuración del correo de acceso y baja — Budviva
 
-**Estado (6 de noviembre de 2026):** el flujo de OTP de Budviva 6.9.8 y la Edge Function `bv-delete-account` v5 están implementados. **No se ha verificado aún el envío real de correos**. El proyecto Supabase usa el plan Free. No se han contratado proveedores ni utilizado cuentas de producción para probar bajas.
+**Estado (6 de noviembre de 2026):** el flujo de OTP de Budviva 6.9.8 y la Edge Function `bv-delete-account` v6 están implementados. **No se ha verificado aún el envío real de correos**. El proyecto Supabase usa el plan Free. No se han contratado proveedores ni utilizado cuentas de producción para probar bajas.
 
 ## Configuración necesaria (una sola vez)
 
@@ -29,3 +29,9 @@
 - Los tests automatizados de GitHub verifican rutas negativas y el flujo de eliminación con simuladores. **No sustituyen la prueba de correo real ni el ensayo con cuentas desechables**.
 
 **Documentación oficial:** [Supabase: Passwordless email logins](https://supabase.com/docs/guides/auth/auth-email-passwordless) · [signInWithOtp](https://supabase.com/docs/reference/javascript/auth-signinwithotp) · [verifyOtp](https://supabase.com/docs/reference/javascript/auth-verifyotp).
+
+## Corrección de integridad — función v6 (6/11/2026)
+
+Se ha corregido la comprobación de referencias de cuenta: ahora cada consulta selecciona una columna existente de su tabla. Antes se intentaba seleccionar `id` en `bv_household_closure_approvals`, que utiliza la clave compuesta `household_id, user_id` y no dispone de `id`. Esto podía bloquear la consulta de elegibilidad con un error 503.
+
+La función v6 está desplegada y su código se ha contrastado con las columnas de producción mediante consultas de solo lectura. **No se ha ejecutado una baja real ni se ha confirmado la entrega del correo OTP**. Las pruebas de aislamiento entre usuarios autenticados siguen pendientes con cuentas de ensayo separadas.
