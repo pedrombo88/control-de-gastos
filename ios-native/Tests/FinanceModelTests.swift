@@ -2,6 +2,22 @@ import XCTest
 @testable import Budviva
 
 final class FinanceModelTests: XCTestCase {
+    func testSharedExpensesEntryPointsToSecureOfficialPageWithoutPrivateData() {
+        let shared=SharedExpensesService.url
+        XCTAssertEqual(shared.scheme, "https")
+        XCTAssertEqual(shared.host, "pedrombo88.github.io")
+        XCTAssertEqual(shared.path, "/control-de-gastos/compartidos.html")
+        XCTAssertNil(shared.query)
+        XCTAssertNil(shared.user)
+        XCTAssertNil(shared.password)
+
+        let privacy=SharedExpensesService.privacyURL
+        XCTAssertEqual(privacy.scheme, "https")
+        XCTAssertEqual(privacy.host, shared.host)
+        XCTAssertEqual(privacy.path, "/control-de-gastos/privacidad.html")
+        XCTAssertNil(privacy.query)
+    }
+
     func testEuroAmountsUseIntegerCents() {
         XCTAssertEqual(FinanceFormat.cents("1,25"),125)
         XCTAssertEqual(FinanceFormat.cents("1.234,56"),123456)
