@@ -27,6 +27,10 @@ test('Eliminación: CORS y control de métodos',()=>{
 test('Eliminación: UI protegida y sin clave administrativa',()=>{
   assert(html.includes('id="delete-account-form"'));
   assert(js.includes("onSubmit('delete-account-form'"));
+  assert(js.includes("onSubmit('delete-account-otp-form'"));
+  assert(html.includes('id="send-deletion-otp"')&&html.includes('id="delete-account-otp-form"'));
+  assert(js.includes("email:user.email,create_user:false"),'OTP request must never create accounts');
+  assert(js.includes("method:'email_otp',otp,confirm:confirmation"),'OTP must be verified on the server');
   assert(js.includes("'/functions/v1/bv-delete-account'"));
   assert(js.includes("confirmation!=='ELIMINAR CUENTA'"));
   assert(!js.includes('SUPABASE_SERVICE_ROLE_KEY'));
