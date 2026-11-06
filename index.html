@@ -1240,6 +1240,9 @@ root.BudvivaGoals={build,total,status};
       }
     }
     if(!confirm(`La restauración reemplazará tus ${data.transactions.length} movimientos por ${incoming.transactions.length} de la copia, ${what}, y eliminará los originales locales anteriores. Exporta primero una copia completa si quieres conservarlos. ¿Restaurar?`))return false;
+    // Evita sustituir documentos de una sesión más reciente antes incluso de abrir IndexedDB.
+    if(localStorage.getItem(STORAGE_KEY)!==lastPersistedRaw)
+      throw Error('Los datos cambiaron en otra pestaña. Actualiza Budviva antes de restaurar; no se ha modificado nada.');
     const before=data,beforeCorrupt=dataLoadCorrupt,oldFiles=await docs.getAll();
     await docs.replaceAll(records);
     data=incoming;dataLoadCorrupt=false;
