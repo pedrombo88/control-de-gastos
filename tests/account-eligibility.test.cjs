@@ -8,7 +8,7 @@ const source=fs.readFileSync('backend/functions/bv-delete-account/index.ts','utf
   .replace('status:number,message:string','status,message')
   .replace('req:Request','req')
   .replace(/\s+as const/g,'');
-function fixture({member=false,history=false,auth=true,badPassword=false,badOtp=false,otpOtherUser=false,dbError=false}={}){
+function fixture({member=false,history=false,approval=false,auth=true,badPassword=false,badOtp=false,otpOtherUser=false,dbError=false}={}){
   let handler=null,deleted=0,logins=0,reads=0,otpChecks=0;
   const deno={env:{get(name){
     return ({SUPABASE_URL:'https://test.invalid',SUPABASE_ANON_KEY:'public_test',SUPABASE_SERVICE_ROLE_KEY:'private_test'})[name];
@@ -21,6 +21,7 @@ function fixture({member=false,history=false,auth=true,badPassword=false,badOtp=
           reads++;
           if(dbError)return {data:null,error:{message:'db error'}};
           if(table==='bv_members'&&member)return {data:[{user_id:fakeUser.id}],error:null};
+          if(table==='bv_household_closure_approvals'&&approval)return {data:[{id:'approval'}],error:null};
           if(history&&table==='bv_expenses'&&column==='author_id')return {data:[{id:'expense'}],error:null};
           return {data:[],error:null};
         }};}};}};}
@@ -123,4 +124,12 @@ test('OTP: únicamente código de correo validado para la misma cuenta permite e
   const x=fixture();
   const r=await x.post({method:'email_otp',otp:'123456',confirm:'ELIMINAR CUENTA'});
   assert.equal(r.status,200);assert.equal(x.stats().otpChecks,1);assert.equal(x.stats().logins,0);assert.equal(x.stats().deleted,1);
+});
+
+test('Una aprobación de cierre huérfana impide borrar una cuenta',async()=>{
+  const x=fixture({approval:true});
+  const check=await x.post({action:'check'});
+  assert.equal(check.status,409);assert.equal(x.stats().deleted,0);
+  const deletion=await x.post({method:'email_otp',otp:'123456',confirm:'ELIMINAR CUENTA'});
+  assert.equal(deletion.status,409);assert.equal(x.stats().otpChecks,0);assert.equal(x.stats().deleted,0);
 });
