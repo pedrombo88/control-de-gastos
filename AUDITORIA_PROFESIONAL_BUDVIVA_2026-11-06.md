@@ -7,6 +7,10 @@
 
 **Ampliación iOS 1.1 beta:** Compartidos dispone de un acceso dentro de la app nativa mediante SafariServices, enlazado al servicio web existente. Es una integración de acceso sin transferencia de datos privados ni sesión compartida: las pantallas, autenticación y operaciones de Compartidos siguen siendo web. La paridad nativa completa continúa pendiente. El test de la URL segura está automatizado y la compilación de esta revisión debe confirmarse en GitHub Actions.
 
+**Ampliación de integridad iOS (mismo día):** el control «Cerrar» de SafariServices sincroniza el estado de SwiftUI. Las herramientas de Movimientos usan una cuadrícula de dos columnas para facilitar la lectura; borrar mediante edición o deslizando exige confirmación. El editor ya no se cierra si falla el guardado en el dispositivo: `FinanceStore.write/save` informan del resultado. Si el archivo de datos está corrupto, Ajustes ofrece una exportación **de solo lectura** de los bytes originales para recuperación, sin sobrescribirlos ni eliminarlos. Se han incorporado pruebas de regresión para estos comportamientos.
+
+**Ampliación de seguridad web:** una prueba de navegador simula contenido HTML malicioso en nombres de miembros, título de grupo, listado y actividad de gastos compartidos. Se usa un backend simulado, sin modificar cuentas reales.
+
 ## 1. Resumen ejecutivo
 
 **Resultado:** la PWA está suficientemente estructurada y tiene controles de seguridad adecuados para continuar la beta. La navegación principal, los movimientos, presupuestos, ahorro, importaciones, originales y Compartidos están implementados. Hay pruebas automatizadas de los cálculos, CSV, cifrado, PDF, OCR y una suite móvil con Chromium y Axe. Durante esta auditoría se han corregido defectos reales sin borrar datos.
