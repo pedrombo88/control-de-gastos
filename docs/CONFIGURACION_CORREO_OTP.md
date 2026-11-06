@@ -2,6 +2,26 @@
 
 **Estado (6 de noviembre de 2026):** el flujo de OTP de Budviva 6.9.8 y la Edge Function `bv-delete-account` v6 están implementados. **No se ha verificado aún el envío real de correos**. El proyecto Supabase usa el plan Free. No se han contratado proveedores ni utilizado cuentas de producción para probar bajas.
 
+## Proveedor recomendado: Resend (preparado el 6/11/2026)
+
+Plan gratuito de Resend: **3.000 mensajes al mes, máximo 100 al día**, sujeto a las condiciones actuales. Requiere un **dominio propio verificado** para enviar correo a destinatarios externos. No confundir Resend gratuito con un dominio gratuito.
+
+**Ruta simplificada:** proyecto Supabase Budviva → Integrations → Resend → conectar cuenta; la integración oficial de Supabase puede configurar automáticamente las credenciales SMTP. Otra opción es configurar SMTP manualmente en Authentication → Emails → SMTP Settings.
+
+**Valores manuales de Resend** (no poner claves privadas en GitHub):
+- SMTP host: `smtp.resend.com`.
+- Puerto: `587` (STARTTLS).
+- Usuario: `resend`.
+- Contraseña: clave API creada en la cuenta Resend, configurada únicamente en Supabase.
+- Remitente: `no-reply@TU-DOMINIO-VERIFICADO` (dirección de ejemplo; sustituir por un dominio realmente verificado).
+- Nombre del remitente: `Budviva`.
+
+**Plantilla preparada para Supabase:** [codigo-acceso.html](../backend/email-templates/codigo-acceso.html). Copiar su contenido en **Magic Link/OTP** y revisar también **Confirm sign up**, conservando la variable `{{ .Token }}` para el código de acceso; no es un archivo que Supabase cargue automáticamente. La plantilla está en español y no contiene claves ni datos privados. La función de baja por correo utiliza igualmente `/auth/v1/otp`.
+
+**Importante:** no se ha conectado Resend ni configurado SMTP desde herramientas. Falta verificar el dominio, activar SMTP, pegar las plantillas en el panel de Supabase y comprobar la recepción de un OTP con una cuenta de ensayo. La URL de la pantalla es `https://pedrombo88.github.io/control-de-gastos/compartidos.html`.
+
+Fuentes: [Integración oficial Supabase–Resend](https://supabase.com/partners/catalog/resend), [SMTP Supabase](https://supabase.com/docs/guides/auth/auth-smtp), [Resend precios](https://resend.com/pricing).
+
 ## Configuración necesaria (una sola vez)
 
 1. Entra en [Supabase → Authentication](https://supabase.com/dashboard/project/bsvtttcuqamjifnpuzlj/auth/providers?provider=Email). Comprueba que el proveedor Email está habilitado.
