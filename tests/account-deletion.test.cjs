@@ -5,12 +5,18 @@ const fs=require('node:fs');
 const edge=fs.readFileSync('backend/functions/bv-delete-account/index.ts','utf8');
 const html=fs.readFileSync('compartidos.html','utf8');
 const js=fs.readFileSync('compartidos.js','utf8');
-test('Eliminación: autenticación, contraseña y confirmación obligatorias',()=>{
-  for(const token of ['auth.getUser(token)','signInWithPassword','verified.user?.id!==identity.user.id','body.confirm!=="ELIMINAR CUENTA"'])assert(edge.includes(token),token);
+test('Eliminación: sesión, confirmación y reautenticación con contraseña u OTP obligatorias',()=>{
+  for(const token of ['auth.getUser(token)','signInWithPassword','auth.verifyOtp','verified.user?.id!==identity.user.id','body.confirm!=="ELIMINAR CUENTA"'])assert(edge.includes(token),token);
 });
 test('Eliminación: el servidor comprueba las referencias compartidas',()=>{
   for(const name of ['bv_members','bv_households','bv_expenses','bv_settlements','author_id','payer_id','receiver_id'])assert(edge.includes(name),name);
   assert(edge.indexOf('admin.auth.admin.deleteUser')>edge.indexOf('for(const [table,column]'));
+});
+test('OTP: la verificación usa exclusivamente el correo de la identidad autenticada',()=>{
+  assert(edge.includes('email:identity.user.email,token:body.otp,type:"email"'));
+  assert(edge.includes('typeof body.otp!=="string"'));
+  assert(edge.includes('body.method!=="email_otp"'));
+  assert(edge.indexOf('verified.user?.id!==identity.user.id')<edge.indexOf('auth.admin.deleteUser'));
 });
 test('Eliminación: CORS y control de métodos',()=>{
   assert(edge.includes('req.method==="OPTIONS"'));
@@ -48,5 +54,11 @@ test('Endpoint público: comprobación opcional sin credenciales ni borrado',asy
     headers:{Origin:'https://pedrombo88.github.io','Content-Type':'application/json'},
     body:JSON.stringify({action:'check'}),signal:AbortSignal.timeout(10000)});
   assert.equal(preview.status,401,'Check-only must reject anonymous sessions');
+  const otpAttempt=await fetch(url,{method:'POST',
+    headers:{Origin:'https://pedrombo88.github.io','Content-Type':'application/json'},
+    body:JSON.stringify({method:'email_otp',otp:'000000',confirm:'ELIMINAR CUENTA'}),
+    signal:AbortSignal.timeout(10000)});
+  assert.equal(otpAttempt.status,401,'OTP deletion must reject anonymous sessions');
+
 
 });
