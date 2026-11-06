@@ -40,3 +40,18 @@ test('Actualizar sin conexión conserva datos y no provoca recarga',async({page,
     expect(stored.transactions.some(t=>t.title==='Movimiento guardado sin borrar')).toBe(true);
   }finally{await context.setOffline(false);}
 });
+
+test('Almacenamiento corrupto: permite descargar rescate sin borrar el original',async({page})=>{
+  const raw='{"transactions":[ contenido que no puede interpretarse';
+  await page.addInitScript(value=>localStorage.setItem('saldo-diario-data-v1',value),raw);
+  await page.goto('/?auditoria=rescate',{waitUntil:'domcontentloaded'});
+  await page.locator('[data-tab="settings"]').click();
+  await expect(page.locator('#page-content')).toContainText('Los datos guardados no se pueden leer');
+  const downloadPromise=page.waitForEvent('download');
+  await page.getByText('Descargar datos para recuperación',{exact:true}).click();
+  const download=await downloadPromise;
+  expect(download.suggestedFilename()).toMatch(/^budviva-rescate-crudo-\d{4}-\d{2}-\d{2}\.txt$/);
+  const rescued=require('node:fs').readFileSync(await download.path(),'utf8');
+  expect(rescued).toBe(raw);
+  expect(await page.evaluate(()=>localStorage.getItem('saldo-diario-data-v1'))).toBe(raw);
+});
