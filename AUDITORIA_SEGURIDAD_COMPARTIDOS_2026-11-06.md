@@ -34,6 +34,16 @@ Las comprobaciones reales son **no destructivas**: solo GET y peticiones anónim
 - **P1 — Acceso entre usuarios autenticados.** Añadir pruebas con dos cuentas desechables para confirmar que un miembro no accede a un grupo ajeno.
 - **P1 — Cierre compartido y portabilidad.** Validar en dispositivos reales la exportación y el cierre conjunto, sin usar el grupo existente.
 
+## Ensayo autorizado — limpieza de datos de prueba (6 de noviembre de 2026)
+
+El titular ha confirmado expresamente que el único grupo y todos sus registros eran **datos de prueba prescindibles**, y ha autorizado su eliminación para poder comprobar la baja de la cuenta de ensayo.
+
+- Estado anterior: 1 grupo, 2 miembros, 1 gasto, 1 invitación, 0 compensaciones y 0 aprobaciones.
+- Acción ejecutada: eliminación restringida al único grupo vinculado a la cuenta de prueba, con comprobación previa de unicidad. Las relaciones `ON DELETE CASCADE` han eliminado los registros dependientes.
+- Estado posterior verificado mediante consulta SQL: **0 grupos, 0 miembros, 0 gastos, 0 invitaciones, 0 compensaciones, 0 aprobaciones**.
+- La cuenta de acceso de prueba **sigue existiendo** en Supabase Auth. No se ha ejecutado la eliminación de usuarios por SQL ni se ha omitido la verificación de correo.
+- **Pendiente:** iniciar sesión con la cuenta de ensayo, recibir el OTP en su correo, confirmar la baja desde la interfaz y verificar que la cuenta desaparece de Auth. El acceso al correo de la cuenta no está disponible mediante las herramientas conectadas.
+
 ## Automatización
 
 `.github/workflows/security-checks.yml` ejecuta `npm run check` en cada push/PR. En push, ejecución manual y cada lunes, realiza además las comprobaciones de endpoint y aislamiento anónimo sin datos de usuario. No usa secretos administrativos.
