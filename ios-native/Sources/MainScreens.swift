@@ -106,7 +106,7 @@ struct MovementsScreen: View {
     @State private var showEditor=false
     @State private var editing:Movement?
     @State private var selectedTool: Tool?
-    enum Tool:String,Identifiable { case importFiles,recurring,statistics; var id:String{rawValue} }
+    enum Tool:String,Identifiable { case importFiles,recurring,statistics,shared; var id:String{rawValue} }
     private var visible: [Movement] {
         store.data.transactions.filter {
             (filter=="all" || $0.type==filter) &&
@@ -119,6 +119,7 @@ struct MovementsScreen: View {
                 tool("Importar","doc.text.viewfinder",.importFiles)
                 tool("Recurrentes","repeat",.recurring)
                 tool("Estadísticas","chart.bar",.statistics)
+                tool("Compartidos","person.2",.shared)
             }.padding(.horizontal,16).padding(.vertical,12)
             Picker("Tipo",selection:$filter) {
                 Text("Todos").tag("all");Text("Gastos").tag("expense");Text("Ingresos").tag("income")
@@ -149,6 +150,7 @@ struct MovementsScreen: View {
                     case .importFiles: ImportScreen()
                     case .recurring: RecurringScreen()
                     case .statistics: StatisticsScreen()
+                    case .shared: SharedExpensesScreen()
                     }
                 }
                 .toolbar { ToolbarItem(placement:.topBarTrailing) { Button("Cerrar"){selectedTool=nil} } }
@@ -157,7 +159,7 @@ struct MovementsScreen: View {
     }
     private func tool(_ title:String,_ icon:String,_ value:Tool)->some View {
         Button { selectedTool=value } label: {
-            VStack(spacing:6) { Image(systemName:icon).font(.title3);Text(title).font(.caption2).bold() }
+            VStack(spacing:6) { Image(systemName:icon).font(.title3);Text(title).font(.system(size:11,weight:.semibold)).lineLimit(1).minimumScaleFactor(0.75) }
                 .frame(maxWidth:.infinity).frame(height:60)
         }.buttonStyle(.bordered)
     }
