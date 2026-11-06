@@ -2,7 +2,7 @@
 
 **Estado:** versión web instalable (PWA) **6.9.10 beta**, en preparación para una futura versión iOS comercial. **No publicada en App Store.**
 
-[Probar Budviva](https://pedrombo88.github.io/control-de-gastos/) · [Privacidad](https://pedrombo88.github.io/control-de-gastos/privacidad.html) · [Ayuda](https://pedrombo88.github.io/control-de-gastos/soporte.html) · [Auditoría para publicación](./AUDITORIA_BUDVIVA_2026-11-04.md) · [Seguridad de Compartidos](./AUDITORIA_SEGURIDAD_COMPARTIDOS_2026-11-06.md) · [Configurar correo OTP](./docs/CONFIGURACION_CORREO_OTP.md)
+[Probar Budviva](https://pedrombo88.github.io/control-de-gastos/) · [Privacidad](https://pedrombo88.github.io/control-de-gastos/privacidad.html) · [Ayuda](https://pedrombo88.github.io/control-de-gastos/soporte.html) · [Auditoría profesional 6.9.10](./AUDITORIA_PROFESIONAL_BUDVIVA_2026-11-06.md) · [Auditoría histórica](./AUDITORIA_BUDVIVA_2026-11-04.md) · [Seguridad de Compartidos](./AUDITORIA_SEGURIDAD_COMPARTIDOS_2026-11-06.md) · [Configurar correo OTP](./docs/CONFIGURACION_CORREO_OTP.md)
 
 ## Interfaz principal
 
@@ -14,7 +14,7 @@
 
 La importación admite tickets en imagen y documentos PDF/CSV/TXT con revisión previa. La extracción puede equivocarse. Budviva **conserva los originales asociados a los movimientos** en IndexedDB, también al adjuntarlos manualmente desde la edición de un movimiento y permite incluirlos en copias completas o cifradas. Debes verificar la carga y restauración en Safari antes de confiar en ellos.
 
-## Compartidos (v6.8.0 beta)
+## Compartidos (función opcional)
 
 Se ha implementado la pantalla `compartidos.html` y la lógica de dos cuentas para registrar solo gastos comunes, calcular deudas al céntimo, invitar a la pareja y confirmar pagos de compensación. Desde cada movimiento personal de tipo gasto hay un botón **Compartir gasto** que precarga una copia para revisión, sin subir el histórico privado. El identificador de evento vinculado es determinista y evita duplicar el mismo movimiento compartido por accidente; modificar el movimiento privado posteriormente no cambia automáticamente su copia compartida.
 
