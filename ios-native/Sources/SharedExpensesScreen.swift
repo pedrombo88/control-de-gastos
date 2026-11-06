@@ -62,21 +62,41 @@ struct SharedExpensesScreen: View {
         .navigationTitle("Compartidos")
         .navigationBarTitleDisplayMode(.inline)
         .fullScreenCover(isPresented: $showingShared) {
-            SharedExpensesBrowser()
+            SharedExpensesBrowser(isPresented: $showingShared)
                 .ignoresSafeArea()
         }
     }
 }
 
-/// SFSafariViewController se presenta de forma modal y no puede observar
-/// ni extraer datos de navegación, credenciales o formularios web.
+/// SafariServices mantiene las credenciales fuera del código de Budviva.
+/// El delegado sincroniza el botón «Cerrar» del navegador con el estado SwiftUI:
+/// volver a abrir Compartidos siempre presenta una ventana nueva.
 private struct SharedExpensesBrowser: UIViewControllerRepresentable {
+    @Binding var isPresented: Bool
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(isPresented: $isPresented)
+    }
+
     func makeUIViewController(context: Context) -> SFSafariViewController {
         let controller = SFSafariViewController(url: SharedExpensesService.url)
+        controller.delegate = context.coordinator
         controller.dismissButtonStyle = .close
         controller.preferredControlTintColor = UIColor.systemTeal
         return controller
     }
 
     func updateUIViewController(_ controller: SFSafariViewController, context: Context) {}
+
+    final class Coordinator: NSObject, SFSafariViewControllerDelegate {
+        @Binding var isPresented: Bool
+
+        init(isPresented: Binding<Bool>) {
+            _isPresented = isPresented
+        }
+
+        func safariViewControllerDidFinish(_ controller: SFSafariViewController) {
+            isPresented = false
+        }
+    }
 }
