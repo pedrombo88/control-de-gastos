@@ -37,11 +37,16 @@ assert(!privacyHtml.includes('aún no son autoservicio'),'Privacy policy must no
 assert(privacyHtml.includes('eliminación definitiva de tu cuenta de acceso'),'Privacy policy must explain deletion');
 assert(privacyHtml.includes('no borra los registros personales guardados localmente'),'Local data limitation must be disclosed');
 assert(supportHtml.includes('Comprobar protección de mi cuenta'),'Support must document safe account check');
+assert(supportHtml.includes('código de un solo uso enviado a tu correo'),'Support must explain OTP deletion');
+assert(privacyHtml.includes('código de un solo uso enviado al correo'),'Privacy must explain OTP deletion');
+
 for(const [page,source] of [['Compartidos',sharedHtml],['Privacidad',privacyHtml],['Soporte',supportHtml]]){
   assert(source.includes('href="./icon.svg?v='+releaseVersion+'"'),page+' must use the current Budviva logo');
 }
 
 
+assert(sharedHtml.includes('id="delete-account-otp-form"')&&sharedHtml.includes('id="send-deletion-otp"'),'Passwordless deletion controls missing');
+assert(sharedJs.includes("email:user.email,create_user:false"),'OTP must not create users');
 assert(sharedHtml.includes('id="expense-form"')&&sharedHtml.includes('id="settlement-form"'));
 assert(fs.readFileSync('shared-config.js','utf8').includes('publishableKey'));
 assert(fs.readFileSync('backend/compartidos.sql','utf8').includes('enable row level security'));
