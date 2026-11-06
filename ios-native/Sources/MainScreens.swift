@@ -281,7 +281,7 @@ struct EntryEditor: View {
                           receiptItems:type=="expense" ? entry?.receiptItems:nil,
                           sourceDocumentIds:entry?.sourceDocumentIds,importSource:entry?.importSource,
                           recurringId:entry?.recurringId,occurrenceDate:entry?.occurrenceDate)
-        store.save(next);dismiss()
+        if store.save(next) { dismiss() }
     }
 }
 
