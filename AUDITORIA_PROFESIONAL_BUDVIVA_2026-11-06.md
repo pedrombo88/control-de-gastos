@@ -24,7 +24,7 @@
 | Compartidos | Supabase con RLS, doble autorización para cierre, exportación común, OTP y baja protegida | Anónimo comprobado; autorización cruzada y correo real pendientes |
 | Accesibilidad | Axe WCAG en cinco apartados de cuatro temas, controles de Compartidos y ancho de 320 px | Pruebas automatizadas; VoiceOver físico pendiente |
 | Rendimiento y PWA | Service worker con caché versionada, navegación de red primero y modo offline; dependencias OCR/PDF cargadas bajo demanda | Comprobado a nivel de código y Chromium; Safari pendiente |
-| iOS nativo | Proyecto SwiftUI sin contenedor web, XCTest y workflow macOS; identificador provisional | No firmado, sin TestFlight y sin Compartidos |
+| iOS nativo | Proyecto SwiftUI sin contenedor web, compilación macOS, XCTest y captura en simulador confirmados | Compilación verde; sin firma, TestFlight, QA físico ni Compartidos |
 
 ## 2. Correcciones aplicadas durante esta auditoría
 
@@ -103,7 +103,7 @@ Apple exige, entre otros controles:
 
 Fuentes: [App Review Guidelines](https://developer.apple.com/app-store/review/guidelines/) · [Account deletion](https://developer.apple.com/support/offering-account-deletion-in-your-app/) · [App Review](https://developer.apple.com/app-store/review/).
 
-**Estado real:** Budviva tiene proyecto nativo SwiftUI y workflow de compilación de simulador, pero todavía carece de evidencia suficiente de firma, validación física y aceptación para declararla lista para App Store.
+**Estado real:** el [workflow iOS 42192300875](https://github.com/pedrombo88/control-de-gastos/actions/runs/42192300875) ha terminado con resultado **SUCCESS**: generación de proyecto e icono, compilación sin firma, compilación y ejecución de XCTest, instalación y captura de inicio en simulador. Aun así, faltan firma de distribución, TestFlight, las funciones de Compartidos en SwiftUI, validación física y aprobación de Apple.
 
 ## 7. Criterios verificables de cierre de la auditoría
 
@@ -114,7 +114,7 @@ Fuentes: [App Review Guidelines](https://developer.apple.com/app-store/review/gu
 5. Compilación iOS reproducible, tests en simulador y batería de aceptación en un iPhone físico.
 6. Política legal, titularidad, soporte privado y App Store Connect completos antes del envío.
 
-### Evidencias y enlaces
+**Validación de la versión 6.9.10:** el pipeline de JavaScript/seguridad está verde, las pruebas de interfaz móvil alcanzaron 19 aprobadas en la versión con mejoras de accesibilidad. La prueba adicional de recuperación de datos y el servicio web deben confirmarse en el último commit antes de declarar cerrada la beta.\n\n### Evidencias y enlaces
 
 - [PWA beta](https://pedrombo88.github.io/control-de-gastos/) · [Compartidos](https://pedrombo88.github.io/control-de-gastos/compartidos.html)
 - [Pruebas móviles](./tests/auditoria-integridad.ui.spec.cjs) · [Accesibilidad Compartidos](./tests/accesibilidad-compartidos.ui.spec.cjs) · [OTP móvil simulado](./tests/compartidos-otp.ui.spec.cjs)
