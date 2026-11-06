@@ -9,6 +9,13 @@ const brandSvg=fs.readFileSync('icon.svg','utf8');
 const appleIcon=fs.readFileSync('apple-touch-icon.png');
 assert(html.includes('class="brand-mark"')&&html.includes('brand-mark-dot'),'In-app logo missing');
 const releaseVersion=JSON.parse(fs.readFileSync('package.json','utf8')).version;
+assert(html.includes("const APP_VERSION = '"+releaseVersion+"'"),'Refresh version must follow release version');
+const refreshPart=html.split('const refreshBudviva = async () => {')[1]?.split('const handleAction = action => {')[0];
+assert(refreshPart&&refreshPart.includes("next.searchParams.set('v',APP_VERSION)"),'PWA refresh must use current release');
+assert(!refreshPart.includes('caches.delete('),'Manual refresh must preserve offline caches');
+assert(refreshPart.includes('navigator.onLine===false'),'Offline refresh must be non-destructive');
+assert(html.includes('current!==lastPersistedRaw')&&html.includes('lastPersistedRaw=serialized'),'Prevent overwriting data from another tab');
+
 assert(html.includes('href="./apple-touch-icon.png?v='+releaseVersion+'"'),'iPhone must load the unified icon for the current release');
 assert(brandSvg.includes('>B</text>')&&brandSvg.includes('#6cebd0'),'Favicon must match in-app B and mint dot');
 assert.equal(appleIcon.subarray(0,8).toString('hex'),'89504e470d0a1a0a','Apple icon must be PNG');
