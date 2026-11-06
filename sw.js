@@ -1,6 +1,6 @@
-/* Budviva 6.9.7 — caché por ruta sin sustituir la pantalla principal. */
+/* Budviva 6.9.8 — caché por ruta sin sustituir la pantalla principal. */
 const CACHE_PREFIX = 'control-de-gastos-';
-const CACHE = CACHE_PREFIX + '6.9.7';
+const CACHE = CACHE_PREFIX + '6.9.8';
 const CORE = ['./','./index.html','./recurring.js','./stats.js','./reconcile.js','./documents.js','./backup-crypto.js','./smart-import.js','./manifest.webmanifest','./icon.svg','./apple-touch-icon.png','./privacidad.html','./soporte.html','./compartidos.html','./compartidos.js','./shared-config.js','./shared-expenses.js'];
 
 function sameOrigin(request) {
