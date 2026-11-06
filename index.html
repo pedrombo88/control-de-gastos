@@ -8,10 +8,10 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Budviva">
   <meta name="description" content="Budviva: lleva tus gastos, ingresos, tickets y presupuestos de forma sencilla y privada.">
-  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=6.9.8">
-  <link rel="manifest" href="manifest.webmanifest?v=6.9.8">
+  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=6.9.9">
+  <link rel="manifest" href="manifest.webmanifest?v=6.9.9">
   <!-- Ahorro incluido en la página para evitar versiones mezcladas en Safari -->
-  <link rel="icon" type="image/svg+xml" href="icon.svg?v=6.9.8">
+  <link rel="icon" type="image/svg+xml" href="icon.svg?v=6.9.9">
   <meta property="og:site_name" content="Budviva">
   <meta property="og:title" content="Budviva — Tu dinero, más claro">
   <meta name="application-name" content="Budviva">
@@ -849,9 +849,10 @@ root.BudvivaGoals={build,total,status};
 
 </script>
   <script>
-/* Budviva — versión 6.9.8. Datos exclusivamente en este dispositivo. */
+/* Budviva — versión 6.9.9. Datos exclusivamente en este dispositivo. */
 (() => {
   'use strict';
+  const APP_VERSION = '6.9.9';
   const STORAGE_KEY = 'saldo-diario-data-v1';
   const fmtEUR = new Intl.NumberFormat('es-ES', {style:'currency',currency:'EUR'});
   const fmtDate = new Intl.DateTimeFormat('es-ES', {day:'numeric',month:'short'});
@@ -980,14 +981,25 @@ root.BudvivaGoals={build,total,status};
   let data = defaults();
   let storageOK = true;
   let dataLoadCorrupt = false;
+  // Control de concurrencia: nunca pisar silenciosamente datos guardados por otra pestaña.
+  let lastPersistedRaw = null;
   try {
     const loaded=localStorage.getItem(STORAGE_KEY);
+    lastPersistedRaw=loaded;
     if(loaded) data=normalize(JSON.parse(loaded));
   } catch(e) {console.warn('No se han podido cargar los datos locales:',e); storageOK=false;dataLoadCorrupt=true;}
   const save = () => {
     if(dataLoadCorrupt){toast('No se puede guardar: restaura primero una copia de tus datos.');return false;}
-    try {localStorage.setItem(STORAGE_KEY,JSON.stringify(data));storageOK=true;return true;}
-    catch(e){console.error('Error guardando datos',e);storageOK=false;toast('Sin espacio o permisos para guardar. Exporta tus datos.');return false;}
+    try {
+      const current=localStorage.getItem(STORAGE_KEY);
+      if(current!==lastPersistedRaw){
+        toast('Cambios en otra pestaña. Actualiza Budviva antes de guardar para no perder movimientos.');
+        return false;
+      }
+      const serialized=JSON.stringify(data);
+      localStorage.setItem(STORAGE_KEY,serialized);
+      lastPersistedRaw=serialized;storageOK=true;return true;
+    }catch(e){console.error('Error guardando datos',e);storageOK=false;toast('Sin espacio o permisos para guardar. Exporta tus datos.');return false;}
   };
   // Conserva la clave de almacenamiento de V1 para migrar sin perder movimientos.
   if(!Array.isArray(data.recurring))data.recurring=[];
@@ -1124,7 +1136,7 @@ root.BudvivaGoals={build,total,status};
       ${settingsRow('🗑️','Borrar datos financieros','Elimina movimientos, presupuestos, reglas y objetivos.','erase-data')}
     </section>
     ${dataLoadCorrupt?'<p class="form-error">Los datos guardados no se pueden leer. Restaura una copia de seguridad antes de introducir nuevos registros.</p>':(!storageOK?'<p class="form-error">No se puede acceder al almacenamiento local; evita registrar datos hasta solucionarlo.</p>':'')}
-    <p class="footnote">Tus registros se conservan en este dispositivo. Haz una copia de seguridad periódica para evitar pérdidas. Budviva · versión 6.9.8 (beta).</p>`;
+    <p class="footnote">Tus registros se conservan en este dispositivo. Haz una copia de seguridad periódica para evitar pérdidas. Budviva · versión 6.9.9 (beta).</p>`;
   const render = () => {
     const selectedReceipt=ui.tab==='transactions'&&ui.receiptId?data.transactions.find(t=>t.id===ui.receiptId):null;
     shell.innerHTML = ({home:renderHome,transactions:renderTransactions,budgets:renderBudgets,recurring:recurring.renderPage,stats:stats.renderPage,'smart-import':smartImport.renderPage,savings:savings.renderPage,settings:renderSettings})[ui.tab]();
@@ -1274,28 +1286,22 @@ root.BudvivaGoals={build,total,status};
     }catch(error){err.textContent=error.message;err.hidden=false;}
     finally{btn.disabled=false;}
   });
-  // Evitar caché antigua, sin tocar localStorage ni los movimientos guardados.
+  // Actualizar sin vaciar cachés: el Service Worker elimina solo su caché anterior al activarse.
   const refreshBudviva = async () => {
-    toast('Actualizando Budviva…');
+    if(navigator.onLine===false){toast('Sin conexión: la aplicación y tus datos siguen disponibles.');return;}
+    toast('Comprobando actualizaciones…');
     try {
       if ('serviceWorker' in navigator) {
         const registration=await navigator.serviceWorker.getRegistration();
-        if(registration) await registration.update();
-      }
-      if ('caches' in window) {
-        const keys=await caches.keys();
-        await Promise.all(keys.filter(k=>k.startsWith('control-de-gastos-')).map(k=>caches.delete(k)));
+        if(registration)await registration.update();
       }
       const next=new URL(location.href);
-      next.searchParams.set('v','6.2.1');
+      next.searchParams.set('v',APP_VERSION);
       next.searchParams.set('refresh',String(Date.now()));
       location.replace(next.href);
     } catch(err) {
-      console.warn('No se pudo actualizar la PWA:',err);
-      const next=new URL(location.href);
-      next.searchParams.set('v','6.2.1');
-      next.searchParams.set('refresh',String(Date.now()));
-      location.replace(next.href);
+      console.warn('No se pudo comprobar la actualización:',err);
+      toast('No se pudo comprobar la actualización. Tus datos y la caché siguen intactos.');
     }
   };
   const handleAction = action => {
@@ -1444,6 +1450,12 @@ root.BudvivaGoals={build,total,status};
   for (const dlg of [txDialog,budgetDialog]) dlg.addEventListener('click', e => {if(e.target===dlg) dlg.close();});
   importFileInput.addEventListener('change',async e=>{await importJson(e.target.files[0]);e.target.value='';});
   document.querySelectorAll('.nav-icon').forEach(el=>{el.innerHTML=`<svg viewBox="0 0 24 24" aria-hidden="true">${icons[el.dataset.icon]}</svg>`;});
+  // Una pestaña antigua no debe sobreescribir cambios nuevos; conservar formularios abiertos.
+  window.addEventListener('storage',event=>{
+    if(event.key===STORAGE_KEY && event.newValue!==lastPersistedRaw){
+      toast('Se han modificado tus datos en otra pestaña. Actualiza Budviva antes de guardar.');
+    }
+  });
   recurring.sync();
   render();
   /* El service worker gestiona las actualizaciones y el uso sin conexión. */
