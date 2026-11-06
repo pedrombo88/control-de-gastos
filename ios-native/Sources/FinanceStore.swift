@@ -529,6 +529,17 @@ final class FinanceStore: ObservableObject {
         snapshot.attachments=docs
         return try JSONEncoder().encode(snapshot)
     }
+    /// Conserva el archivo original incluso cuando no puede descodificarse.
+    /// No modifica ni borra el almacén actual.
+    func exportEmergencyData() throws -> Data {
+        guard isCorrupt, FileManager.default.fileExists(atPath:dataURL.path) else {
+            throw LocalFinanceError.invalidBackup
+        }
+        let properties=try FileManager.default.attributesOfItem(atPath:dataURL.path)
+        let bytes=(properties[.size] as? NSNumber)?.int64Value ?? 0
+        guard bytes>0, bytes<=110*1024*1024 else {throw LocalFinanceError.invalidBackup}
+        return try Data(contentsOf:dataURL)
+    }
     func wipe() throws {
         let saved=data,wasCorrupt=isCorrupt
         let empty=try JSONEncoder().encode(FinanceData())
@@ -551,8 +562,8 @@ final class FinanceStore: ObservableObject {
 }
 
 struct BackupFile: FileDocument {
-    static var readableContentTypes: [UTType] { [.json,.data] }
-    static var writableContentTypes: [UTType] { [.json,.data] }
+    static var readableContentTypes: [UTType] { [.json,.data,.plainText] }
+    static var writableContentTypes: [UTType] { [.json,.data,.plainText] }
     var data: Data
     init(data: Data) { self.data=data }
     init(configuration: ReadConfiguration) throws { data=configuration.file.regularFileContents ?? Data() }
