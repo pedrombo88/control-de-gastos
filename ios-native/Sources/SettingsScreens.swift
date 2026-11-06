@@ -7,6 +7,7 @@ struct SettingsScreen: View {
     @State private var exporting = false
     @State private var exportFile: BackupFile?
     @State private var encryptedExport = false
+    @State private var rescueExport = false
     @State private var password = ""
     @State private var repeatPassword = ""
     @State private var promptExportPassword = false
@@ -20,6 +21,19 @@ struct SettingsScreen: View {
 
     var body: some View {
         Form {
+            if store.isCorrupt {
+                Section {
+                    Button {
+                        prepareEmergencyExport()
+                    } label: {
+                        Label("Descargar archivo de rescate",systemImage:"lifepreserver")
+                    }
+                } header: {
+                    Text("Recuperación de datos")
+                } footer: {
+                    Text("Budviva no puede interpretar los datos guardados. Esta acción copia los bytes originales, sin modificarlos ni borrarlos. El archivo contiene información financiera privada: consérvalo en un lugar seguro.")
+                }
+            }
             Section {
                 Button {
                     prepareExport(encrypted: false)
@@ -76,8 +90,9 @@ struct SettingsScreen: View {
             }
         }
         .fileExporter(isPresented:$exporting,document:exportFile,
-                      contentType:encryptedExport ? .data:.json,
-                      defaultFilename:encryptedExport ? "budviva-cifrada.budviva":"budviva-completa.json") {result in
+                      contentType:rescueExport ? .plainText : (encryptedExport ? .data:.json),
+                      defaultFilename:rescueExport ? "budviva-rescate-original.txt" :
+                        (encryptedExport ? "budviva-cifrada.budviva":"budviva-completa.json")) {result in
             if case .failure(let error) = result {notification=error.localizedDescription}
             exportFile=nil
         }
@@ -136,11 +151,23 @@ struct SettingsScreen: View {
             Button("Aceptar"){notification=nil}
         } message: {Text(notification ?? "")}
     }
+    private func prepareEmergencyExport() {
+        do {
+            let raw=try store.exportEmergencyData()
+            exportFile=BackupFile(data:raw)
+            rescueExport=true
+            encryptedExport=false
+            exporting=true
+        } catch {
+            notification="No se pudo preparar el archivo de rescate: "+error.localizedDescription
+        }
+    }
     private func prepareExport(encrypted:Bool) {
         do {
             let raw=try store.exportBackup()
             let result=encrypted ? try BackupCipher.encrypt(raw,password:password):raw
             exportFile=BackupFile(data:result)
+            rescueExport=false
             encryptedExport=encrypted
             exporting=true
         }catch{
