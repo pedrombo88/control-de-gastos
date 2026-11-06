@@ -50,3 +50,19 @@ test('iOS finanzas: no cierra el editor cuando falla guardar en el iPhone',()=>{
   assert(screen.includes('if store.save(next) { dismiss() }'));
   assert(!screen.includes('store.save(next);dismiss()'));
 });
+
+test('iOS: almacenamiento corrupto puede rescatarse sin sobrescribir bytes financieros',()=>{
+  const store=fs.readFileSync('ios-native/Sources/FinanceStore.swift','utf8');
+  const settings=fs.readFileSync('ios-native/Sources/SettingsScreens.swift','utf8');
+  const start=store.indexOf('func exportEmergencyData() throws -> Data {');
+  const end=store.indexOf('func wipe() throws {',start);
+  assert(start>=0 && end>start);
+  const rescue=store.slice(start,end);
+  assert(rescue.includes('guard isCorrupt'));
+  assert(rescue.includes('return try Data(contentsOf:dataURL)'));
+  assert(!rescue.includes('removeItem(') && !rescue.includes('write(') && !rescue.includes('persist('));
+  assert(settings.includes('if store.isCorrupt {'));
+  assert(settings.includes('let raw=try store.exportEmergencyData()'));
+  assert(settings.includes('rescueExport ? "budviva-rescate-original.txt"'));
+  assert(store.includes('static var writableContentTypes: [UTType] { [.json,.data,.plainText] }'));
+});
