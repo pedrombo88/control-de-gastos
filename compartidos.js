@@ -52,7 +52,12 @@ async function ensureSession(){
     if(!body.access_token||!body.refresh_token)throw Error('La sesión no se ha renovado.');
     session=body;persist();
   }catch(e){
-    session=null;persist();const error=new Error('Tu sesión ha caducado. Vuelve a iniciar sesión.');error.status=401;throw error;
+    // Al caducar la sesión, retirar también los datos compartidos de memoria y pantalla.
+    loadGeneration++;
+    session=null;user=null;household=null;members=[];expenses=[];settlements=[];closureApprovals=[];
+    currentTransfer=null;lastLoadedGeneration=0;inviteCode='';
+    persist();renderRoot();
+    const error=new Error('Tu sesión ha caducado. Vuelve a iniciar sesión.');error.status=401;throw error;
   }
 }
 async function sendCode(email){
