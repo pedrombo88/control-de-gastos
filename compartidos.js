@@ -328,14 +328,15 @@ function renderHistory(){
 function onSubmit(id,fn){$(id).addEventListener('submit',async e=>{
   e.preventDefault();const form=e.currentTarget,btn=form.querySelector('button[type="submit"],button:not([type])');
   if(btn)btn.disabled=true;
-  try{const outcome=await fn(form);if(outcome!=='deleted-account')status('Operación completada.');}
+  try{const outcome=await fn(form);if(outcome!=='deleted-account'&&outcome!=='keep-status')status('Operación completada.');}
   catch(err){fail(err);}
   finally{if(btn)btn.disabled=false;}
 });}
 onSubmit('send-form',async()=>{
   const email=$('email').value.trim();
   await sendCode(email);
-  $('verify-form').hidden=false;status('Código enviado. Revisa tu correo.');
+  $('verify-form').hidden=false;status('Código solicitado. Revisa tu correo e introduce el código recibido.');
+  return 'keep-status';
 });
 onSubmit('verify-form',async()=>{
   await verifyCode($('email').value.trim(),$('otp').value.trim());
