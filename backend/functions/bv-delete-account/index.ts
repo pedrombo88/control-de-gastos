@@ -22,7 +22,7 @@ Deno.serve(async(req:Request)=>{
   const emailOtp=body?.method==="email_otp";
   if(!checkOnly&&(!body||body.confirm!=="ELIMINAR CUENTA"||
     (body.method!==undefined&&body.method!=="password"&&body.method!=="email_otp")||
-    (emailOtp?!/^[0-9]{6,8}$/.test(body.otp||""):
+    (emailOtp?typeof body.otp!=="string"||!/^[0-9]{6,8}$/.test(body.otp):
       typeof body.password!=="string"||body.password.length<8)))
     return reply(400,"Debes confirmar la baja e identificarte con contraseña o código de correo válido");
   const admin=createClient(url,service,{auth:{persistSession:false,autoRefreshToken:false}});
