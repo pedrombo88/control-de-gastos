@@ -177,6 +177,7 @@ struct EntryEditor: View {
     @State private var note=""
     @State private var method="card"
     @State private var invalid=false
+    @State private var confirmDelete=false
     @State private var previewOriginal:URL?
     @State private var previewCopies:[URL]=[]
     var body:some View {
@@ -217,9 +218,9 @@ struct EntryEditor: View {
                     }
                 }
                 if entry != nil {
-                    Section { Button("Eliminar movimiento",role:.destructive){
-                        store.delete(entry!.id);dismiss()
-                    }}
+                    Section {
+                        Button("Eliminar movimiento",role:.destructive) { confirmDelete=true }
+                    }
                 }
             }
             .navigationTitle(entry == nil ? "Nuevo movimiento":"Editar movimiento")
@@ -230,6 +231,16 @@ struct EntryEditor: View {
             }
             .alert("Revisa los datos",isPresented:$invalid) { Button("Aceptar",role:.cancel){} }
                 message:{Text("Introduce un concepto y una cantidad válida mayor de cero.")}
+            .confirmationDialog("¿Eliminar este movimiento?",isPresented:$confirmDelete,titleVisibility:.visible) {
+                Button("Eliminar definitivamente",role:.destructive) {
+                    guard let entry else { return }
+                    store.delete(entry.id)
+                    dismiss()
+                }
+                Button("Cancelar",role:.cancel) {}
+            } message: {
+                Text("Se eliminará el movimiento de este iPhone. Esta acción no borra los gastos de Compartidos ni las copias descargadas.")
+            }
             .quickLookPreview($previewOriginal)
             .onDisappear {
                 for url in previewCopies {try? FileManager.default.removeItem(at:url)}
