@@ -389,11 +389,53 @@ onSubmit('delete-account-form',async f=>{
   });
   const result=await response.json().catch(()=>null);
   if(!response.ok)throw Error(result?.message||'No se ha podido eliminar la cuenta ('+response.status+').');
+  return finishAccountDeletion(f);
+});
+function finishAccountDeletion(f){
   f.reset();
+  $('delete-account-otp-form').reset();
+  $('delete-account-otp-form').hidden=true;
+  $('deletion-otp-status').textContent='La cuenta se ha eliminado.';
   loadGeneration++;session=null;user=null;household=null;members=[];expenses=[];settlements=[];closureApprovals=[];
   currentTransfer=null;lastLoadedGeneration=0;persist();renderRoot();
   status('Cuenta de acceso eliminada. Tus datos privados guardados en este dispositivo no se han borrado.');
   return 'deleted-account';
+}
+$('send-deletion-otp').addEventListener('click',async()=>{
+  const btn=$('send-deletion-otp'),output=$('deletion-otp-status');
+  btn.disabled=true;
+  output.textContent='Comprobando que tu cuenta puede eliminarse…';
+  try{
+    if(!session||!user)throw Error('Debes iniciar sesión para solicitar el código.');
+    if(household)throw Error('Primero debes cerrar o abandonar el grupo de compartidos.');
+    await ensureSession();
+    // Comprobación segura previa. No se envían códigos si hay referencias compartidas.
+    await request('/functions/v1/bv-delete-account',{method:'POST',data:{action:'check'}});
+    await request('/auth/v1/otp',{method:'POST',authenticated:false,data:{email:user.email,create_user:false}});
+    $('delete-account-otp-form').hidden=false;
+    output.textContent='Si el servicio de correo está configurado, recibirás un código de un solo uso. Introdúcelo debajo para confirmar la baja.';
+  }catch(e){
+    $('delete-account-otp-form').hidden=true;
+    output.textContent='No se ha podido enviar el código: '+String(e?.message||e)+'. Comprueba el correo configurado o utiliza la baja con contraseña.';
+  }finally{btn.disabled=false;}
+});
+onSubmit('delete-account-otp-form',async f=>{
+  if(!session||!user)throw Error('Debes iniciar sesión para eliminar tu cuenta.');
+  if(household)throw Error('Primero debes cerrar o abandonar el grupo de compartidos.');
+  const confirmation=f.elements.confirmation.value.trim();
+  if(confirmation!=='ELIMINAR CUENTA')throw Error('Escribe exactamente ELIMINAR CUENTA.');
+  const otp=f.elements.otp.value.trim();
+  if(!/^[0-9]{6,8}$/.test(otp))throw Error('Introduce el código recibido por correo.');
+  if(!confirm('Esta acción eliminará definitivamente tu cuenta de acceso. No se puede deshacer. ¿Quieres continuar?'))return;
+  await ensureSession();
+  const response=await fetch(config.url.replace(/\/$/,'')+'/functions/v1/bv-delete-account',{
+    method:'POST',
+    headers:{apikey:config.publishableKey,Authorization:'Bearer '+session.access_token,'Content-Type':'application/json'},
+    body:JSON.stringify({method:'email_otp',otp,confirm:confirmation}),cache:'no-store'
+  });
+  const result=await response.json().catch(()=>null);
+  if(!response.ok)throw Error(result?.message||'No se ha podido eliminar la cuenta ('+response.status+').');
+  return finishAccountDeletion(f);
 });
 onSubmit('create-form',async f=>{
   await rpc('bv_create_household',{p_title:f.elements.title.value.trim(),p_name:f.elements.name.value.trim()});
