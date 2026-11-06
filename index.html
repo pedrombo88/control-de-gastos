@@ -1119,6 +1119,7 @@ root.BudvivaGoals={build,total,status};
   const renderSettings = () => `<div class="view-heading"><div><div class="eyebrow">PREFERENCIAS</div><h1 class="page-title">Ajustes</h1></div></div>
     ${cardHeader('Copias y exportación')}<section class="card settings-card">
       ${settingsRow('📦','Copia personal','Movimientos y originales guardados en este dispositivo; no incluye Compartidos.','export-json')}
+      ${dataLoadCorrupt?settingsRow('🛟','Descargar datos para recuperación','Guarda el contenido local sin modificarlo. Puede estar dañado e incluir datos sensibles.','export-emergency'):''}
       ${settingsRow('🔒','Copia cifrada','Protege el archivo completo con una contraseña.','export-secure')}
       ${settingsRow('📥','Restaurar copia','Recupera los datos de un archivo JSON.','import-json')}
       ${settingsRow('📊','Exportar movimientos a CSV','Para abrir tus operaciones en Excel o Numbers.','export-csv')}
@@ -1311,6 +1312,15 @@ root.BudvivaGoals={build,total,status};
     if(action==='shared-household'){window.location.href='./compartidos.html';return;}
     if(action==='savings-goals'||action==='savings-analysis'){savings.showPanel(action==='savings-goals'?'goals':'analysis');ui.tab='savings';render();return;}
     if(action==='transactions'||action==='budgets'||action==='recurring'||action==='stats'||action==='smart-import'||action==='savings'){ui.tab=action;ui.query='';render();return;}
+    if(action==='export-emergency'){
+      try{
+        const raw=localStorage.getItem(STORAGE_KEY);
+        if(raw===null)throw Error('No hay datos guardados para recuperar.');
+        exportFile('budviva-rescate-crudo-'+localDate()+'.txt',raw,'text/plain;charset=utf-8');
+        toast('Archivo de recuperación descargado. Contiene datos financieros sensibles; guárdalo de forma privada.');
+      }catch(error){alert('No se pudo descargar el archivo de recuperación: '+error.message);}
+      return;
+    }
     if(action==='export-json'){void exportJson();return;}
     if(action==='export-secure'){backupPassForm.reset();document.getElementById('backup-password-error').hidden=true;backupPassDialog.showModal();return;}
     if(action==='export-csv'){exportCsv();return;}
