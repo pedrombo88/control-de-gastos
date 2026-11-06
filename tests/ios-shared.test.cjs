@@ -34,6 +34,8 @@ test('iOS Movimientos: el borrado requiere confirmación antes de alterar los da
   assert(source.includes('Button("Eliminar definitivamente",role:.destructive)'));
   assert(!source.includes('store.delete(entry!.id);dismiss()'));
   assert(source.includes('pendingDeletionIDs=offsets.compactMap'));
+  assert(source.includes('LazyVGrid(columns:[GridItem(.flexible()),GridItem(.flexible())],spacing:10)'));
+  assert(source.includes('Text(title).font(.subheadline).fontWeight(.semibold)'));
   assert(source.includes('showDeleteConfirmation = !pendingDeletionIDs.isEmpty'));
   assert(source.includes('.confirmationDialog("¿Eliminar los movimientos seleccionados?"'));
   assert(!/onDelete\s*\{[\s\S]{0,150}store\.delete\(/.test(source));
