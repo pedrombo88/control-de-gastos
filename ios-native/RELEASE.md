@@ -95,3 +95,17 @@ Desde el **28 de abril de 2026**, Apple requiere **Xcode 26 o posterior y SDK iO
 Fuente oficial: https://developer.apple.com/news/upcoming-requirements/
 
 La compilación en CI continúa sin firma ni upload automático. Firmar requiere una cuenta Apple Developer y configuración de certificados y permisos del titular.
+
+## Auditoría de equivalencia con la PWA 6.9.9 — 6 de noviembre de 2026
+
+**Estado:** el proyecto nativo SwiftUI es independiente de la web instalable. La PWA incluye Compartidos con Supabase, cierre del grupo, exportación común y eliminación de cuenta, pero **estas pantallas y servicios no están implementados en el proyecto SwiftUI**. No se puede presentar la futura app nativa como una versión que incluye todas las funcionalidades web sin completar la paridad o acotar claramente su alcance.
+
+**Controles técnicos antes de lanzar:**
+
+- Ejecutar `ios-build.yml` con Xcode y XCTest en simulador para la revisión actual. El resultado no valida cámara real, VoiceOver ni rendimiento físico.
+- Mantener `com.example.budviva` como identificador provisional sin firma; configurar Bundle ID, equipo y credenciales únicamente en App Store Connect/CI segura.
+- Definir si Compartidos será parte de la versión iOS inicial; si se anuncia, implementarlo y probarlo con autorización/autenticación y navegación segura.
+- Validar importación PWA → iOS mediante copia completa, documentos originales y cifrado, y no presentar los datos de ambas aplicaciones como sincronizados.
+- Completar las declaraciones de privacidad y un canal de soporte no público.
+
+La auditoría de la PWA se recoge por separado en `AUDITORIA_PROFESIONAL_BUDVIVA_2026-11-06.md`. Esta nota actualiza los criterios de publicación y no certifica el funcionamiento en un iPhone físico.
