@@ -1,6 +1,6 @@
 # Budviva — Expediente de publicación iOS
 
-**Estado:** beta técnica. Esta carpeta contiene un proyecto iOS nativo SwiftUI, no un contenedor WKWebView. **No se ha enviado a App Store ni a TestFlight.** La revisión oficial de Apple, las pruebas en dispositivos reales y la firma de distribución siguen pendientes.
+**Estado:** beta técnica iOS 1.1. Esta carpeta contiene un proyecto iOS nativo SwiftUI, no un contenedor WKWebView. El módulo opcional Compartidos se abre en una ventana independiente y segura de SafariServices. **No se ha enviado a App Store ni a TestFlight.** La revisión oficial de Apple, las pruebas en dispositivos reales y la firma de distribución siguen pendientes.
 
 ## Funciones implementadas
 
@@ -13,6 +13,7 @@
 - Datos: almacenamiento privado protegido en Application Support y originales de documentos asociados.
 - Copias: JSON completo importable desde la PWA, y opción cifrada AES-256-GCM/PBKDF2; vector de compatibilidad compartido con la web.
 - Apariencia: cuatro temas. **Interfaz actual en español.** Otros idiomas no están certificados como completos.
+- Compartidos: acceso desde Movimientos a la web ya operativa mediante una ventana de SafariServices. Sesión y movimientos compartidos independientes del almacenamiento financiero local; no se transmiten movimientos privados en la URL.
 
 ## Cómo comprobar la compilación sin Mac propio
 
@@ -98,14 +99,20 @@ La compilación en CI continúa sin firma ni upload automático. Firmar requiere
 
 ## Auditoría de equivalencia con la PWA 6.9.9 — 6 de noviembre de 2026
 
-**Estado:** el proyecto nativo SwiftUI es independiente de la web instalable. La PWA incluye Compartidos con Supabase, cierre del grupo, exportación común y eliminación de cuenta, pero **estas pantallas y servicios no están implementados en el proyecto SwiftUI**. No se puede presentar la futura app nativa como una versión que incluye todas las funcionalidades web sin completar la paridad o acotar claramente su alcance.
+**Estado:** el proyecto nativo SwiftUI es independiente de la web instalable. La PWA incluye Compartidos con Supabase, cierre del grupo, exportación común y eliminación de cuenta. **Desde iOS 1.1 beta, el usuario puede acceder a todas ellas a través de SafariServices desde Movimientos.** Sin embargo, estas funciones todavía **no están implementadas como pantallas nativas**, ni se comparten sesiones o movimientos privados con la web. No se puede presentar la futura app nativa como una versión que incluye todas las funcionalidades web sin completar la paridad o acotar claramente su alcance.
 
 **Controles técnicos antes de lanzar:**
 
 - Ejecutar `ios-build.yml` con Xcode y XCTest en simulador para la revisión actual. El resultado no valida cámara real, VoiceOver ni rendimiento físico.
 - Mantener `com.example.budviva` como identificador provisional sin firma; configurar Bundle ID, equipo y credenciales únicamente en App Store Connect/CI segura.
-- Definir si Compartidos será parte de la versión iOS inicial; si se anuncia, implementarlo y probarlo con autorización/autenticación y navegación segura.
+- Si se anuncia Compartidos en iOS, especificar que se abre mediante SafariServices, requiere conexión y autenticación independiente. Validar el flujo entero en iPhone físico; para paridad nativa completa habría que migrar la experiencia a SwiftUI y proteger credenciales en Keychain.
 - Validar importación PWA → iOS mediante copia completa, documentos originales y cifrado, y no presentar los datos de ambas aplicaciones como sincronizados.
 - Completar las declaraciones de privacidad y un canal de soporte no público.
 
 La auditoría de la PWA se recoge por separado en `AUDITORIA_PROFESIONAL_BUDVIVA_2026-11-06.md`. Esta nota actualiza los criterios de publicación y no certifica el funcionamiento en un iPhone físico.
+
+### iOS 1.1 beta — avance de paridad (6 de noviembre de 2026)
+
+Se añade una cuarta herramienta «Compartidos» en **Movimientos**, con pantalla explicativa SwiftUI y un navegador del sistema SFSafariViewController presentado a pantalla completa. El acceso se limita a la URL oficial HTTPS con ruta fija; ni el token de sesión ni los datos bancarios privados se transmiten desde iOS. Safari gestiona de forma independiente la sesión y el formulario de alta/baja. Se añade prueba XCTest del origen HTTPS y de la ausencia de parámetros privados, con compilación y pruebas de simulador mediante GitHub Actions.
+
+**Pendiente:** pruebas reales de acceso, alta/baja por correo OTP, presentación de SafariServices, navegación con VoiceOver, sin conexión y gestión de la sesión en iPhone físico. Este acceso a funcionalidades existentes **no supone paridad nativa completa ni aprobación por Apple**.
