@@ -2,7 +2,7 @@
 
 **Estado:** versión web instalable (PWA) **6.9.8 beta**, en preparación para una futura versión iOS comercial. **No publicada en App Store.**
 
-[Probar Budviva](https://pedrombo88.github.io/control-de-gastos/) · [Privacidad](https://pedrombo88.github.io/control-de-gastos/privacidad.html) · [Ayuda](https://pedrombo88.github.io/control-de-gastos/soporte.html) · [Auditoría para publicación](./AUDITORIA_BUDVIVA_2026-11-04.md) · [Seguridad de Compartidos](./AUDITORIA_SEGURIDAD_COMPARTIDOS_2026-11-06.md)
+[Probar Budviva](https://pedrombo88.github.io/control-de-gastos/) · [Privacidad](https://pedrombo88.github.io/control-de-gastos/privacidad.html) · [Ayuda](https://pedrombo88.github.io/control-de-gastos/soporte.html) · [Auditoría para publicación](./AUDITORIA_BUDVIVA_2026-11-04.md) · [Seguridad de Compartidos](./AUDITORIA_SEGURIDAD_COMPARTIDOS_2026-11-06.md) · [Configurar correo OTP](./docs/CONFIGURACION_CORREO_OTP.md)
 
 ## Interfaz principal
 
