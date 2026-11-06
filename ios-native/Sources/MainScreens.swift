@@ -117,12 +117,14 @@ struct MovementsScreen: View {
     }
     var body: some View {
         VStack(spacing:0) {
-            HStack(spacing:10) {
+            LazyVGrid(columns:[GridItem(.flexible()),GridItem(.flexible())],spacing:10) {
                 tool("Importar","doc.text.viewfinder",.importFiles)
                 tool("Recurrentes","repeat",.recurring)
                 tool("Estadísticas","chart.bar",.statistics)
                 tool("Compartidos","person.2",.shared)
-            }.padding(.horizontal,16).padding(.vertical,12)
+            }
+            .padding(.horizontal,16)
+            .padding(.vertical,12)
             Picker("Tipo",selection:$filter) {
                 Text("Todos").tag("all");Text("Gastos").tag("expense");Text("Ingresos").tag("income")
             }.pickerStyle(.segmented).padding(.horizontal,16)
@@ -175,7 +177,10 @@ struct MovementsScreen: View {
     }
     private func tool(_ title:String,_ icon:String,_ value:Tool)->some View {
         Button { selectedTool=value } label: {
-            VStack(spacing:6) { Image(systemName:icon).font(.title3);Text(title).font(.system(size:11,weight:.semibold)).lineLimit(1).minimumScaleFactor(0.75) }
+            VStack(spacing:6) {
+                Image(systemName:icon).font(.title3)
+                Text(title).font(.subheadline).fontWeight(.semibold).lineLimit(1)
+            }
                 .frame(maxWidth:.infinity).frame(height:60)
         }.buttonStyle(.bordered)
     }
