@@ -1,6 +1,6 @@
 # Configuración del correo de acceso y baja — Budviva
 
-**Estado (6 de noviembre de 2026):** el flujo de OTP de Budviva 6.9.8 y la Edge Function `bv-delete-account` v4 están implementados. **No se ha verificado aún el envío real de correos**. El proyecto Supabase usa el plan Free. No se han contratado proveedores ni utilizado cuentas de producción para probar bajas.
+**Estado (6 de noviembre de 2026):** el flujo de OTP de Budviva 6.9.8 y la Edge Function `bv-delete-account` v5 están implementados. **No se ha verificado aún el envío real de correos**. El proyecto Supabase usa el plan Free. No se han contratado proveedores ni utilizado cuentas de producción para probar bajas.
 
 ## Configuración necesaria (una sola vez)
 
@@ -24,7 +24,7 @@
 ## Detalles técnicos
 
 - El cliente solicita el código a `/auth/v1/otp` con `create_user:false` y el correo de la sesión autenticada. No crea usuarios nuevos.
-- La Edge Function exige sesión válida, confirma ausencia de pertenencia y referencias financieras, exige el texto `ELIMINAR CUENTA`, valida el OTP con `auth.verifyOtp({email,token,type:'email'})` y comprueba que el identificador de la cuenta verificada coincide con el de la sesión.
+- La Edge Function exige sesión válida, confirma ausencia de pertenencia, referencias financieras y autorizaciones de cierre, exige el texto `ELIMINAR CUENTA`, valida el OTP con `auth.verifyOtp({email,token,type:'email'})` y comprueba que el identificador de la cuenta verificada coincide con el de la sesión.
 - El código nunca se almacena en el almacenamiento local ni se envía a GitHub.
 - Los tests automatizados de GitHub verifican rutas negativas y el flujo de eliminación con simuladores. **No sustituyen la prueba de correo real ni el ensayo con cuentas desechables**.
 
