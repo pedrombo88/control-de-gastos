@@ -22,3 +22,11 @@ test('iOS Compartidos: la versión nativa conserva su flujo de movimientos y her
   const root=fs.readFileSync('ios-native/Sources/BudvivaApp.swift','utf8');
   assert(root.includes('NavigationStack { MovementsScreen() }'));
 });
+
+test('iOS Movimientos: el borrado requiere confirmación antes de alterar los datos',()=>{
+  const source=fs.readFileSync('ios-native/Sources/MainScreens.swift','utf8');
+  assert(source.includes('Button("Eliminar movimiento",role:.destructive) { confirmDelete=true }'));
+  assert(source.includes('.confirmationDialog("¿Eliminar este movimiento?",isPresented:$confirmDelete'));
+  assert(source.includes('Button("Eliminar definitivamente",role:.destructive)'));
+  assert(!source.includes('store.delete(entry!.id);dismiss()'));
+});
