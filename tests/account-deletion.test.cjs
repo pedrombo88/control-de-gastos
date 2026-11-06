@@ -9,7 +9,7 @@ test('Eliminación: sesión, confirmación y reautenticación con contraseña u 
   for(const token of ['auth.getUser(token)','signInWithPassword','auth.verifyOtp','verified.user?.id!==identity.user.id','body.confirm!=="ELIMINAR CUENTA"'])assert(edge.includes(token),token);
 });
 test('Eliminación: el servidor comprueba las referencias compartidas',()=>{
-  for(const name of ['bv_members','bv_households','bv_expenses','bv_settlements','author_id','payer_id','receiver_id'])assert(edge.includes(name),name);
+  for(const name of ['bv_members','bv_households','bv_household_closure_approvals','bv_expenses','bv_settlements','author_id','payer_id','receiver_id'])assert(edge.includes(name),name);
   assert(edge.indexOf('admin.auth.admin.deleteUser')>edge.indexOf('for(const [table,column]'));
 });
 test('OTP: la verificación usa exclusivamente el correo de la identidad autenticada',()=>{
