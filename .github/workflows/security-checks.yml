@@ -19,8 +19,8 @@ jobs:
           node-version: '22'
       - name: Validate UI and run regression tests
         run: npm run check
-      - name: Safe live smoke test (no credentials, no account deletion)
+      - name: Live anonymous RLS and account endpoint checks (read-only)
         if: github.event_name != 'pull_request'
         env:
           BUDVIVA_LIVE_SMOKE: '1'
-        run: node --test tests/account-deletion.test.cjs
+        run: node --test tests/account-deletion.test.cjs tests/anonymous-rls.test.cjs
