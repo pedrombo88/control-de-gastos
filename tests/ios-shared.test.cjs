@@ -19,5 +19,6 @@ test('iOS Compartidos: la versión nativa conserva su flujo de movimientos y her
     assert.match(source,new RegExp('case \\.'+tool+'\\b|case '+tool+'\\b'));
   }
   assert.match(source,/EntryEditor\(entry:editing\)/);
-  assert.match(source,/NavigationStack \{ MovementsScreen\(\) \}/);
+  const root=fs.readFileSync('ios-native/Sources/BudvivaApp.swift','utf8');
+  assert.match(root,/NavigationStack \\{ MovementsScreen\\(\\) \\}/);
 });
