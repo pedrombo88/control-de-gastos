@@ -114,7 +114,7 @@ Fuentes: [App Review Guidelines](https://developer.apple.com/app-store/review/gu
 5. Compilación iOS reproducible, tests en simulador y batería de aceptación en un iPhone físico.
 6. Política legal, titularidad, soporte privado y App Store Connect completos antes del envío.
 
-**Validación de la versión 6.9.10:** el pipeline de JavaScript/seguridad está verde, las pruebas de interfaz móvil alcanzaron 19 aprobadas en la versión con mejoras de accesibilidad. La prueba adicional de recuperación de datos y el servicio web deben confirmarse en el último commit antes de declarar cerrada la beta.\n\n### Evidencias y enlaces
+**Validación de la versión 6.9.10:** el pipeline de JavaScript/seguridad está verde, la [ejecución 42192880559](https://github.com/pedrombo88/control-de-gastos/actions/runs/42192880559) ha superado **20 pruebas de interfaz móvil** en Chromium, incluidas la recuperación de datos dañados, la protección entre pestañas, el acceso a Compartidos y el contraste. El servicio web y la firma/distribución iOS siguen siendo controles independientes.\n\n### Evidencias y enlaces
 
 - [PWA beta](https://pedrombo88.github.io/control-de-gastos/) · [Compartidos](https://pedrombo88.github.io/control-de-gastos/compartidos.html)
 - [Pruebas móviles](./tests/auditoria-integridad.ui.spec.cjs) · [Accesibilidad Compartidos](./tests/accesibilidad-compartidos.ui.spec.cjs) · [OTP móvil simulado](./tests/compartidos-otp.ui.spec.cjs)
