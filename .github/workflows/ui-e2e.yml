@@ -4,6 +4,10 @@ on:
     branches: [main]
     paths:
       - 'index.html'
+      - 'compartidos.html'
+      - 'compartidos.js'
+      - 'shared-config.js'
+      - 'backend/functions/**'
       - 'recurring.js'
       - 'stats.js'
       - 'smart-import.js'
