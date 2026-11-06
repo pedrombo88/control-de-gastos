@@ -9,6 +9,10 @@ test('iOS Compartidos: servicio HTTPS, acceso independiente sin transmitir datos
   assert.match(source,/import SafariServices/);
   assert.match(source,/SFSafariViewController\(url: SharedExpensesService\.url\)/);
   assert.match(source,/fullScreenCover\(isPresented: \$showingShared\)/);
+  assert(source.includes('SharedExpensesBrowser(isPresented: $showingShared)'));
+  assert(source.includes('controller.delegate = context.coordinator'));
+  assert(source.includes('func safariViewControllerDidFinish(_ controller: SFSafariViewController)'));
+  assert(source.includes('isPresented = false'));
   assert.match(main,/tool\("Compartidos","person\.2",\.shared\)/);
   assert.match(main,/case \.shared: SharedExpensesScreen\(\)/);
   assert.doesNotMatch(source,/auth\.users|apikey|publishableKey|Authorization|\?token=|\?email=|\/rest\/v1\/bv_expenses/);
@@ -29,4 +33,8 @@ test('iOS Movimientos: el borrado requiere confirmación antes de alterar los da
   assert(source.includes('.confirmationDialog("¿Eliminar este movimiento?",isPresented:$confirmDelete'));
   assert(source.includes('Button("Eliminar definitivamente",role:.destructive)'));
   assert(!source.includes('store.delete(entry!.id);dismiss()'));
+  assert(source.includes('pendingDeletionIDs=offsets.compactMap'));
+  assert(source.includes('showDeleteConfirmation = !pendingDeletionIDs.isEmpty'));
+  assert(source.includes('.confirmationDialog("¿Eliminar los movimientos seleccionados?"'));
+  assert(!/onDelete\s*\{[\s\S]{0,150}store\.delete\(/.test(source));
 });
