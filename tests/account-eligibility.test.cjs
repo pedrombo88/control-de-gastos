@@ -8,8 +8,8 @@ const source=fs.readFileSync('backend/functions/bv-delete-account/index.ts','utf
   .replace('status:number,message:string','status,message')
   .replace('req:Request','req')
   .replace(/\s+as const/g,'');
-function fixture({member=false,history=false,auth=true,badPassword=false,dbError=false}={}){
-  let handler=null,deleted=0,logins=0,reads=0;
+function fixture({member=false,history=false,auth=true,badPassword=false,badOtp=false,otpOtherUser=false,dbError=false}={}){
+  let handler=null,deleted=0,logins=0,reads=0,otpChecks=0;
   const deno={env:{get(name){
     return ({SUPABASE_URL:'https://test.invalid',SUPABASE_ANON_KEY:'public_test',SUPABASE_SERVICE_ROLE_KEY:'private_test'})[name];
   }},serve(fn){handler=fn;}};
@@ -28,7 +28,10 @@ function fixture({member=false,history=false,auth=true,badPassword=false,dbError
     }
     return {auth:{
       async getUser(token){return token==='good'&&auth?{data:{user:fakeUser},error:null}:{data:{user:null},error:{message:'Unauthorized'}};},
-      async signInWithPassword(input){logins++;return badPassword||input.password!=='safe-password'?{data:{user:null},error:{message:'invalid'}}:{data:{user:fakeUser},error:null};}
+      async signInWithPassword(input){logins++;return badPassword||input.password!=='safe-password'?{data:{user:null},error:{message:'invalid'}}:{data:{user:fakeUser},error:null};},
+      async verifyOtp(input){otpChecks++;return badOtp||input.email!==fakeUser.email||input.type!=='email'||input.token!=='123456'
+        ?{data:{user:null},error:{message:'invalid'}}
+        :{data:{user:otpOtherUser?{id:'other-user'}:fakeUser},error:null};}
     }};
   }
   new Function('createClient','Deno','Request','Response',source)(createClient,deno,Request,Response);
@@ -40,11 +43,11 @@ function fixture({member=false,history=false,auth=true,badPassword=false,dbError
       {method:'POST',headers,body:JSON.stringify(body)}));
     return {status:response.status,body:await response.json()};
   }
-  return {post,stats:()=>({deleted,logins,reads})};
+  return {post,stats:()=>({deleted,logins,reads,otpChecks})};
 }
 test('read-only: usuario anónimo rechazado sin consultar la base de datos',async()=>{
   const x=fixture();const r=await x.post({action:'check'},'');
-  assert.equal(r.status,401);assert.deepEqual(x.stats(),{deleted:0,logins:0,reads:0});
+  assert.equal(r.status,401);assert.deepEqual(x.stats(),{deleted:0,logins:0,reads:0,otpChecks:0});
 });
 test('read-only: sesión inválida rechazada sin tocar datos',async()=>{
   const x=fixture({auth:false});const r=await x.post({action:'check'});
@@ -83,4 +86,41 @@ test('eliminación: el bloqueo de Compartidos se aplica también al borrado real
 test('eliminación: únicamente el recorrido autorizado llama al simulador de borrado',async()=>{
   const x=fixture();const r=await x.post({password:'safe-password',confirm:'ELIMINAR CUENTA'});
   assert.equal(r.status,200);assert.equal(x.stats().deleted,1);
+});
+
+test('OTP: formato inválido o confirmación incompleta no verifican ni borran',async()=>{
+  for(const body of [
+    {method:'email_otp',otp:'12345',confirm:'ELIMINAR CUENTA'},
+    {method:'email_otp',otp:'123456',confirm:'NO'},
+    {method:'email_otp',otp:123456,confirm:'ELIMINAR CUENTA'},
+    {method:'unknown',otp:'123456',confirm:'ELIMINAR CUENTA'}
+  ]){
+    const x=fixture();const r=await x.post(body);
+    assert.equal(r.status,400);assert.equal(x.stats().deleted,0);assert.equal(x.stats().otpChecks,0);
+  }
+});
+test('OTP: código caducado o erróneo no elimina la cuenta',async()=>{
+  const x=fixture({badOtp:true});
+  const r=await x.post({method:'email_otp',otp:'123456',confirm:'ELIMINAR CUENTA'});
+  assert.equal(r.status,403);assert.equal(x.stats().otpChecks,1);assert.equal(x.stats().deleted,0);
+});
+test('OTP: código válido de otra cuenta no permite eliminar',async()=>{
+  const x=fixture({otpOtherUser:true});
+  const r=await x.post({method:'email_otp',otp:'123456',confirm:'ELIMINAR CUENTA'});
+  assert.equal(r.status,403);assert.equal(x.stats().deleted,0);
+});
+test('OTP: vinculación a Compartidos impide incluso verificar el código',async()=>{
+  const x=fixture({member:true});
+  const r=await x.post({method:'email_otp',otp:'123456',confirm:'ELIMINAR CUENTA'});
+  assert.equal(r.status,409);assert.equal(x.stats().otpChecks,0);assert.equal(x.stats().deleted,0);
+});
+test('OTP: fallo de BD bloquea la baja antes de verificar el código',async()=>{
+  const x=fixture({dbError:true});
+  const r=await x.post({method:'email_otp',otp:'123456',confirm:'ELIMINAR CUENTA'});
+  assert.equal(r.status,503);assert.equal(x.stats().otpChecks,0);assert.equal(x.stats().deleted,0);
+});
+test('OTP: únicamente código de correo validado para la misma cuenta permite el borrado simulado',async()=>{
+  const x=fixture();
+  const r=await x.post({method:'email_otp',otp:'123456',confirm:'ELIMINAR CUENTA'});
+  assert.equal(r.status,200);assert.equal(x.stats().otpChecks,1);assert.equal(x.stats().logins,0);assert.equal(x.stats().deleted,1);
 });
