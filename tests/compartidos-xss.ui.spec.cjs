@@ -33,7 +33,7 @@ test('Compartidos: texto de gastos, miembros y grupo nunca ejecuta HTML inyectad
         id:householdId,title:'Grupo '+maliciousTitle,owner_id:userId
       }]));
       if(target.pathname==='/rest/v1/bv_expenses')return Promise.resolve(response([{
-        id:'xss-expense',author_id:userId,payer_id:userId,title:maliciousTitle,category:'otros',
+        id:'xss-expense',author_id:'xss-test-partner',payer_id:'xss-test-partner',title:maliciousTitle,category:'otros',
         amount_cents:2599,share_basis_points_a:5000,spent_on:'2026-11-06',
         created_at:'2026-11-06T12:00:00Z'
       }]));
