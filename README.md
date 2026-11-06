@@ -1,6 +1,6 @@
 # Budviva — Tu dinero, más claro
 
-**Estado:** versión web instalable (PWA) **6.9.9 beta**, en preparación para una futura versión iOS comercial. **No publicada en App Store.**
+**Estado:** versión web instalable (PWA) **6.9.10 beta**, en preparación para una futura versión iOS comercial. **No publicada en App Store.**
 
 [Probar Budviva](https://pedrombo88.github.io/control-de-gastos/) · [Privacidad](https://pedrombo88.github.io/control-de-gastos/privacidad.html) · [Ayuda](https://pedrombo88.github.io/control-de-gastos/soporte.html) · [Auditoría para publicación](./AUDITORIA_BUDVIVA_2026-11-04.md) · [Seguridad de Compartidos](./AUDITORIA_SEGURIDAD_COMPARTIDOS_2026-11-06.md) · [Configurar correo OTP](./docs/CONFIGURACION_CORREO_OTP.md)
 
@@ -140,6 +140,10 @@ Las seis tablas de Compartidos cuentan con comprobaciones automáticas reales de
 
 Se añade un método alternativo de baja de cuenta mediante código de correo de un solo uso. El servidor exige una sesión válida, que no existan referencias financieras ni pertenencia a Compartidos, la confirmación irreversible y la verificación del código contra el correo de la misma cuenta en Supabase Auth. La petición del código usa `create_user:false` para no generar usuarios nuevos. Se conservan la baja con contraseña y el modo de comprobación segura. Pruebas simuladas de códigos erróneos, usuarios distintos y bloqueo de datos compartidos; **el envío real requiere SMTP y la plantilla OTP configurados**. No se han eliminado cuentas reales.
 
-### 6.9.9 — Auditoría de integridad y actualización segura
+### 6.9.10 — Auditoría de integridad y actualización segura
 
 La actualización de Budviva deja de eliminar manualmente todas las cachés offline y utiliza la versión real de la aplicación. Si no existe conexión, no se fuerza una recarga. Se añade protección frente a sobrescritura de movimientos cuando hay dos pestañas abiertas en el mismo navegador y pruebas automatizadas de concurrencia y funcionamiento sin conexión. Los cambios no modifican la clave histórica de almacenamiento ni borran documentos.
+
+### 6.9.10 — Recuperación y accesibilidad auditadas
+
+Si el almacenamiento financiero local contiene datos no interpretables, aparece una opción de **Descargar datos para recuperación**, sin reescribirlos ni borrarlos. Se comprueba que restaurar una copia no sustituya archivos de otra pestaña con cambios recientes. Compartidos incorpora una política CSP limitada a los recursos necesarios y mejoras de contraste WCAG 2.2 AA; se añaden pruebas de accesibilidad, pantallas de 320 píxeles y recuperación de datos corruptos. Las pruebas de iOS siguen siendo independientes de la PWA.
