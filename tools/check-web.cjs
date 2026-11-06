@@ -37,6 +37,9 @@ for(const unsafe of ['=2+2','  =SUM(A1)','\t@evil','+2','-2']) assert(csvFn(unsa
 assert.equal(csvFn('compra'),'"compra"');
 assert(sharedJsSource.includes('expenses=[];settlements=[];closureApprovals=[];currentTransfer=null;lastLoadedGeneration=0;'),'Clear data when household disappears');
 const sharedHtml=fs.readFileSync('compartidos.html','utf8');
+assert(sharedHtml.includes('http-equiv="Content-Security-Policy"'),'Compartidos must define a CSP');
+assert(sharedHtml.includes("script-src 'self'"),'Compartidos must not allow arbitrary inline scripts');
+assert(sharedHtml.includes('connect-src')&&sharedHtml.includes('https://bsvtttcuqamjifnpuzlj.supabase.co'),'Compartidos CSP must allow only its backend');
 
 const privacyHtml=fs.readFileSync('privacidad.html','utf8');
 const supportHtml=fs.readFileSync('soporte.html','utf8');
