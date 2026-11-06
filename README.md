@@ -1,6 +1,6 @@
 # Budviva — Tu dinero, más claro
 
-**Estado:** versión web instalable (PWA) **6.9.7 beta**, en preparación para una futura versión iOS comercial. **No publicada en App Store.**
+**Estado:** versión web instalable (PWA) **6.9.8 beta**, en preparación para una futura versión iOS comercial. **No publicada en App Store.**
 
 [Probar Budviva](https://pedrombo88.github.io/control-de-gastos/) · [Privacidad](https://pedrombo88.github.io/control-de-gastos/privacidad.html) · [Ayuda](https://pedrombo88.github.io/control-de-gastos/soporte.html) · [Auditoría para publicación](./AUDITORIA_BUDVIVA_2026-11-04.md) · [Seguridad de Compartidos](./AUDITORIA_SEGURIDAD_COMPARTIDOS_2026-11-06.md)
 
@@ -135,3 +135,7 @@ Se añade el botón «Comprobar protección de mi cuenta (sin borrar datos)» en
 ### 6.9.7 — Auditoría de aislamiento y privacidad
 
 Las seis tablas de Compartidos cuentan con comprobaciones automáticas reales de acceso anónimo, ejecutadas en GitHub Actions sin credenciales ni modificaciones. Se actualizan la política de privacidad y el soporte para explicar la baja de cuenta disponible y sus límites. Se documentan los avisos de Supabase, la protección de contraseñas filtradas (requiere plan Pro) y los bloqueos que impiden considerar lista la app para App Store. Se sincronizan versión, icono y caché de la PWA.
+
+### 6.9.8 — Baja de cuenta sin contraseña (OTP)
+
+Se añade un método alternativo de baja de cuenta mediante código de correo de un solo uso. El servidor exige una sesión válida, que no existan referencias financieras ni pertenencia a Compartidos, la confirmación irreversible y la verificación del código contra el correo de la misma cuenta en Supabase Auth. La petición del código usa `create_user:false` para no generar usuarios nuevos. Se conservan la baja con contraseña y el modo de comprobación segura. Pruebas simuladas de códigos erróneos, usuarios distintos y bloqueo de datos compartidos; **el envío real requiere SMTP y la plantilla OTP configurados**. No se han eliminado cuentas reales.
