@@ -17,8 +17,14 @@ Deno.serve(async(req:Request)=>{
   const body=await req.json().catch(()=>null);
   // Comprobación no destructiva: disponible con sesión propia. Nunca borra cuentas.
   const checkOnly=body?.action==="check";
-  if(!checkOnly&&(!body||typeof body.password!=="string"||body.password.length<8||body.confirm!=="ELIMINAR CUENTA"))
-    return reply(400,"Debes confirmar la baja e introducir tu contraseña");
+  // La baja por correo requiere un código OTP de un solo uso, verificado en Auth.
+  // Nunca se permite borrar únicamente por tener una sesión abierta.
+  const emailOtp=body?.method==="email_otp";
+  if(!checkOnly&&(!body||body.confirm!=="ELIMINAR CUENTA"||
+    (body.method!==undefined&&body.method!=="password"&&body.method!=="email_otp")||
+    (emailOtp?!/^[0-9]{6,8}$/.test(body.otp||""):
+      typeof body.password!=="string"||body.password.length<8)))
+    return reply(400,"Debes confirmar la baja e identificarte con contraseña o código de correo válido");
   const admin=createClient(url,service,{auth:{persistSession:false,autoRefreshToken:false}});
   const {data:members,error:memberError}=await admin.from("bv_members").select("user_id").eq("user_id",identity.user.id).limit(1);
   if(memberError)return reply(503,"No se ha podido verificar la pertenencia a grupos compartidos");
@@ -31,11 +37,13 @@ Deno.serve(async(req:Request)=>{
     if(data?.length)return reply(409,"Tu cuenta figura en un historial compartido y no puede eliminarse todavía.");
   }
   if(checkOnly)return reply(200,"Comprobación superada: no hay referencias compartidas que bloqueen la baja. No se ha borrado nada.");
-  // La baja definitiva siempre exige contraseña y confirmación, además de sesión válida.
-  const {data:verified,error:verifyError}=await userClient.auth.signInWithPassword({
-    email:identity.user.email,password:body.password
-  });
-  if(verifyError||verified.user?.id!==identity.user.id)return reply(403,"Contraseña incorrecta");
+  // Reautenticación obligatoria: contraseña actual o OTP recibido en el correo
+  // verificado del usuario. Supabase Auth valida caducidad y uso único del OTP.
+  const {data:verified,error:verifyError}=emailOtp
+    ?await userClient.auth.verifyOtp({email:identity.user.email,token:body.otp,type:"email"})
+    :await userClient.auth.signInWithPassword({email:identity.user.email,password:body.password});
+  if(verifyError||verified.user?.id!==identity.user.id)
+    return reply(403,emailOtp?"Código de correo incorrecto o caducado":"Contraseña incorrecta");
   const {error:deleteError}=await admin.auth.admin.deleteUser(identity.user.id);
   if(deleteError)return reply(503,"No se ha podido eliminar la cuenta. Contacta con soporte.");
   return reply(200,"Cuenta de acceso eliminada");
