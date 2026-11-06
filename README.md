@@ -1,8 +1,8 @@
 # Budviva — Tu dinero, más claro
 
-**Estado:** versión web instalable (PWA) **6.8.0 beta**, en preparación para una futura versión iOS comercial. **No publicada en App Store.**
+**Estado:** versión web instalable (PWA) **6.9.7 beta**, en preparación para una futura versión iOS comercial. **No publicada en App Store.**
 
-[Probar Budviva](https://pedrombo88.github.io/control-de-gastos/) · [Privacidad](https://pedrombo88.github.io/control-de-gastos/privacidad.html) · [Ayuda](https://pedrombo88.github.io/control-de-gastos/soporte.html) · [Auditoría para publicación](./AUDITORIA_BUDVIVA_2026-11-04.md)
+[Probar Budviva](https://pedrombo88.github.io/control-de-gastos/) · [Privacidad](https://pedrombo88.github.io/control-de-gastos/privacidad.html) · [Ayuda](https://pedrombo88.github.io/control-de-gastos/soporte.html) · [Auditoría para publicación](./AUDITORIA_BUDVIVA_2026-11-04.md) · [Seguridad de Compartidos](./AUDITORIA_SEGURIDAD_COMPARTIDOS_2026-11-06.md)
 
 ## Interfaz principal
 
@@ -131,3 +131,7 @@ El icono de la PWA y del iPhone reproduce el logotipo de la cabecera: B blanca y
 ### 6.9.6 — Comprobación segura de protección de cuenta
 
 Se añade el botón «Comprobar protección de mi cuenta (sin borrar datos)» en Compartidos, tanto dentro como fuera de un grupo. El servicio Edge `bv-delete-account` v3 admite `action: check` autenticado, consulta pertenencia y referencias históricas, devuelve bloqueo (409) o aptitud preliminar (200) y nunca ejecuta el borrado para esa acción. La baja definitiva sigue exigiendo contraseña y confirmación. Se incorporan pruebas aisladas con simuladores, incluidas pruebas de bloqueo, fallo de base de datos y contraseña incorrecta. Ninguna prueba crea o borra cuentas reales.
+
+### 6.9.7 — Auditoría de aislamiento y privacidad
+
+Las seis tablas de Compartidos cuentan con comprobaciones automáticas reales de acceso anónimo, ejecutadas en GitHub Actions sin credenciales ni modificaciones. Se actualizan la política de privacidad y el soporte para explicar la baja de cuenta disponible y sus límites. Se documentan los avisos de Supabase, la protección de contraseñas filtradas (requiere plan Pro) y los bloqueos que impiden considerar lista la app para App Store. Se sincronizan versión, icono y caché de la PWA.
