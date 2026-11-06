@@ -87,7 +87,7 @@ test("Un movimiento permite adjuntar original y exportarlo en una copia completa
   await page.locator('#documents-dialog [data-close]').click();
   await page.locator('[data-tab="settings"]').click();
   const downloadPromise=page.waitForEvent("download");
-  await page.getByText("Copia completa",{exact:true}).click();
+  await page.getByText("Copia personal",{exact:true}).click();
   const dl=await downloadPromise;
   expect(dl.suggestedFilename()).toMatch(/^budviva-completa-\d{4}-\d{2}-\d{2}\.json$/);
   const filePath=await dl.path();
