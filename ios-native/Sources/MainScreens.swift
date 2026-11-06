@@ -105,6 +105,8 @@ struct MovementsScreen: View {
     @State private var query=""
     @State private var showEditor=false
     @State private var editing:Movement?
+    @State private var pendingDeletionIDs: [String] = []
+    @State private var showDeleteConfirmation=false
     @State private var selectedTool: Tool?
     enum Tool:String,Identifiable { case importFiles,recurring,statistics,shared; var id:String{rawValue} }
     private var visible: [Movement] {
@@ -132,10 +134,24 @@ struct MovementsScreen: View {
                 }
                 .onDelete { offsets in
                     let rows=visible
-                    offsets.forEach { store.delete(rows[$0].id) }
+                    pendingDeletionIDs=offsets.compactMap { index in
+                        rows.indices.contains(index) ? rows[index].id : nil
+                    }
+                    showDeleteConfirmation = !pendingDeletionIDs.isEmpty
                 }
             }.searchable(text:$query,prompt:"Buscar concepto o categoría")
                 .overlay { if visible.isEmpty { ContentUnavailableView.search(text:query) } }
+        }
+        .confirmationDialog("¿Eliminar los movimientos seleccionados?",
+                            isPresented: $showDeleteConfirmation, titleVisibility: .visible) {
+            Button("Eliminar definitivamente", role: .destructive) {
+                let ids=pendingDeletionIDs
+                pendingDeletionIDs=[]
+                ids.forEach { store.delete($0) }
+            }
+            Button("Cancelar", role: .cancel) { pendingDeletionIDs=[] }
+        } message: {
+            Text("Se borrarán solo los movimientos seleccionados de este iPhone. No modifica los gastos de Compartidos.")
         }
         .navigationTitle("Movimientos")
         .toolbar { ToolbarItem(placement:.topBarTrailing) {
