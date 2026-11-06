@@ -8,10 +8,10 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Budviva">
   <meta name="description" content="Budviva: lleva tus gastos, ingresos, tickets y presupuestos de forma sencilla y privada.">
-  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=6.9.9">
-  <link rel="manifest" href="manifest.webmanifest?v=6.9.9">
+  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=6.9.10">
+  <link rel="manifest" href="manifest.webmanifest?v=6.9.10">
   <!-- Ahorro incluido en la página para evitar versiones mezcladas en Safari -->
-  <link rel="icon" type="image/svg+xml" href="icon.svg?v=6.9.9">
+  <link rel="icon" type="image/svg+xml" href="icon.svg?v=6.9.10">
   <meta property="og:site_name" content="Budviva">
   <meta property="og:title" content="Budviva — Tu dinero, más claro">
   <meta name="application-name" content="Budviva">
@@ -849,10 +849,10 @@ root.BudvivaGoals={build,total,status};
 
 </script>
   <script>
-/* Budviva — versión 6.9.9. Datos exclusivamente en este dispositivo. */
+/* Budviva — versión 6.9.10. Datos exclusivamente en este dispositivo. */
 (() => {
   'use strict';
-  const APP_VERSION = '6.9.9';
+  const APP_VERSION = '6.9.10';
   const STORAGE_KEY = 'saldo-diario-data-v1';
   const fmtEUR = new Intl.NumberFormat('es-ES', {style:'currency',currency:'EUR'});
   const fmtDate = new Intl.DateTimeFormat('es-ES', {day:'numeric',month:'short'});
@@ -1137,7 +1137,7 @@ root.BudvivaGoals={build,total,status};
       ${settingsRow('🗑️','Borrar datos financieros','Elimina movimientos, presupuestos, reglas y objetivos.','erase-data')}
     </section>
     ${dataLoadCorrupt?'<p class="form-error">Los datos guardados no se pueden leer. Restaura una copia de seguridad antes de introducir nuevos registros.</p>':(!storageOK?'<p class="form-error">No se puede acceder al almacenamiento local; evita registrar datos hasta solucionarlo.</p>':'')}
-    <p class="footnote">Tus registros se conservan en este dispositivo. Haz una copia de seguridad periódica para evitar pérdidas. Budviva · versión 6.9.9 (beta).</p>`;
+    <p class="footnote">Tus registros se conservan en este dispositivo. Haz una copia de seguridad periódica para evitar pérdidas. Budviva · versión 6.9.10 (beta).</p>`;
   const render = () => {
     const selectedReceipt=ui.tab==='transactions'&&ui.receiptId?data.transactions.find(t=>t.id===ui.receiptId):null;
     shell.innerHTML = ({home:renderHome,transactions:renderTransactions,budgets:renderBudgets,recurring:recurring.renderPage,stats:stats.renderPage,'smart-import':smartImport.renderPage,savings:savings.renderPage,settings:renderSettings})[ui.tab]();
