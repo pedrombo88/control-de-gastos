@@ -40,3 +40,13 @@ test('iOS Movimientos: el borrado requiere confirmación antes de alterar los da
   assert(source.includes('.confirmationDialog("¿Eliminar los movimientos seleccionados?"'));
   assert(!/onDelete\s*\{[\s\S]{0,150}store\.delete\(/.test(source));
 });
+
+test('iOS finanzas: no cierra el editor cuando falla guardar en el iPhone',()=>{
+  const store=fs.readFileSync('ios-native/Sources/FinanceStore.swift','utf8');
+  const screen=fs.readFileSync('ios-native/Sources/MainScreens.swift','utf8');
+  assert(store.includes('func write(_ operation: (inout FinanceData) -> Void) -> Bool'));
+  assert(store.includes('func save(_ entry: Movement) -> Bool'));
+  assert(store.includes('catch { data = old; errorMessage = error.localizedDescription; return false }'));
+  assert(screen.includes('if store.save(next) { dismiss() }'));
+  assert(!screen.includes('store.save(next);dismiss()'));
+});
