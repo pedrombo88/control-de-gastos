@@ -30,6 +30,14 @@ for(const unsafe of ['=2+2','  =SUM(A1)','\t@evil','+2','-2']) assert(csvFn(unsa
 assert.equal(csvFn('compra'),'"compra"');
 assert(sharedJsSource.includes('expenses=[];settlements=[];closureApprovals=[];currentTransfer=null;lastLoadedGeneration=0;'),'Clear data when household disappears');
 const sharedHtml=fs.readFileSync('compartidos.html','utf8');
+
+const privacyHtml=fs.readFileSync('privacidad.html','utf8');
+const supportHtml=fs.readFileSync('soporte.html','utf8');
+assert(!privacyHtml.includes('aún no son autoservicio'),'Privacy policy must not contradict account deletion');
+assert(privacyHtml.includes('eliminación definitiva de tu cuenta de acceso'),'Privacy policy must explain deletion');
+assert(privacyHtml.includes('no borra los registros personales guardados localmente'),'Local data limitation must be disclosed');
+assert(supportHtml.includes('Comprobar protección de mi cuenta'),'Support must document safe account check');
+
 assert(sharedHtml.includes('id="expense-form"')&&sharedHtml.includes('id="settlement-form"'));
 assert(fs.readFileSync('shared-config.js','utf8').includes('publishableKey'));
 assert(fs.readFileSync('backend/compartidos.sql','utf8').includes('enable row level security'));
