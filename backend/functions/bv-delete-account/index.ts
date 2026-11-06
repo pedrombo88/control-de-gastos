@@ -30,7 +30,7 @@ Deno.serve(async(req:Request)=>{
   if(memberError)return reply(503,"No se ha podido verificar la pertenencia a grupos compartidos");
   if(members?.length)return reply(409,"Tu cuenta está vinculada a Compartidos. Para eliminarla, primero debes salir del grupo o cerrarlo.");
   // Protección adicional: bloquear la baja si existe cualquier referencia financiera.
-  for(const [table,column] of [["bv_households","owner_id"],["bv_expenses","author_id"],
+  for(const [table,column] of [["bv_households","owner_id"],["bv_household_closure_approvals","user_id"],["bv_expenses","author_id"],
     ["bv_expenses","payer_id"],["bv_settlements","payer_id"],["bv_settlements","receiver_id"]] as const){
     const {data,error}=await admin.from(table).select("id").eq(column,identity.user.id).limit(1);
     if(error)return reply(503,"No se ha podido completar la verificación de seguridad");
