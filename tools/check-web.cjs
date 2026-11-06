@@ -37,6 +37,10 @@ assert(!privacyHtml.includes('aún no son autoservicio'),'Privacy policy must no
 assert(privacyHtml.includes('eliminación definitiva de tu cuenta de acceso'),'Privacy policy must explain deletion');
 assert(privacyHtml.includes('no borra los registros personales guardados localmente'),'Local data limitation must be disclosed');
 assert(supportHtml.includes('Comprobar protección de mi cuenta'),'Support must document safe account check');
+for(const [page,source] of [['Compartidos',sharedHtml],['Privacidad',privacyHtml],['Soporte',supportHtml]]){
+  assert(source.includes('href="./icon.svg?v='+releaseVersion+'"'),page+' must use the current Budviva logo');
+}
+
 
 assert(sharedHtml.includes('id="expense-form"')&&sharedHtml.includes('id="settlement-form"'));
 assert(fs.readFileSync('shared-config.js','utf8').includes('publishableKey'));
