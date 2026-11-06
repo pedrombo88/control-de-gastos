@@ -26,7 +26,7 @@ Las comprobaciones reales son **no destructivas**: solo GET y peticiones anónim
 
 ## Bloqueos antes de comercializar
 
-- **P0 — Prueba real del método de baja por correo.** La baja con OTP de un solo uso está implementada en la Edge Function v4 y en la interfaz, con comprobación de identidad y referencias compartidas. Falta configurar/verificar la entrega de correos y probar el ciclo completo con una cuenta desechable. No se ha probado ni eliminado ninguna cuenta real.
+- **P0 — Prueba real del método de baja por correo.** La baja con OTP de un solo uso está implementada en la Edge Function v5 y en la interfaz, con comprobación de identidad y referencias compartidas. Falta configurar/verificar la entrega de correos y probar el ciclo completo con una cuenta desechable. No se ha probado ni eliminado ninguna cuenta real.
 - **P0 — Eliminación real no ensayada.** Falta prueba de extremo a extremo con una cuenta desechable: alta, sesión, verificación de referencias, baja, rechazo de sesión y confirmación de ausencia en Auth. No utilizar las dos cuentas actuales.
 - **P0 — Privacidad y soporte.** Completar identidad del responsable, base legal, canal privado de contacto, plazos de conservación y textos jurídicos antes de App Store.
 - **P0 — Distribución iOS.** Compilación firmada, TestFlight, accesibilidad, pruebas de cámara/importación y revisión de Apple pendientes.
@@ -38,4 +38,4 @@ Las comprobaciones reales son **no destructivas**: solo GET y peticiones anónim
 
 `.github/workflows/security-checks.yml` ejecuta `npm run check` en cada push/PR. En push, ejecución manual y cada lunes, realiza además las comprobaciones de endpoint y aislamiento anónimo sin datos de usuario. No usa secretos administrativos.
 
-**Actualización 6.9.8:** se ha añadido una segunda vía de reautenticación para la baja de cuenta, con código de correo verificado en Supabase Auth. Los tests simulados cubren código inválido, caducado, usuario distinto, pertenencia activa y éxito controlado. La función desplegada mantiene el modo de solo lectura. La entrega real de OTP depende del proveedor SMTP y todavía no está validada.\n\n**Veredicto:** la protección anónima y la infraestructura de pruebas están verificadas; **Budviva todavía no está lista para enviarse a App Store**.
+**Actualización 6.9.8:** se ha añadido una segunda vía de reautenticación para la baja de cuenta, con código de correo verificado en Supabase Auth. Los tests simulados cubren código inválido, caducado, usuario distinto, pertenencia activa, autorizaciones de cierre pendientes y éxito controlado. La función desplegada mantiene el modo de solo lectura. La entrega real de OTP depende del proveedor SMTP y todavía no está validada.\n\n**Veredicto:** la protección anónima y la infraestructura de pruebas están verificadas; **Budviva todavía no está lista para enviarse a App Store**.
