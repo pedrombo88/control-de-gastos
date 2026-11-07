@@ -48,3 +48,7 @@ test('El inicio de gastos y compensaciones exige exactamente dos participantes',
  for(const table of ['bv_expenses','bv_settlements'])
   assert(new RegExp('select count\\(\\*\\) from public\\.bv_members m where m\\.household_id='+table+'\\.household_id\\)=2').test(sql),table);
 });
+
+test('solo puede haber una compensación pendiente por pagador y grupo',()=>{
+ assert.match(sql,/create unique index if not exists bv_settlements_one_pending_per_payer on public\.bv_settlements\(household_id,payer_id\) where status='pending'/);
+});
