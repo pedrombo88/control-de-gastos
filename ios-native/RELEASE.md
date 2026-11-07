@@ -60,7 +60,9 @@ Tu información financiera permanece en tu dispositivo. Puedes descargar copias 
 
 **Soporte provisional:** https://pedrombo88.github.io/control-de-gastos/soporte.html
 
-**Pendiente:** correo o formulario privado de soporte, web y responsable legal definitivos, capturas reales, clasificación por edades, términos comerciales, disponibilidad de marca y revisión GDPR.
+**Control de datos y solicitudes de privacidad (URL opcional en App Store Connect):** https://pedrombo88.github.io/control-de-gastos/datos-y-privacidad.html
+
+**Pendiente:** correo o formulario privado de soporte con recepción real comprobada, identidad y contacto del responsable del tratamiento, periodos de conservación, capturas reales, clasificación por edades, términos comerciales, disponibilidad de marca y revisión RGPD. No enviar a App Review hasta resolverlo.
 
 ## Pruebas de aceptación antes de TestFlight
 
