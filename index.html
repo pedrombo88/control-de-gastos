@@ -1130,8 +1130,9 @@ root.BudvivaGoals={build,total,status};
       ${(typeof window.matchMedia==='function'&&window.matchMedia('(display-mode: standalone)').matches)||window.navigator?.standalone===true?'':settingsRow('🏡','Instalar en el iPhone','Añadir Budviva a la pantalla de inicio de Safari.','install-info')}
     </section>
     ${cardHeader('Privacidad y ayuda')}<section class="card settings-card">
+      <a class="settings-row" href="./datos-y-privacidad.html" target="_blank" rel="noopener"><span class="settings-emoji" aria-hidden="true">${pictogram('shield',21)}</span><span class="content"><b>Control de mis datos</b><small>Exportar, cerrar Compartidos y eliminar mi cuenta.</small></span><span class="chevron" aria-hidden="true">›</span></a>
       <a class="settings-row" href="./privacidad.html" target="_blank" rel="noopener"><span class="settings-emoji" aria-hidden="true">${pictogram('shield',21)}</span><span class="content"><b>Política de privacidad</b><small>Cómo se procesan y guardan tus datos.</small></span><span class="chevron" aria-hidden="true">›</span></a>
-      <a class="settings-row" href="./soporte.html" target="_blank" rel="noopener"><span class="settings-emoji" aria-hidden="true">${pictogram('file',21)}</span><span class="content"><b>Ayuda y soporte</b><small>Guía, copias de seguridad y contacto.</small></span><span class="chevron" aria-hidden="true">›</span></a>
+      <a class="settings-row" href="./soporte.html" target="_blank" rel="noopener"><span class="settings-emoji" aria-hidden="true">${pictogram('file',21)}</span><span class="content"><b>Ayuda y soporte</b><small>Guía y soporte técnico para Budviva.</small></span><span class="chevron" aria-hidden="true">›</span></a>
     </section>
     ${cardHeader('Eliminar datos')}<section class="card settings-card">
       ${settingsRow('🗑️','Borrar datos financieros','Elimina movimientos, presupuestos, reglas y objetivos.','erase-data')}
