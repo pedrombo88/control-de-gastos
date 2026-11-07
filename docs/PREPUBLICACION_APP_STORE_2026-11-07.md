@@ -27,23 +27,23 @@ Los enlaces deben verificarse publicados por GitHub Pages en todos los navegador
 | Baja de cuenta | OTP real superado, Auth y sesiones eliminadas | Verificar token antiguo en API, política de conservación |
 | RLS y seguridad | Comprobaciones de identidad simulada, sin fuga anónima | Penetración/QA de seguridad adicional previo a distribución |
 | Privacidad y acceso a opciones | Política beta y centro de datos disponibles | **Identificar responsable, bases legales, destinatarios, transferencias y conservación** |
-| Atención a usuarios | FAQ y GitHub Issues para errores públicos | **Canal de soporte PRIVADO probado** y atención a derechos |
+| Atención a usuarios | Alias `soporte@budviva.com` confirmado por el titular y activado en la web | Verificar respuesta saliente, procedimiento de derechos y responsable legal |
 | Soporte URL y Privacy Policy URL | Rutas públicas preparadas | Revisar contenido jurídico final y disponibilidad estable |
 | Identidad comercial | Marca Budviva en web | Confirmar titularidad, marca, Bundle ID y Apple Developer |
 | iPhone nativo | SwiftUI beta, apertura de Compartidos con SafariServices | Firma y pruebas de iPhone físico, TestFlight, equivalencia de funciones |
 | App Store Connect | Borrador de nombre/subtítulo/descripcion | Privacidad de la app, DSA, clasificación, capturas, accesibilidad, cifrado |
 
-**Procedimiento operativo actualizado:** [Configurar soporte privado con Cloudflare](./CONFIGURAR_SOPORTE_PRIVADO.md). Se ha añadido `support-contact.js`, desactivado por defecto; solo se activará cuando la dirección haya superado pruebas de recepción. Ningún correo personal de reenvío figura en GitHub.
+**Soporte privado en beta:** el titular ha confirmado la recepción de `soporte@budviva.com` a través de Cloudflare Email Routing y `support-contact.js` está activado para mostrar el alias públicamente. El correo privado de destino no figura en GitHub. Procedimiento: [Configurar soporte privado con Cloudflare](./CONFIGURAR_SOPORTE_PRIVADO.md). Continúan pendientes la prueba de envío OTP tras los cambios DNS, la respuesta saliente con identidad comercial y los procedimientos de privacidad.
 
 ## 1. Canal de soporte privado de bajo coste
 
-**Opción recomendada de preparación:** redireccionar un buzón del dominio `budviva.com` con **Cloudflare Email Routing** a una cuenta privada existente. Esto NO está configurado ni verificado aún.
+**Configuración de recepción realizada:** `soporte@budviva.com` reenvía mediante Cloudflare Email Routing a un buzón privado y el titular ha confirmado que recibe los mensajes. No está verificada por herramientas la zona DNS ni la capacidad de responder como `@budviva.com`.
 
 1. En Cloudflare, revisar `Email Routing` de `budviva.com` y su compatibilidad con los registros MX/TXT existentes y el envío actual de Resend.
-2. Configurar un alias profesional adecuado (por ejemplo, `soporte@budviva.com` solo **después** de verificar que realmente se recibe). No publicar direcciones inexistentes.
+2. El alias `soporte@budviva.com` se ha creado y su recepción ha sido confirmada por el titular. Volver a comprobar si se modifica el DNS.
 3. Verificar la dirección de destino de forma privada y enviar un correo de prueba desde un tercero. Confirmar recepción y respuesta; para enviar respuestas con el mismo dominio puede hacer falta una configuración de salida aparte.
 4. Configurar una política interna de solicitudes y protección de datos. No incluir fotos de tickets, extractos o identidades en incidencias públicas.
-5. Sustituir la nota de soporte pendiente en `soporte.html` y `privacidad.html` **solo después** de tener el canal probado.
+5. La página `soporte.html` y la política `privacidad.html` ya muestran el contacto privado. Antes de App Review, verificar la capacidad real de respuesta, la disponibilidad estable y la gestión de solicitudes de privacidad.
 
 Documentación oficial: https://developers.cloudflare.com/email-service/get-started/route-emails/  
 Precios y límites: https://developers.cloudflare.com/email-service/platform/pricing/
@@ -94,6 +94,6 @@ https://developer.apple.com/help/app-store-connect/reference/app-information/req
 
 ## Condición mínima para solicitar revisión
 
-No publicar hasta verificar simultáneamente: **responsable legal y soporte privado**, política revisada, comunicaciones entre proveedores, ficha y privacidad App Store Connect, firma iOS, pruebas en iPhone real y una compilación de distribución validada.
+No publicar hasta verificar simultáneamente: **responsable legal, gestión de derechos y soporte privado bidireccional**, política revisada, comunicaciones entre proveedores, ficha y privacidad App Store Connect, firma iOS, pruebas en iPhone real y una compilación de distribución validada.
 
 En paralelo se pueden mantener pruebas de la PWA beta y corregir regresiones con los workflows de GitHub.
