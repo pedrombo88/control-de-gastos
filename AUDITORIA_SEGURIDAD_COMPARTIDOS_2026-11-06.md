@@ -129,3 +129,16 @@ La auditoría detectó que el control de una única propuesta pendiente por pers
 - **Alcance:** evita múltiples compensaciones simultáneamente pendientes de un pagador dentro del mismo grupo. No limita propuestas sucesivas cuando la anterior haya sido confirmada o rechazada. Esta protección no modifica el control de confirmación por parte de la persona destinataria.
 
 No se han generado ni eliminado movimientos para probar la restricción; la validez del índice está comprobada en el catálogo PostgreSQL.
+
+
+## Simulación transaccional del cierre completo — 7 de noviembre de 2026
+
+El titular confirmó que las cuentas y todos los datos de Compartidos son **desechables**. Se verificaron **sin destrucción permanente** los controles del procedimiento de cierre, consultando la función desplegada `public.bv_manage_household_closure`.
+
+Se ejecutó una transacción PostgreSQL con `SET LOCAL ROLE authenticated` y dos identidades de miembros autenticados simuladas mediante `request.jwt.claim.sub`. El primer consentimiento es provisional; el segundo ejecutó dentro de la transacción el cierre total del grupo, eliminando los movimientos asociados. La transacción finalizó con **`ROLLBACK`**, de modo que ninguna modificación quedó persistida.
+
+**Validación posterior al ROLLBACK:** permanecían **1 grupo, 2 miembros, 2 gastos, 1 compensación y 0 aprobaciones de cierre**. Se realizó también una simulación de aprobar y luego cancelar la autorización individual, con 0 aprobaciones pendientes al terminar.
+
+El código y el permiso de ejecución confirman que solo los miembros autenticados pueden autorizar el cierre. Se añade una regresión de contrato que exige comprobación de identidad, dos consentimientos, cancelación y limpieza transaccional de entidades asociadas.
+
+**Pendiente:** ejecutar el cierre desde los dos navegadores reales y probar la baja mediante código OTP desde la interfaz. No se enviaron códigos, no se crearon usuarios ni se eliminaron datos persistentes desde las herramientas. El cierre real debe utilizar la interfaz y las decisiones de cada sesión, sin eludir su flujo de autorización.
