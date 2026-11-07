@@ -18,6 +18,8 @@ Plan gratuito de Resend: **3.000 mensajes al mes, máximo 100 al día**, sujeto 
 
 **Plantilla de acceso activa:** [codigo-acceso.html](../backend/email-templates/codigo-acceso.html) copiada manualmente en **Magic Link/OTP**. **Plantilla de alta preparada:** [confirmacion-alta.html](../backend/email-templates/confirmacion-alta.html) para **Confirm sign up**, pendiente de copiar y probar. Ambas conservan `{{ .Token }}`. El HTML del repositorio no se sincroniza automáticamente con el panel de Supabase. La función de baja también usa `/auth/v1/otp`.
 
+**Plantilla Confirm sign up:** el titular ha confirmado el 7/11/2026 que ya está guardada en Supabase, aunque no se ha probado su entrega real a una cuenta nueva.
+
 **Validación pendiente:** dar de alta una dirección nueva de prueba, comprobar el mensaje de confirmación y el acceso posterior; revisar límites de correo y SPF/DKIM/DMARC, sin compartir credenciales. La URL actual de pruebas es `https://pedrombo88.github.io/control-de-gastos/compartidos.html`. El dominio `budviva.com` aún no se ha vinculado como URL principal de la PWA.
 
 Fuentes: [Integración oficial Supabase–Resend](https://supabase.com/partners/catalog/resend), [SMTP Supabase](https://supabase.com/docs/guides/auth/auth-smtp), [Resend precios](https://resend.com/pricing).
