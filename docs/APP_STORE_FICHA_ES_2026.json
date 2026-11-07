@@ -1,0 +1,28 @@
+{
+  "version": "1.1.0-beta",
+  "locale": "es-ES",
+  "appName": "Budviva",
+  "subtitle": "Tus gastos y ahorro, claros",
+  "category": "FINANCE",
+  "promotionalText": "Controla tus gastos, organiza presupuestos y revisa tus objetivos de ahorro desde el iPhone. Comparte únicamente los gastos que elijas.",
+  "keywords": "gastos,presupuestos,ahorro,finanzas,tickets,recibos,pareja,balances,control,objetivos",
+  "description": "Tu dinero, más claro.\n\nBudviva te ayuda a organizar los gastos y los ingresos de cada día desde el iPhone, sin conectar tus cuentas bancarias.\n\n• Registra y consulta tus movimientos.\n• Organiza presupuestos y avisos por categoría.\n• Lleva el seguimiento de tus objetivos de ahorro.\n• Revisa el ahorro potencial de compras y productos que marques como no necesarios.\n• Escanea tickets y revisa los importes antes de guardarlos.\n• Importa documentos y conserva los originales asociados.\n• Crea copias de seguridad o protégelas con una contraseña.\n\nCOMPARTIDOS\n\nSi quieres organizar los gastos de dos personas, accede a Compartidos desde la aplicación. Este servicio necesita conexión a Internet y una cuenta independiente; permite registrar gastos comunes, consultar saldos y confirmar compensaciones. Compartidos se abre en una ventana segura de Safari integrada en la app.\n\nPRIVACIDAD Y CONTROL\n\nLos movimientos financieros personales se guardan en el dispositivo. No se sincronizan automáticamente con otras personas ni con otros dispositivos. Solo los gastos que decidas registrar en Compartidos se almacenan en ese servicio. Puedes consultar la política de privacidad, exportar datos y solicitar la eliminación de la cuenta de Compartidos desde la propia app.\n\nBudviva no realiza operaciones bancarias ni garantiza ahorros.",
+  "supportURL": "https://pedrombo88.github.io/control-de-gastos/soporte.html",
+  "privacyPolicyURL": "https://pedrombo88.github.io/control-de-gastos/privacidad.html",
+  "privacyChoicesURL": "https://pedrombo88.github.io/control-de-gastos/datos-y-privacidad.html",
+  "marketingURL": "https://pedrombo88.github.io/control-de-gastos/",
+  "availability": "DRAFT_NOT_PUBLISHED",
+  "storeReview": {
+    "credentials": "Never commit demo credentials or temporary OTP codes to this repository; supply review details privately in App Store Connect.",
+    "note": "La gestión financiera personal se realiza sin registro y guarda los datos en el iPhone. Compartidos es opcional: se abre mediante SafariServices y requiere iniciar sesión con una cuenta de Supabase. Para evaluar Compartidos, proporcionar a App Review una cuenta de prueba válida con acceso estable desde el formulario alternativo de contraseña y una segunda cuenta de prueba si es necesario. No introducir contraseñas en esta ficha pública. Verificar las credenciales y el flujo de revisión antes de enviar."
+  },
+  "blockers": [
+    "Confirmar Apple Developer Program y App Store Connect",
+    "Asignar Bundle ID real y firmar el binario",
+    "Probar en iPhone físico y validar las capturas",
+    "Preparar cuentas de revisión para Compartidos sin depender de OTP efímero",
+    "Completar identificación legal del responsable y App Privacy",
+    "Completar clasificación por edades y estado DSA UE",
+    "Verificar marca Budviva"
+  ]
+}
