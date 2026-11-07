@@ -1,12 +1,12 @@
 /* Budviva — canal privado de soporte (beta).
- * Mantener deshabilitado hasta verificar la recepción del alias de dominio.
+ * Alias activado tras confirmación del titular de recepción mediante Cloudflare.
  * NO incluir aquí el buzón personal de destino de Cloudflare.
  * Activación: consultar docs/CONFIGURAR_SOPORTE_PRIVADO.md.
  */
 (()=>{
 'use strict';
-const verified=false;
-const address='';
+const verified=true;
+const address='soporte@budviva.com';
 const link=document.getElementById('private-support-link');
 const state=document.getElementById('private-support-state');
 if(!link||!state)return;
