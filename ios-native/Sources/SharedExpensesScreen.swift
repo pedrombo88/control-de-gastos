@@ -6,7 +6,7 @@ import SafariServices
 /// contraseñas, tokens OTP, movimientos ni cookies del servicio Compartidos.
 enum SharedExpensesService {
     static let url = URL(string: "https://pedrombo88.github.io/control-de-gastos/compartidos.html")!
-    static let privacyURL = URL(string: "https://pedrombo88.github.io/control-de-gastos/privacidad.html")!
+    static let privacyURL = URL(string: "https://pedrombo88.github.io/control-de-gastos/datos-y-privacidad.html")!
 }
 
 struct SharedExpensesScreen: View {
