@@ -151,3 +151,7 @@ La actualización de Budviva deja de eliminar manualmente todas las cachés offl
 ### 6.9.10 — Recuperación y accesibilidad auditadas
 
 Si el almacenamiento financiero local contiene datos no interpretables, aparece una opción de **Descargar datos para recuperación**, sin reescribirlos ni borrarlos. Se comprueba que restaurar una copia no sustituya archivos de otra pestaña con cambios recientes. Compartidos incorpora una política CSP limitada a los recursos necesarios y mejoras de contraste WCAG 2.2 AA; se añaden pruebas de accesibilidad, pantallas de 320 píxeles y recuperación de datos corruptos. Las pruebas de iOS siguen siendo independientes de la PWA.
+
+### Apple Developer y TestFlight (sin Mac)
+
+El proyecto continúa sin suscripción Apple Developer Program. La cuenta gratuita permite preparar las siguientes etapas y las compilaciones de simulador se realizan mediante GitHub Actions. La ruta de alta como particular/empresa y firma posterior se documenta en [Apple Developer sin Mac](./docs/APPLE_DEVELOPER_SIN_MAC.md). La publicación real requiere contratar la membresía y configurar credenciales de forma privada.
