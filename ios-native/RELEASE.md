@@ -142,3 +142,6 @@ Referencia de los bloqueos y del inventario de App Privacy: [expediente de prepu
 **Cómo obtener las capturas:** en GitHub Actions → [Compilar Budviva iOS](https://github.com/pedrombo88/control-de-gastos/actions/workflows/ios-build.yml) → última ejecución correcta → **Artifacts** → `budviva-iphone-preview` (imágenes PNG exportadas, más captura de inicio) y `budviva-ios-xctest` (resultado de XCTest para auditoría detallada).
 
 **Limitación:** las capturas del simulador son material de inspección, no certifican su aspecto en todos los modelos iPhone ni sustituyen pruebas reales en dispositivo. La integración de XCUITest debe superar primero el workflow de GitHub; no se ha realizado firma ni subida a TestFlight.
+
+
+**Comprobación CI del 7/11/2026:** la ejecución [42386505387](https://github.com/pedrombo88/control-de-gastos/actions/runs/42386505387) superó **9 pruebas XCTest y 1 prueba de navegación XCUITest**, y `xcresulttool` confirmó que exportó **5 adjuntos de capturas**, sin fallos. Se ha corregido el paso de empaquetado para que el ZIP `budviva-iphone-preview` incluya también todas las imágenes de XCUITest, no solamente la pantalla inicial. La ejecución posterior debe confirmar el paquete completo.

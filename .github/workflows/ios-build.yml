@@ -113,10 +113,11 @@ jobs:
           sleep 4
           mkdir -p ios-native/capturas-simulador
           xcrun simctl io "$DEVICE_ID" screenshot ios-native/capturas-simulador/inicio-iphone.png
-      - name: Guardar captura de inicio de iPhone
+      - name: Guardar las capturas de las cinco secciones de iPhone
         if: success()
         uses: actions/upload-artifact@v4
         with:
           name: budviva-iphone-preview
-          path: ios-native/capturas-simulador/inicio-iphone.png
+          path: ios-native/capturas-simulador/
+          if-no-files-found: error
           retention-days: 14
