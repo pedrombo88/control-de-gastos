@@ -36,6 +36,8 @@ Para trabajar desde un Mac más adelante:
 - Identificar legalmente al responsable del tratamiento y revisar la política con la configuración definitiva.
 - Completar declaraciones de datos, cifrado, permisos de cámara y cualquier cuestionario de App Store Connect. El hecho de usar AES para copias exige evaluar correctamente la información de cumplimiento de exportación; **no se ha supuesto exención**.
 
+**Archivo de metadatos listo para revisar:** [Ficha App Store ES](../docs/APP_STORE_FICHA_ES_2026.json). Se valida automáticamente longitud del nombre, subtítulo, texto promocional, descripción, palabras clave y enlaces HTTPS. No se han creado credenciales ni cargado la ficha en App Store Connect.
+
 ## Ficha inicial de App Store — borrador
 
 **Nombre:** Budviva  
