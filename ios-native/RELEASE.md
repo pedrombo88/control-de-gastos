@@ -124,7 +124,7 @@ Se añade una cuarta herramienta «Compartidos» en **Movimientos**, con pantall
 
 Se ha creado una página pública de control de datos `datos-y-privacidad.html` que distingue entre eliminar datos personales locales, cerrar Compartidos (doble autorización) y eliminar la cuenta por OTP. La PWA enlaza desde Ajustes y la incluye en su cache offline. La app iOS SwiftUI enlaza ahora directamente a este centro desde Ajustes y desde la pantalla introductoria de Compartidos. **La compilación de este cambio debe validarse en el workflow macOS y el recorrido en un iPhone real.**
 
-En App Store Connect se prepara esta página como **Privacy Choices URL** (opcional); la **Privacy Policy URL** sigue siendo `privacidad.html` (obligatoria). `soporte.html` contiene ayudas, pero **no existe todavía un canal privado de atención verificado**.
+En App Store Connect se prepara esta página como **Privacy Choices URL** (opcional); la **Privacy Policy URL** sigue siendo `privacidad.html` (obligatoria). `soporte.html` contiene ayudas y enlaza con el alias privado `soporte@budviva.com`, cuyo reenvío Cloudflare ha sido confirmado por el titular. Están pendientes la prueba de respuesta saliente y los procedimientos legales de privacidad.
 
 Referencia de los bloqueos y del inventario de App Privacy: [expediente de prepublicación](../docs/PREPUBLICACION_APP_STORE_2026-11-07.md).
 
