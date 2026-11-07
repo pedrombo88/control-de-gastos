@@ -166,3 +166,12 @@ El titular configuró Cloudflare Email Routing para el alias `soporte@budviva.co
 Cambios publicados en el repositorio: `support-contact.js` activa el enlace `mailto:` exclusivamente para el dominio `budviva.com`; `soporte.html` ofrece la dirección privada; `privacidad.html` y `datos-y-privacidad.html` señalan dónde dirigirse. Actualizadas las comprobaciones estáticas y móviles para garantizar que el enlace se muestra únicamente con configuración correcta.
 
 **Pendiente:** comprobar un nuevo OTP tras los cambios de MX/SPF; probar la capacidad de responder desde una identidad profesional sin revelar el buzón de destino; documentar los plazos de respuesta y el ejercicio de derechos, e identificar legalmente al responsable del tratamiento. Disponer de un alias operativo no implica por sí solo conformidad RGPD ni aprobación de Apple.
+
+
+## Entregabilidad tras Cloudflare Email Routing — 7 de noviembre de 2026
+
+- El titular confirmó la recepción de mensajes privados en `soporte@budviva.com` a través de Cloudflare Email Routing.
+- Tras los cambios DNS, solicitó y **recibió correctamente otro OTP de Budviva** generado a través de Resend/Supabase. Ambos canales siguen operativos en la prueba realizada.
+- Esta prueba no acredita revisión exhaustiva de todos los registros MX, SPF, DKIM y DMARC, ni garantiza entregabilidad a todos los proveedores de correo.
+- Las respuestas de soporte desde un remitente `@budviva.com` siguen pendientes de configurar o comprobar; el reenvío de entrada por Cloudflare no proporciona automáticamente salida.
+- Se identificó un fallo de regresión de interfaz móvil anterior: la prueba de Ajustes exigía dos enlaces HTML aunque la nueva sección de privacidad añadió un tercero. La prueba se ha corregido para exigir `datos-y-privacidad.html`, `privacidad.html` y `soporte.html`. La nueva ejecución CI debe comprobarse antes de cerrar el hallazgo.
