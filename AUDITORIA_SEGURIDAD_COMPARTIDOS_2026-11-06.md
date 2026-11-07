@@ -49,3 +49,25 @@ El titular ha confirmado expresamente que el único grupo y todos sus registros 
 `.github/workflows/security-checks.yml` ejecuta `npm run check` en cada push/PR. En push, ejecución manual y cada lunes, realiza además las comprobaciones de endpoint y aislamiento anónimo sin datos de usuario. No usa secretos administrativos.
 
 **Actualización 6.9.8:** se ha añadido una segunda vía de reautenticación para la baja de cuenta, con código de correo verificado en Supabase Auth. Los tests simulados cubren código inválido, caducado, usuario distinto, pertenencia activa, autorizaciones de cierre pendientes y éxito controlado. La función desplegada mantiene el modo de solo lectura. La entrega real de OTP depende del proveedor SMTP y todavía no está validada.\n\n**Veredicto:** la protección anónima y la infraestructura de pruebas están verificadas; **Budviva todavía no está lista para enviarse a App Store**.
+
+
+## Ampliación de auditoría — 7 de noviembre de 2026
+
+**Verificado en el proyecto Supabase `bsvtttcuqamjifnpuzlj` con consultas de solo lectura.**
+
+- SMTP Resend configurado por el titular con el dominio `budviva.com`. El titular confirmó entrega y acceso por OTP. Los registros de Auth muestran solicitudes `/otp` y verificaciones `/verify` con HTTP 200 y `login_method=otp`.
+- **Alta de un tercero aún NO confirmada a nivel de servidor:** el último recuento devuelve **2 usuarios en Auth, ambos con email confirmado**; la última alta figura fechada el **5/11/2026**. Los eventos recientes corresponden a acceso de un usuario existente. No se debe declarar superada la prueba de registro de una dirección totalmente nueva solo por recibir un código.
+- **Estado actual:** 0 grupos compartidos y 0 miembros (datos limpiados en la etapa anterior con autorización del titular). No existe un conjunto de dos grupos distintos con el que demostrar la prueba de aislamiento autenticado de extremo a extremo.
+- **RLS:** habilitado en las 6 tablas `bv_*`; las cinco tablas de lectura compartida aplican pertenencia al grupo a través de `private.bv_is_member`. La tabla `bv_invitations` carece intencionalmente de políticas y no concede SELECT.
+- **Privilegios verificados en producción:** ningún `bv_*` `SECURITY DEFINER` es ejecutable por `anon`; las seis RPC públicas están restringidas a `authenticated`, con comprobaciones de autorización en el cuerpo y `search_path` vacío.
+- **Edición de miembros:** `authenticated` tiene permiso de UPDATE **únicamente sobre `display_name`**, no sobre `household_id` ni `user_id`. Por tanto, la política de edición de nombre no permite cambiar de grupo alterando columnas.
+- **Avisos de seguridad del analizador:** `bv_invitations` sin políticas (intencional); seis funciones `SECURITY DEFINER` accesibles para `authenticated` (necesarias, pero requieren pruebas de permisos); protección de contraseñas filtradas desactivada (a valorar por compatibilidad con cuentas antiguas; el acceso nuevo usa OTP).
+
+### Siguientes comprobaciones sin afectar a datos existentes
+
+1. Crear una **tercera cuenta con correo completamente nuevo** en la PWA y confirmar que el recuento de Auth crece a 3. Usar ventana privada y dirección no utilizada previamente. No compartir OTP ni tokens de sesión.
+2. Preparar dos grupos distintos con cuentas de ensayo y ejecutar `tests/authenticated-isolation.test.cjs` con sesiones separadas **solo en entorno privado/CI protegido**, sin guardar tokens en el repositorio.
+3. Comprobar el rechazo de la lectura de filas de un grupo ajeno, además del acceso normal al propio; registrar resultados sin información personal.
+4. Probar baja por OTP con una cuenta desechable completamente aislada de gastos, previa confirmación explícita para el borrado irreversible.
+
+**Alcance de este control:** revisión de permisos, código y logs. No se ha ejecutado un pentest ni una prueba real entre grupos con movimientos. No se han creado, cambiado ni eliminado usuarios o gastos en este análisis.
