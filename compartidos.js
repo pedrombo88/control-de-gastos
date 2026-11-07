@@ -16,6 +16,7 @@ const status=(message,error=false)=>{const el=$('status');el.textContent=message
 const fail=e=>{
  const raw=String(e?.message||e||'Error desconocido');
  const msg=/email address not authorized/i.test(raw)?'El proveedor de correo todavía no está configurado para esta dirección. Si ya tienes una cuenta con contraseña, utiliza el acceso alternativo.':
+   /bv_settlements_one_pending_per_payer/i.test(raw)?'Ya tienes una compensación pendiente. Espera a que la otra persona la confirme o rechace.':
    /invalid login credentials|invalid credentials/i.test(raw)?'Correo o contraseña incorrectos.':
    /email not confirmed/i.test(raw)?'Todavía tienes que confirmar tu dirección de correo.':
    /token has expired|otp.*expired|invalid.*otp|token.*invalid/i.test(raw)?'El código ha caducado o es incorrecto. Solicita otro.':raw;
