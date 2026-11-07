@@ -133,3 +133,19 @@ test('Una aprobación de cierre huérfana impide borrar una cuenta',async()=>{
   const deletion=await x.post({method:'email_otp',otp:'123456',confirm:'ELIMINAR CUENTA'});
   assert.equal(deletion.status,409);assert.equal(x.stats().otpChecks,0);assert.equal(x.stats().deleted,0);
 });
+
+test('cuenta con Compartidos e historial liquidado: impide baja con OTP y contraseña',async()=>{
+  // Simula la cuenta de un miembro que todavía figura en el grupo y en su historial,
+  // aunque el saldo económico entre ambos participantes sea cero.
+  const x=fixture({member:true,history:true});
+  const before=await x.post({action:'check'});
+  assert.equal(before.status,409);
+  assert.match(before.body.message,/Compartidos/);
+  const byOtp=await x.post({method:'email_otp',otp:'123456',confirm:'ELIMINAR CUENTA'});
+  assert.equal(byOtp.status,409);
+  const byPassword=await x.post({password:'safe-password',confirm:'ELIMINAR CUENTA'});
+  assert.equal(byPassword.status,409);
+  assert.equal(x.stats().deleted,0);
+  assert.equal(x.stats().otpChecks,0);
+  assert.equal(x.stats().logins,0);
+});
