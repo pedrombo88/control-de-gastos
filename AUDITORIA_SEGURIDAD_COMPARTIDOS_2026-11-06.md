@@ -155,3 +155,24 @@ El código y el permiso de ejecución confirman que solo los miembros autenticad
 **Prueba manual end-to-end pendiente:** (1) acceder como miembro y pulsar `Comprobar protección de mi cuenta (sin borrar datos)`, esperando un bloqueo; (2) autorizar el cierre de Compartidos desde la cuenta A y desde la cuenta B, mediante la UI con las confirmaciones solicitadas; (3) verificar en Supabase 0 grupos/miembros/gastos/compensaciones; (4) desde una cuenta anteriormente vinculada, enviar y verificar un OTP de eliminación sin compartirlo; (5) comprobar que Auth reduce el número de usuarios en uno y que no queda ningún registro de esa identidad en Compartidos. No usar consultas SQL que suplanten identidades para ejecutar un borrado definitivo: eso no verificaría la autorización real del cliente.
 
 **Resultado hasta el momento:** las condiciones del backend y el aislamiento funcional se verificaron; no se ha efectuado ninguna baja real de cuenta ni cierre definitivo del grupo en esta etapa.
+
+
+## Cierre real de Compartidos — 7/11/2026
+
+El titular ha completado el flujo de cierre definitivo desde **ambas cuentas miembro**, introduciendo el texto requerido `ELIMINAR COMPARTIDOS` en las dos sesiones.
+
+La eliminación resultante ha sido contrastada inmediatamente mediante una consulta agregada a Supabase, **sin ejecutar borrados mediante herramientas administrativas**:
+
+| Entidad | Registros posteriores |
+|---|---:|
+| `public.bv_households` | 0 |
+| `public.bv_members` | 0 |
+| `public.bv_expenses` | 0 |
+| `public.bv_settlements` | 0 |
+| `public.bv_invitations` | 0 |
+| `public.bv_household_closure_approvals` | 0 |
+| `auth.users` | 4 (3 cuentas con correo confirmado) |
+
+**Resultado:** cierre conjunto mediante dos autorizaciones reales verificado; las cuentas de acceso se conservan y no quedan referencias compartidas. Cumple el requisito de separar eliminación del grupo y eliminación de las cuentas.
+
+**Siguiente ensayo:** baja mediante OTP de una de las cuentas que anteriormente pertenecía al grupo. Debe pasar el control `action:'check'`, solicitar un código en la sesión auténtica y validar `ELIMINAR CUENTA` en la Edge Function. No iniciar sesión de nuevo con esa dirección tras borrarla antes de comprobar Auth, ya que `create_user:true` permitiría recrear una cuenta nueva.
