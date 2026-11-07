@@ -9,7 +9,7 @@ const path=require('node:path');
 
 const ROOT=path.resolve(__dirname,'..');
 const PUBLIC_FILES=[
-  'index.html','compartidos.html','privacidad.html','soporte.html',
+  'index.html','compartidos.html','privacidad.html','soporte.html','datos-y-privacidad.html',
   'recurring.js','stats.js','reconcile.js','smart-import.js',
   'documents.js','backup-crypto.js','sw.js','shared-expenses.js',
   'compartidos.js','shared-config.js','manifest.webmanifest'
