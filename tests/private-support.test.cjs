@@ -15,31 +15,23 @@ function run(source){
   vm.runInNewContext(source,{document,encodeURIComponent},{timeout:1000});
   return {link,state};
 }
-test('La beta no anuncia un buzón privado sin verificación de entrega',()=>{
-  assert.match(script,/const verified=false;/);
-  assert.match(script,/const address='';/);
+test('El buzón de soporte verificado se anuncia únicamente como alias del dominio',()=>{
+  assert.match(script,/const verified=true;/);
+  assert.match(script,/const address='soporte@budviva.com';/);
   assert(support.includes('id="private-support-link"'));
-  const actual=run(script);
-  assert.equal(actual.link.hidden,true);
-  assert.equal(actual.link.href,'');
-  assert.match(actual.state.textContent,/Todavía no hay un buzón/);
+  const result=run(script);
+  assert.equal(result.link.hidden,false);
+  assert.match(result.link.href,/^mailto:soporte@budviva\.com\?subject=/);
+  assert.match(result.state.textContent,/correo privado/);
 });
-test('Solo un alias verificado del dominio Budviva habilita el contacto',()=>{
-  const hypothetical=script.replace('const verified=false;','const verified=true;')
-    .replace("const address='';","const address='soporte@budviva.com';");
-  const value=run(hypothetical);
-  assert.equal(value.link.hidden,false);
-  assert.match(value.link.href,/^mailto:soporte@budviva\.com\?subject=/);
-  assert.match(value.state.textContent,/correo privado/);
-});
-test('Se bloquean direcciones arbitrarias y cuentas sin confirmación',()=>{
-  const unverified=script.replace("const address='';","const address='soporte@budviva.com';");
+test('El soporte desactivado no muestra alias aunque esté en configuración',()=>{
+  const unverified=script.replace('const verified=true;','const verified=false;');
   assert.equal(run(unverified).link.hidden,true);
-  const foreign=script.replace('const verified=false;','const verified=true;')
-    .replace("const address='';","const address='inbox@example.com';");
+});
+test('No se aceptan direcciones de otros dominios ni inyección de parámetros',()=>{
+  const foreign=script.replace("const address='soporte@budviva.com';","const address='inbox@example.com';");
   assert.equal(run(foreign).link.hidden,true);
-  const unsafe=script.replace('const verified=false;','const verified=true;')
-    .replace("const address='';","const address='test@budviva.com?subject=spam';");
+  const unsafe=script.replace("const address='soporte@budviva.com';","const address='test@budviva.com?subject=spam';");
   assert.equal(run(unsafe).link.hidden,true);
 });
 test('Los mensajes no se envían a ningún servicio externo desde JavaScript',()=>{
