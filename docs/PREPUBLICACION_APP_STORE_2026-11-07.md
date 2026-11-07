@@ -27,17 +27,17 @@ Los enlaces deben verificarse publicados por GitHub Pages en todos los navegador
 | Baja de cuenta | OTP real superado, Auth y sesiones eliminadas | Verificar token antiguo en API, política de conservación |
 | RLS y seguridad | Comprobaciones de identidad simulada, sin fuga anónima | Penetración/QA de seguridad adicional previo a distribución |
 | Privacidad y acceso a opciones | Política beta y centro de datos disponibles | **Identificar responsable, bases legales, destinatarios, transferencias y conservación** |
-| Atención a usuarios | Alias `soporte@budviva.com` confirmado por el titular y activado en la web | Verificar respuesta saliente, procedimiento de derechos y responsable legal |
+| Atención a usuarios | Alias `soporte@budviva.com` operativo y OTP entregado tras cambios DNS | Verificar respuesta saliente, procedimiento de derechos y responsable legal |
 | Soporte URL y Privacy Policy URL | Rutas públicas preparadas | Revisar contenido jurídico final y disponibilidad estable |
 | Identidad comercial | Marca Budviva en web | Confirmar titularidad, marca, Bundle ID y Apple Developer |
 | iPhone nativo | SwiftUI beta, apertura de Compartidos con SafariServices | Firma y pruebas de iPhone físico, TestFlight, equivalencia de funciones |
 | App Store Connect | Borrador de nombre/subtítulo/descripcion | Privacidad de la app, DSA, clasificación, capturas, accesibilidad, cifrado |
 
-**Soporte privado en beta:** el titular ha confirmado la recepción de `soporte@budviva.com` a través de Cloudflare Email Routing y `support-contact.js` está activado para mostrar el alias públicamente. El correo privado de destino no figura en GitHub. Procedimiento: [Configurar soporte privado con Cloudflare](./CONFIGURAR_SOPORTE_PRIVADO.md). Continúan pendientes la prueba de envío OTP tras los cambios DNS, la respuesta saliente con identidad comercial y los procedimientos de privacidad.
+**Soporte privado en beta:** el titular ha confirmado la recepción de `soporte@budviva.com` a través de Cloudflare Email Routing y `support-contact.js` está activado para mostrar el alias públicamente. El correo privado de destino no figura en GitHub. Procedimiento: [Configurar soporte privado con Cloudflare](./CONFIGURAR_SOPORTE_PRIVADO.md). El titular ha recibido un nuevo OTP tras los cambios DNS, por lo que se confirma la continuidad de Resend. Continúan pendientes la respuesta saliente con identidad comercial y los procedimientos de privacidad.
 
 ## 1. Canal de soporte privado de bajo coste
 
-**Configuración de recepción realizada:** `soporte@budviva.com` reenvía mediante Cloudflare Email Routing a un buzón privado y el titular ha confirmado que recibe los mensajes. No está verificada por herramientas la zona DNS ni la capacidad de responder como `@budviva.com`.
+**Configuración de recepción realizada:** `soporte@budviva.com` reenvía mediante Cloudflare Email Routing a un buzón privado y el titular ha confirmado que recibe los mensajes. La recepción de un OTP posterior a los cambios DNS también ha sido confirmada por el titular. No están verificadas por herramientas la zona DNS ni la capacidad de responder como `@budviva.com`.
 
 1. En Cloudflare, revisar `Email Routing` de `budviva.com` y su compatibilidad con los registros MX/TXT existentes y el envío actual de Resend.
 2. El alias `soporte@budviva.com` se ha creado y su recepción ha sido confirmada por el titular. Volver a comprobar si se modifica el DNS.
