@@ -133,3 +133,12 @@ En App Store Connect se prepara esta página como **Privacy Choices URL** (opcio
 Referencia de los bloqueos y del inventario de App Privacy: [expediente de prepublicación](../docs/PREPUBLICACION_APP_STORE_2026-11-07.md).
 
 **Aviso UE:** se debe declarar el estado DSA de operador comercial y, si corresponde, verificar los datos de contacto que Apple publica en la ficha. No se ha determinado ni certificado ese estado para el titular. Antes de publicar: cerrar identidad del responsable, soporte privado y términos/privacidad definitivos.
+
+
+## Auditoría visual automática de las cinco pestañas (simulador)
+
+**Disponible sin Apple Developer ni Mac propio.** Se ha añadido un target `BudvivaUITests` de XCUITest que abre la app iOS real en el simulador de macOS y recorre **Inicio, Movimientos, Presupuestos, Ahorro y Ajustes**, comprobando el título de cada página. Las capturas se generan como adjuntos `XCTAttachment` y se conservan en el resultado de las pruebas.
+
+**Cómo obtener las capturas:** en GitHub Actions → [Compilar Budviva iOS](https://github.com/pedrombo88/control-de-gastos/actions/workflows/ios-build.yml) → última ejecución correcta → **Artifacts** → `budviva-iphone-preview` (imágenes PNG exportadas, más captura de inicio) y `budviva-ios-xctest` (resultado de XCTest para auditoría detallada).
+
+**Limitación:** las capturas del simulador son material de inspección, no certifican su aspecto en todos los modelos iPhone ni sustituyen pruebas reales en dispositivo. La integración de XCUITest debe superar primero el workflow de GitHub; no se ha realizado firma ni subida a TestFlight.

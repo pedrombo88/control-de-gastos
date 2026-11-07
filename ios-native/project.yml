@@ -43,6 +43,17 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.example.budviva.tests
         GENERATE_INFOPLIST_FILE: YES
+  BudvivaUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: UITests
+    dependencies:
+      - target: Budviva
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.budviva.uitests
+        GENERATE_INFOPLIST_FILE: YES
 schemes:
   Budviva:
     build:
@@ -53,3 +64,4 @@ schemes:
     test:
       targets:
         - BudvivaTests
+        - BudvivaUITests

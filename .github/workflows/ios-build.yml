@@ -76,13 +76,23 @@ jobs:
             -resultBundlePath ios-native/BudvivaTestResults.xcresult \
             CODE_SIGNING_ALLOWED=NO \
             test
-      - name: Guardar informe de XCTest si falla
-        if: failure()
+      - name: Guardar el resultado completo de XCTest y XCUITest
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: budviva-ios-xctest
           path: ios-native/BudvivaTestResults.xcresult
-          retention-days: 7
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Extraer capturas XCUITest de las cinco secciones
+        if: success()
+        run: |
+          mkdir -p ios-native/capturas-simulador
+          if ! xcrun xcresulttool export attachments \
+            --path ios-native/BudvivaTestResults.xcresult \
+            --output-path ios-native/capturas-simulador/uitest; then
+            echo "::warning::No se han podido extraer las capturas; el XCResult completo sigue disponible."
+          fi
       - name: Capturar inicio de Budviva en el simulador
         if: success()
         timeout-minutes: 4
