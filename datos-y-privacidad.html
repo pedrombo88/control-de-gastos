@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#12263a">
+<meta name="description" content="Gestiona tus datos y tu privacidad en Budviva: copias, exportación y eliminación de cuentas.">
+<title>Control de tus datos · Budviva</title>
+<link rel="icon" type="image/svg+xml" href="./icon.svg?v=6.9.10">
+<style>
+:root{color-scheme:light;font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#18324b;background:#f4f7fb}*{box-sizing:border-box}
+body{margin:0}header{background:#12263a;color:white;padding:24px 18px}header>div,main,footer{max-width:790px;margin:auto}
+header b{font-size:24px;letter-spacing:-.7px}header small{display:block;color:#b9d5e5}
+a{color:#066a62}a:focus-visible{outline:3px solid #0ea58d;outline-offset:3px}.back{display:inline-block;color:#d4f0ff;text-decoration:none;margin-top:8px;font-weight:650}
+main{padding:28px 16px 40px}h1{font-size:30px;line-height:1.2;margin:0 0 8px}h2{font-size:19px;margin:0 0 8px}p{margin:8px 0 13px}small,.muted{color:#526578}
+.intro{font-size:16px;color:#41576c;margin-bottom:20px}.card{background:white;border:1px solid #e1e8ee;border-radius:17px;padding:21px 23px;box-shadow:0 5px 20px #10283b09;margin:13px 0}
+.card p{color:#42596e}.link{display:inline-flex;margin-top:4px;align-items:center;min-height:42px;padding:9px 15px;border-radius:10px;background:#0c7568;color:white;text-decoration:none;font-weight:750}.link.secondary{background:#eaf2f3;color:#145950}
+.note{background:#fff4df;border:1px solid #eddbb5;padding:15px 17px;border-radius:14px;color:#73521a;margin:18px 0}
+footer{padding:0 16px 35px;color:#667d8d;font-size:12px}
+@media(max-width:450px){main{padding:20px 12px 32px}h1{font-size:27px}.card{padding:18px}}
+</style></head>
+<body><header><div><b>bud<span style="color:#6cebd0">viva</span></b><small>Tu dinero, más claro</small><a class="back" href="./index.html">← Volver a Budviva</a></div></header>
+<main>
+<h1>Control de tus datos</h1>
+<p class="intro">Consulta dónde se guardan tus datos y accede a las opciones de exportación o eliminación. Los movimientos personales y los gastos de Compartidos se gestionan por separado.</p>
+<section class="card" aria-labelledby="local-title">
+<h2 id="local-title">1. Movimientos personales y documentos</h2>
+<p>Los gastos personales, presupuestos, objetivos y originales adjuntos se almacenan en este dispositivo. No se sincronizan automáticamente con Compartidos ni con otro teléfono.</p>
+<p>En la aplicación entra en <strong>Ajustes</strong> para exportar una copia personal, crear una <strong>copia cifrada</strong> o elegir <strong>Borrar datos financieros</strong>. Exporta antes de borrar si quieres conservar los registros. Las copias descargadas se gestionan fuera de Budviva y no se borran por eliminar los datos locales.</p>
+<a class="link" href="./index.html">Abrir ajustes de Budviva</a>
+</section>
+<section class="card" aria-labelledby="share-title">
+<h2 id="share-title">2. Gastos y datos de Compartidos</h2>
+<p>Los participantes pueden descargar <strong>JSON completo</strong> o <strong>CSV resumen</strong> desde el grupo, consultar sus compensaciones y solicitar el cierre. Ambos archivos se descargan sin cifrar y pueden contener datos de las dos personas.</p>
+<p>Cuando existan gastos o compensaciones, el cierre del grupo exige el consentimiento de ambos miembros. El cierre elimina los movimientos comunes del grupo, pero <strong>no elimina las cuentas de acceso ni los registros personales del dispositivo</strong>.</p>
+<a class="link" href="./compartidos.html">Gestionar Compartidos</a>
+</section>
+<section class="card" aria-labelledby="account-title">
+<h2 id="account-title">3. Eliminar la cuenta de acceso</h2>
+<p>La cuenta de correo para Compartidos es independiente de los datos personales locales. Para eliminarla, primero debes abandonar un grupo vacío o completar el cierre conjunto del grupo, y después abrir la opción <strong>Privacidad y baja de cuenta</strong> en Compartidos.</p>
+<p>La app permite comprobar las referencias pendientes sin borrar nada, y después eliminar definitivamente la cuenta mediante un código enviado a su correo. La operación exige confirmación expresa. Tras la baja, las copias que hayas descargado siguen bajo tu control.</p>
+<a class="link" href="./compartidos.html">Acceder a baja de cuenta</a>
+</section>
+<section class="card" aria-labelledby="rights-title">
+<h2 id="rights-title">4. Información y derechos sobre los datos</h2>
+<p>Consulta qué datos se procesan, cómo se utilizan, qué terceros intervienen y qué controles están disponibles en la <a href="./privacidad.html">política de privacidad</a>. Para ayuda técnica, consulta el <a href="./soporte.html">centro de soporte</a>.</p>
+<p><strong>Versión beta:</strong> la identificación legal del responsable, el canal privado de atención a solicitudes de derechos y los plazos definitivos de conservación siguen pendientes de completarse antes de la distribución comercial. No remitas información financiera privada a incidencias públicas de GitHub.</p>
+</section>
+<div class="note"><strong>Antes de eliminar:</strong> guarda una copia de lo que necesites. Eliminar una cuenta, cerrar Compartidos y borrar los datos locales son acciones distintas y no sustituyen unas a otras.</div>
+</main>
+<footer>Budviva · Centro de control de datos de la beta · Revisión: 7 de noviembre de 2026</footer>
+</body></html>
