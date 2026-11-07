@@ -71,3 +71,22 @@ El titular ha confirmado expresamente que el único grupo y todos sus registros 
 4. Probar baja por OTP con una cuenta desechable completamente aislada de gastos, previa confirmación explícita para el borrado irreversible.
 
 **Alcance de este control:** revisión de permisos, código y logs. No se ha ejecutado un pentest ni una prueba real entre grupos con movimientos. No se han creado, cambiado ni eliminado usuarios o gastos en este análisis.
+
+
+## Comprobación RLS por identidad (7 de noviembre de 2026)
+
+**Consultas de solo lectura ejecutadas contra Supabase con transacciones `BEGIN READ ONLY`, `SET LOCAL ROLE authenticated` y `request.jwt.claim.sub` configurado por identidad, terminando en `ROLLBACK`.** Esta prueba reproduce la evaluación de las políticas RLS para cada usuario en PostgreSQL, pero no sustituye las peticiones HTTP con JWT reales.
+
+**Estado agregado de Supabase verificado:** 4 cuentas Auth, 3 correos confirmados y 1 pendiente; 1 grupo de Compartidos, 2 miembros; 0 gastos y 0 compensaciones. El grupo pertenece a uno de los miembros.
+
+| Identidad simulada con rol `authenticated` | Grupos visibles | Miembros visibles | Gastos visibles | Compensaciones visibles | Resultado |
+|---|---:|---:|---:|---:|---|
+| Primer miembro | 1 | 2 | 0 | 0 | Correcto |
+| Segundo miembro | 1 | 2 | 0 | 0 | Correcto |
+| Cuenta ajena al grupo | 0 | 0 | 0 | 0 | Correcto |
+
+**Conclusión:** se ha demostrado aislamiento de lectura en `bv_households` y `bv_members` para la identidad ajena, y acceso legítimo de ambos miembros al mismo grupo. Como no hay movimientos, los conteos cero de gastos y compensaciones **no demuestran por sí solos** que las políticas separen gastos reales de dos grupos. Las definiciones RLS siguen exigiendo pertenencia.
+
+**Regresión añadida:** `tests/authenticated-isolation.test.cjs` admite ahora dos modalidades independientes: dos grupos con diferentes usuarios (anterior), y **un grupo con un miembro y una cuenta externa** (nueva). Ambas requieren JWT de cuentas de prueba proporcionados por un entorno privado, nunca por GitHub ni por este chat. Sin esas variables, los tests autenticados se omiten, no deben marcarse como verificación completa.
+
+**Siguientes pruebas:** registrar un gasto de ensayo con los dos miembros y contrastar su visibilidad; ejecutar llamadas REST autenticadas con sesiones reales aisladas; verificar la baja de una cuenta descartable sin pertenencia a grupo. No hay borrados ni cambios de datos en la base durante estas comprobaciones.
