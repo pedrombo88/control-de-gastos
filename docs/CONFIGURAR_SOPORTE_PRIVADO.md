@@ -1,13 +1,13 @@
 # Budviva — Activación de soporte privado con Cloudflare
 
-**Estado:** preparado para configurar; **NO activado ni verificado** a 7 de noviembre de 2026.  
+**Estado (7 de noviembre de 2026):** regla de Cloudflare Email Routing creada y recepción del alias `soporte@budviva.com` confirmada por el titular; el contacto se ha activado en el frontend. **Pendiente:** comprobar explícitamente el envío OTP tras los cambios DNS y probar la respuesta saliente con la dirección comercial.  
 **Objetivo:** recibir mensajes privados de clientes de Budviva a través del dominio propio `budviva.com`, sin pagar otro buzón, manteniendo el envío OTP de Supabase + Resend.
 
 ## Arquitectura
 
 - **Salida de códigos de acceso:** Supabase Auth → SMTP Resend → `no-reply@budviva.com`. No modificar esta configuración, que ya se probó.
 - **Entrada de consultas privadas:** dirección del dominio elegida, por ejemplo `soporte@budviva.com` → Cloudflare Email Routing → **buzón real de destino elegido por el titular** y verificado en Cloudflare.
-- **Interfaz pública:** `soporte.html` muestra la opción privada únicamente después de verificarla y activar `support-contact.js`. Nunca se publica el buzón de destino.
+- **Interfaz pública:** `soporte.html` muestra el enlace a `soporte@budviva.com` mediante `support-contact.js` activado. No se publica el buzón privado de destino.
 - Cloudflare Email Routing **reenvía correos entrantes**. No es un buzón de envío: para responder como `@budviva.com` hay que configurar separadamente envío legítimo o una identidad de salida verificada. No prometer respuestas desde el alias hasta probarlo.
 
 ## Configuración mínima sin compartir cuentas ni contraseñas con terceros
@@ -20,22 +20,22 @@
 6. Verifica que los registros **MX/SPF/DKIM/DMARC** correctos queden activos y sin SPF duplicado en el mismo host. No añadas un segundo TXT `v=spf1` en `@`; adapta el registro existente según la configuración real de envío y las indicaciones oficiales.
 7. Envía un mensaje de prueba **desde una cuenta externa diferente del destino** al alias y comprueba que llega. Responde desde la cuenta de recepción para comprobar la dirección visible al usuario; si quieres responder como `@budviva.com`, configura antes una identidad de salida legítima.
 8. Pide un **nuevo código OTP de Budviva** a una cuenta desechable para asegurarte de que el servicio Resend sigue enviando tras los cambios DNS.
-9. Solo si los pasos anteriores salen bien: edita `support-contact.js` poniendo `const verified=true` y `const address='soporte@budviva.com'` (o el alias verificado, siempre en `budviva.com`). La web mostrará un enlace de correo privado y mantendrá oculto el buzón de destino. Enviar a GitHub, esperar el despliegue y comprobar el enlace desde iPhone y escritorio.
+9. **Realizado en el repositorio:** `support-contact.js` contiene `const verified=true` y `const address='soporte@budviva.com'`. Tras publicarse mediante GitHub Pages, verifica el enlace desde iPhone y escritorio. No se publica el buzón de destino.
 10. Actualiza la política `privacidad.html` con el canal de contacto ya verificado y, **antes de comercializar**, los datos reales del responsable y texto jurídico revisado.
 
 **No hagas pruebas con códigos OTP, extractos ni copias de seguridad en el correo del soporte.** Usa un mensaje ficticio sin información privada.
 
 ## Lista de comprobación para validar el servicio
 
-- [ ] Destinatario privado de Cloudflare confirmado
-- [ ] Dirección de soporte del dominio creada
+- [x] Destinatario privado de Cloudflare confirmado por el titular
+- [x] Dirección de soporte del dominio creada
 - [ ] Registros DNS revisados sin afectar a los OTP de Resend
-- [ ] Correo externo recibido en el destino
+- [x] Recepción del correo de prueba confirmada por el titular
 - [ ] Posibilidad de responder probada (anotar dirección del remitente real)
 - [ ] Nueva prueba de correo OTP satisfactoria
-- [ ] `support-contact.js` activado solo después de todas las pruebas
+- [x] `support-contact.js` activado tras confirmación del reenvío
 - [ ] Enlace de soporte privado visible en la web y en iPhone
-- [ ] Política de privacidad y responsables legales actualizados
+- [ ] Contacto de soporte publicado en la política; **identidad legal del responsable y texto RGPD definitivo aún pendientes**
 
 ## Recursos oficiales de Cloudflare
 
@@ -46,4 +46,4 @@
 
 ## Límites de esta fase
 
-No hay acceso conectado a la zona DNS de Cloudflare desde esta sesión. La activación requiere acción del titular desde el panel y verificar físicamente que el buzón recibe correo. No se ha creado un alias real ni publicado una dirección no verificada.
+No hay acceso conectado a la zona DNS de Cloudflare desde esta sesión. La configuración y la recepción se conocen por confirmación del titular, no por lectura directa de los registros DNS. La prueba de OTP posterior a los cambios DNS, la configuración de respuestas con identidad propia y la revisión jurídica siguen pendientes.
