@@ -63,3 +63,49 @@ for(const [index,user] of users.entries()){
     if(response.status===200)assert.equal((await response.json()).length,0,'Invitaciones expuestas');
   });
 }
+
+// Prueba adicional: un grupo compartido con dos miembros y una cuenta ajena.
+// Solo se ejecuta cuando los tres valores se facilitan en variables de entorno
+// privadas. No almacenes JWT ni identificadores de sesión en el repositorio.
+const outsiderNames=[
+  'BUDVIVA_TEST_TOKEN_MEMBER','BUDVIVA_TEST_TOKEN_OUTSIDER','BUDVIVA_TEST_GROUP_SHARED'
+];
+const outsiderPresent=outsiderNames.filter(name=>Boolean(process.env[name]));
+const outsiderEnabled=outsiderPresent.length===outsiderNames.length;
+const ownShared=outsiderEnabled?{
+  token:process.env.BUDVIVA_TEST_TOKEN_MEMBER,
+  group:process.env.BUDVIVA_TEST_GROUP_SHARED
+}:null;
+const outsider=outsiderEnabled?{
+  token:process.env.BUDVIVA_TEST_TOKEN_OUTSIDER,
+  group:process.env.BUDVIVA_TEST_GROUP_SHARED
+}:null;
+
+test('Prueba de aislamiento de un grupo: configuración íntegra',()=>{
+  assert(outsiderPresent.length===0||outsiderEnabled,
+    'Faltan variables de entorno del miembro, el usuario externo o el grupo');
+  if(!outsiderEnabled)return;
+  assert(uuid.test(ownShared.group),'El grupo debe tener un UUID válido');
+  assert.notEqual(ownShared.token,outsider.token,'Deben usarse sesiones de personas diferentes');
+});
+
+test('Miembro real autenticado: puede leer su grupo',{skip:!outsiderEnabled},async()=>{
+  const own=await rows(ownShared,'bv_households',{column:'id',value:ownShared.group});
+  assert.equal(own.length,1,'El miembro no puede leer su propio grupo');
+  const members=await rows(ownShared,'bv_members',{column:'household_id',value:ownShared.group});
+  assert(members.length>=1&&members.length<=2,'Composición de grupo inesperada');
+});
+
+for(const table of [
+  'bv_households','bv_members','bv_expenses','bv_settlements',
+  'bv_household_closure_approvals'
+]){
+  test('Cuenta ajena: no puede leer '+table,{skip:!outsiderEnabled},async()=>{
+    const filter={
+      column:table==='bv_households'?'id':'household_id',
+      value:outsider.group
+    };
+    const foreign=await rows(outsider,table,filter);
+    assert.equal(foreign.length,0,'Exposición indebida a un usuario ajeno: '+table);
+  });
+}
