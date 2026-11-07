@@ -14,7 +14,7 @@ final class FinanceModelTests: XCTestCase {
         let privacy=SharedExpensesService.privacyURL
         XCTAssertEqual(privacy.scheme, "https")
         XCTAssertEqual(privacy.host, shared.host)
-        XCTAssertEqual(privacy.path, "/control-de-gastos/privacidad.html")
+        XCTAssertEqual(privacy.path, "/control-de-gastos/datos-y-privacidad.html")
         XCTAssertNil(privacy.query)
     }
 
