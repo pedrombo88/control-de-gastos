@@ -59,6 +59,9 @@ struct SettingsScreen: View {
             }
 
             Section("Privacidad y soporte") {
+                Link(destination: URL(string:"https://pedrombo88.github.io/control-de-gastos/datos-y-privacidad.html")!) {
+                    Label("Control de mis datos y cuenta",systemImage:"person.crop.circle.badge.checkmark")
+                }
                 Link(destination: URL(string:"https://pedrombo88.github.io/control-de-gastos/privacidad.html")!) {
                     Label("Política de privacidad",systemImage:"hand.raised")
                 }
