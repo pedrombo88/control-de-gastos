@@ -90,3 +90,17 @@ El titular ha confirmado expresamente que el único grupo y todos sus registros 
 **Regresión añadida:** `tests/authenticated-isolation.test.cjs` admite ahora dos modalidades independientes: dos grupos con diferentes usuarios (anterior), y **un grupo con un miembro y una cuenta externa** (nueva). Ambas requieren JWT de cuentas de prueba proporcionados por un entorno privado, nunca por GitHub ni por este chat. Sin esas variables, los tests autenticados se omiten, no deben marcarse como verificación completa.
 
 **Siguientes pruebas:** registrar un gasto de ensayo con los dos miembros y contrastar su visibilidad; ejecutar llamadas REST autenticadas con sesiones reales aisladas; verificar la baja de una cuenta descartable sin pertenencia a grupo. No hay borrados ni cambios de datos en la base durante estas comprobaciones.
+
+
+## Movimientos reales y aislamiento de acceso (7 de noviembre de 2026)
+
+**Resultado verificado en Supabase, con datos de ensayo registrados por el usuario:**
+
+- Grupo: 2 miembros y 2 gastos de 12,00 € y 8,00 €, ambos con `share_basis_points_a=5000` (reparto 50/50); cada gasto tiene como autor y pagador a su respectivo usuario.
+- Total real de gastos: **20,00 €** (2.000 céntimos). Reparto teórico 10,00 € por persona. El usuario que pagó 8,00 € debe **2,00 €** al usuario que pagó 12,00 €, sin compensaciones registradas.
+- **RLS contrastado contra filas reales** con transacciones `BEGIN READ ONLY` + `SET LOCAL ROLE authenticated` + `request.jwt.claim.sub`: cada miembro puede consultar 1 grupo, 2 miembros y los 2 gastos (2.000 céntimos); una tercera cuenta autenticada, externa al grupo, ve 0 grupos, 0 miembros y 0 gastos.
+- La consulta directa con `SET LOCAL ROLE anon` y `SELECT` sobre `bv_households` fue **rechazada por permisos** (`permission denied`). No se necesita ni se debe conceder SELECT a `anon`.
+- **Integridad:** se revisaron `payer_id`, `author_id`, `amount_cents` y reparto. La suma correcta se obtuvo de `bv_expenses` directamente; evitar sumar importes tras unir simultáneamente gastos y miembros, porque la multiplicación de filas duplica el total.
+- **Limitación:** no se han probado solicitudes HTTP con JWT de cada usuario, ni escritura no autorizada, ni la transición a una compensación confirmada. Esas validaciones siguen abiertas antes de la publicación comercial.
+
+No se han insertado, modificado ni eliminado datos por las herramientas de auditoría.
