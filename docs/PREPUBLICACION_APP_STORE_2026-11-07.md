@@ -33,6 +33,8 @@ Los enlaces deben verificarse publicados por GitHub Pages en todos los navegador
 | iPhone nativo | SwiftUI beta, apertura de Compartidos con SafariServices | Firma y pruebas de iPhone físico, TestFlight, equivalencia de funciones |
 | App Store Connect | Borrador de nombre/subtítulo/descripcion | Privacidad de la app, DSA, clasificación, capturas, accesibilidad, cifrado |
 
+**Procedimiento operativo actualizado:** [Configurar soporte privado con Cloudflare](./CONFIGURAR_SOPORTE_PRIVADO.md). Se ha añadido `support-contact.js`, desactivado por defecto; solo se activará cuando la dirección haya superado pruebas de recepción. Ningún correo personal de reenvío figura en GitHub.
+
 ## 1. Canal de soporte privado de bajo coste
 
 **Opción recomendada de preparación:** redireccionar un buzón del dominio `budviva.com` con **Cloudflare Email Routing** a una cuenta privada existente. Esto NO está configurado ni verificado aún.
