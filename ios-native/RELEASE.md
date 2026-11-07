@@ -118,3 +118,14 @@ La auditoría de la PWA se recoge por separado en `AUDITORIA_PROFESIONAL_BUDVIVA
 Se añade una cuarta herramienta «Compartidos» en **Movimientos**, con pantalla explicativa SwiftUI y un navegador del sistema SFSafariViewController presentado a pantalla completa. El acceso se limita a la URL oficial HTTPS con ruta fija; ni el token de sesión ni los datos bancarios privados se transmiten desde iOS. Safari gestiona de forma independiente la sesión y el formulario de alta/baja. Se añade prueba XCTest del origen HTTPS y de la ausencia de parámetros privados, con compilación y pruebas de simulador mediante GitHub Actions.
 
 **Pendiente:** pruebas reales de acceso, alta/baja por correo OTP, presentación de SafariServices, navegación con VoiceOver, sin conexión y gestión de la sesión en iPhone físico. Este acceso a funcionalidades existentes **no supone paridad nativa completa ni aprobación por Apple**.
+
+
+## Preparación de privacidad y soporte — 7 de noviembre de 2026
+
+Se ha creado una página pública de control de datos `datos-y-privacidad.html` que distingue entre eliminar datos personales locales, cerrar Compartidos (doble autorización) y eliminar la cuenta por OTP. La PWA enlaza desde Ajustes y la incluye en su cache offline. La app iOS SwiftUI enlaza ahora directamente a este centro desde Ajustes y desde la pantalla introductoria de Compartidos. **La compilación de este cambio debe validarse en el workflow macOS y el recorrido en un iPhone real.**
+
+En App Store Connect se prepara esta página como **Privacy Choices URL** (opcional); la **Privacy Policy URL** sigue siendo `privacidad.html` (obligatoria). `soporte.html` contiene ayudas, pero **no existe todavía un canal privado de atención verificado**.
+
+Referencia de los bloqueos y del inventario de App Privacy: [expediente de prepublicación](../docs/PREPUBLICACION_APP_STORE_2026-11-07.md).
+
+**Aviso UE:** se debe declarar el estado DSA de operador comercial y, si corresponde, verificar los datos de contacto que Apple publica en la ficha. No se ha determinado ni certificado ese estado para el titular. Antes de publicar: cerrar identidad del responsable, soporte privado y términos/privacidad definitivos.
