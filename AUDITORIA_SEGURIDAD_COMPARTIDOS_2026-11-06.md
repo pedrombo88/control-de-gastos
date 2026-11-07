@@ -117,3 +117,15 @@ Prueba funcional efectuada por el titular y **confirmada mediante consultas de s
 - Añadido un test de regresión que recrea exactamente los importes y el antes/después de la compensación, sin conectarse a producción.
 
 **Limitaciones:** no se han ejecutado solicitudes HTTP de atacante usando JWT propios, ni pruebas de escrituras no autorizadas; la protección de la baja de cuenta por OTP y pruebas manuales en iPhone físico siguen pendientes. No se ha alterado ningún registro en Supabase con las herramientas de auditoría.
+
+
+## Protección contra compensaciones pendientes duplicadas — 7/11/2026
+
+La auditoría detectó que el control de una única propuesta pendiente por persona existía en la interfaz pero podía eludirse con dos solicitudes concurrentes. Se comprobó previamente que no había duplicados pendientes.
+
+- **Producción:** aplicada correctamente la migración `budviva_unique_pending_settlement_per_payer_20261107`, creando un índice único parcial `bv_settlements_one_pending_per_payer` en `(household_id,payer_id)` limitado a `status='pending'`.
+- **Validación:** índice confirmado en `pg_indexes`; el historial mantiene 1 compensación confirmada por 2,00 €, sin modificaciones.
+- **Repositorio:** reflejado el índice en `backend/compartidos.sql`, incorporado un test estático y mejorado el mensaje de conflicto de propuestas simultáneas en `compartidos.js`.
+- **Alcance:** evita múltiples compensaciones simultáneamente pendientes de un pagador dentro del mismo grupo. No limita propuestas sucesivas cuando la anterior haya sido confirmada o rechazada. Esta protección no modifica el control de confirmación por parte de la persona destinataria.
+
+No se han generado ni eliminado movimientos para probar la restricción; la validez del índice está comprobada en el catálogo PostgreSQL.
