@@ -1,11 +1,12 @@
 /* Budviva: el soporte privado no se anuncia antes de estar verificado. */
 const {test,expect}=require('@playwright/test');
 
-test('En la beta el soporte no presenta direcciones de correo sin comprobar',async({page})=>{
+test('La beta ofrece el contacto privado ya verificado',async({page})=>{
   await page.goto('/soporte.html');
   await expect(page.getByRole('heading',{name:'Atención privada'})).toBeVisible();
-  await expect(page.locator('#private-support-link')).toBeHidden();
-  await expect(page.locator('#private-support-state')).toContainText('Todavía no hay un buzón de soporte verificado');
+  await expect(page.locator('#private-support-link')).toBeVisible();
+  await expect(page.locator('#private-support-link')).toHaveAttribute('href',/^mailto:soporte@budviva\.com/);
+  await expect(page.locator('#private-support-state')).toContainText('correo privado');
   await expect(page.getByRole('link',{name:/incidencias de GitHub/i})).toBeVisible();
 });
 
