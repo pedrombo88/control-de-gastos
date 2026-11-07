@@ -145,3 +145,15 @@ Fuentes: [App Review Guidelines](https://developer.apple.com/app-store/review/gu
 **Pruebas de CI:** el commit de estas correcciones superó `Budviva checks`, `Verificación Budviva`, `Budviva security checks` y `Pruebas de interfaz móvil`. El despliegue de GitHub Pages es independiente.
 
 **Riesgos aún abiertos:** las sesiones se guardan en el almacenamiento web del navegador y la protección ante XSS sigue siendo crítica; un JWT antiguo puede ser válido hasta caducidad aunque se cierre sesión y requiere una comprobación adicional en servidor para revocación inmediata. La sincronización entre pestañas no alcanza otros dispositivos. Los archivos exportados no están cifrados por defecto y no se ha probado una exportación con datos reales desde un iPhone físico. La prueba de uso de un JWT antiguo desde una sesión distinta tampoco se ha ejecutado. No confundir estos tests con una auditoría externa o conformidad legal para la App Store.
+
+
+## Preparación comercial: privacidad, soporte y DSA — 7/11/2026
+
+- Página añadida: `datos-y-privacidad.html`, accesible desde Ajustes de la PWA y desde las vistas nativas SwiftUI, con rutas separadas para exportar datos personales, gestionar Compartidos y eliminar la cuenta. Sin nuevas credenciales ni dependencias externas.
+- Actualizadas `privacidad.html` y `soporte.html`: reflejan Resend SMTP real y baja OTP verificada, sin alegar que el servicio continúa sin configurar. Señalan con claridad la ausencia de responsable legal definido y de soporte privado verificado.
+- `sw.js` cachea también el centro de privacidad y permite su navegación offline; las operaciones de cuenta siguen requiriendo red.
+- `tools/check-web.cjs` y el test de secretos públicos verifican la nueva página y sus enlaces.
+- Expediente de cumplimiento y publicación: `docs/PREPUBLICACION_APP_STORE_2026-11-07.md`. Documenta App Privacy, DSA UE, metadatos, costes mínimos y prueba de recepción privada de soporte.
+- **Control abierto:** confirmar el workflow iOS con el nuevo enlace, realizar pruebas de iPhone real, habilitar y verificar un contacto privado (sin inventar email), aportar identidad legal real del responsable y revisar la política RGPD antes de envío a Apple.
+
+La disponibilidad en GitHub Pages debe constatarse tras finalizar el despliegue. Ninguna de estas mejoras convierte la versión beta en una aplicación comercial aprobada.
