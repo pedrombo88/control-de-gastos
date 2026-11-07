@@ -6,6 +6,7 @@ const $=id=>document.getElementById(id);
 const authKey='budviva-shared-session-v1';
 const enc=encodeURIComponent;
 let session=null, user=null, household=null, members=[], expenses=[], settlements=[], closureApprovals=[], inviteCode='';
+let refreshPromise=null;
 let draftApplied=false, loadGeneration=0, currentTransfer=null, lastLoadedGeneration=0;
 const fmt=new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR'});
 const euro=n=>fmt.format(n/100);
@@ -48,18 +49,37 @@ function persist(){if(session)localStorage.setItem(authKey,JSON.stringify(sessio
 async function ensureSession(){
   if(!session)throw Error('Necesitas iniciar sesión.');
   if(Date.now()+60000<(session.expires_at||0)*1000)return;
-  try{
-    const body=await request('/auth/v1/token?grant_type=refresh_token',{method:'POST',data:{refresh_token:session.refresh_token},authenticated:false});
-    if(!body.access_token||!body.refresh_token)throw Error('La sesión no se ha renovado.');
-    session=body;persist();
-  }catch(e){
-    // Al caducar la sesión, retirar también los datos compartidos de memoria y pantalla.
-    loadGeneration++;
-    session=null;user=null;household=null;members=[];expenses=[];settlements=[];closureApprovals=[];
-    currentTransfer=null;lastLoadedGeneration=0;inviteCode='';
-    persist();renderRoot();
-    const error=new Error('Tu sesión ha caducado. Vuelve a iniciar sesión.');error.status=401;throw error;
-  }
+  // Supabase rota el refresh token: una sola renovación simultánea por pestaña.
+  if(refreshPromise)return refreshPromise;
+  const previous=session;
+  refreshPromise=(async()=>{
+    try{
+      const body=await request('/auth/v1/token?grant_type=refresh_token',{
+        method:'POST',data:{refresh_token:previous.refresh_token},authenticated:false
+      });
+      if(!body.access_token||!body.refresh_token)throw Error('La sesión no se ha renovado.');
+      // Otra pestaña puede haber cerrado o actualizado la sesión durante la llamada.
+      if(session!==previous){
+        if(!session)throw Error('La sesión se ha cerrado durante la renovación.');
+        return;
+      }
+      session=body;persist();
+    }catch(e){
+      // Si otra pestaña ha actualizado la sesión, no anular su token válido.
+      if(session!==previous&&session)return;
+      if(session===previous){
+        loadGeneration++;
+        session=null;user=null;household=null;members=[];expenses=[];settlements=[];closureApprovals=[];
+        currentTransfer=null;lastLoadedGeneration=0;inviteCode='';
+        try{sessionStorage.removeItem('budviva-share-draft-v1');}catch(_){}
+        persist();renderRoot();
+      }
+      const error=new Error('Tu sesión ha caducado. Vuelve a iniciar sesión.');error.status=401;throw error;
+    }finally{
+      refreshPromise=null;
+    }
+  })();
+  return refreshPromise;
 }
 async function sendCode(email){
   await request('/auth/v1/otp',{method:'POST',authenticated:false,data:{email,create_user:true}});
@@ -72,7 +92,8 @@ async function verifyCode(email,token){
 async function logout(){
   loadGeneration++;
   if(session){try{await request('/auth/v1/logout',{method:'POST'});}catch(_){}}
-  session=null;user=null;household=null;members=[];expenses=[];settlements=[];closureApprovals=[];persist();
+  session=null;user=null;household=null;members=[];expenses=[];settlements=[];closureApprovals=[];
+  currentTransfer=null;inviteCode='';lastLoadedGeneration=0;draftApplied=false;persist();
   try{sessionStorage.removeItem('budviva-share-draft-v1');}catch(_){}
   renderRoot();
 }
@@ -404,7 +425,9 @@ function finishAccountDeletion(f){
   $('delete-account-otp-form').hidden=true;
   $('deletion-otp-status').textContent='La cuenta se ha eliminado.';
   loadGeneration++;session=null;user=null;household=null;members=[];expenses=[];settlements=[];closureApprovals=[];
-  currentTransfer=null;lastLoadedGeneration=0;persist();renderRoot();
+  currentTransfer=null;lastLoadedGeneration=0;inviteCode='';draftApplied=false;
+  try{sessionStorage.removeItem('budviva-share-draft-v1');}catch(_){}
+  persist();renderRoot();
   status('Cuenta de acceso eliminada. Tus datos privados guardados en este dispositivo no se han borrado.');
   return 'deleted-account';
 }
@@ -554,7 +577,31 @@ $('settlement-list').addEventListener('click',async e=>{
 $('expense-form').elements.date.value=today();
 try{session=JSON.parse(localStorage.getItem(authKey)||'null');}catch(_){session=null;}
 if(session)load();else renderRoot();
-window.addEventListener('visibilitychange',()=>{if(!document.hidden&&session&&household)load();});
+// Sincroniza cambios de identidad, cierre de sesión y baja desde otras pestañas.
+// No se propagan datos de Compartidos entre personas ni se confía en sesiones antiguas.
+window.addEventListener('storage',event=>{
+  if(event.storageArea!==localStorage||event.key!==authKey)return;
+  let updated=null;
+  try{updated=event.newValue?JSON.parse(event.newValue):null;}catch(_){}
+  if(!updated?.access_token||!updated?.refresh_token||!updated?.user?.id)updated=null;
+  if(updated&&session?.user?.id===updated.user.id){
+    session=updated;return; // Otra pestaña acaba de renovar el token del mismo usuario.
+  }
+  loadGeneration++;
+  session=null;user=null;household=null;members=[];expenses=[];settlements=[];closureApprovals=[];
+  currentTransfer=null;lastLoadedGeneration=0;inviteCode='';draftApplied=false;
+  try{sessionStorage.removeItem('budviva-share-draft-v1');}catch(_){}
+  if(updated){
+    session=updated;user=updated.user;
+    renderRoot();
+    void load(); // Obtiene la identidad y pertenencia reales del servidor.
+  }else{
+    renderRoot();
+    status('La sesión se ha cerrado en otra pestaña. Vuelve a iniciar sesión.');
+  }
+});
+// Vuelve a validar ante Auth incluso si antes no existía grupo compartido.
+window.addEventListener('visibilitychange',()=>{if(!document.hidden&&session)void load();});
 // Refresco incremental de lectura. No mantiene conexiones ni consume datos cuando la pestaña está oculta.
 setInterval(()=>{if(!document.hidden&&session&&household)void load();},30000);
 })();
