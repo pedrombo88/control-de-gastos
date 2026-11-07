@@ -1,6 +1,6 @@
 # Configuración del correo de acceso y baja — Budviva
 
-**Estado (7 de noviembre de 2026):** Resend Free conectado mediante SMTP personalizado en el proyecto Supabase Budviva, con el dominio propio `budviva.com` y la plantilla Magic Link/OTP de la marca. **El titular ha confirmado la recepción de un correo de acceso real y el inicio de sesión correcto con su código**. Esta validación comunicada no sustituye la prueba de alta de usuario nuevo, la auditoría de entrega a múltiples proveedores ni las pruebas de eliminación de cuenta. La Edge Function `bv-delete-account` v6 está implementada; no se han ejecutado bajas destructivas.
+**Estado (7 de noviembre de 2026):** Resend Free conectado por SMTP personalizado en Supabase con el dominio `budviva.com`. El titular ha confirmado la recepción y uso correcto de códigos OTP. **Se ha verificado la baja real de una cuenta anteriormente vinculada a Compartidos**, después del cierre conjunto del grupo: Auth pasó de 4 a 3 usuarios, el registro de autenticación indica `user_deleted` con HTTP 200 y las seis tablas de Compartidos permanecen vacías. La entrega a múltiples proveedores y la distribución App Store siguen pendientes.
 
 ## Proveedor recomendado: Resend (preparado el 6/11/2026)
 
@@ -57,3 +57,10 @@ Fuentes: [Integración oficial Supabase–Resend](https://supabase.com/partners/
 Se ha corregido la comprobación de referencias de cuenta: ahora cada consulta selecciona una columna existente de su tabla. Antes se intentaba seleccionar `id` en `bv_household_closure_approvals`, que utiliza la clave compuesta `household_id, user_id` y no dispone de `id`. Esto podía bloquear la consulta de elegibilidad con un error 503.
 
 La función v6 está desplegada y su código se ha contrastado con las columnas de producción mediante consultas de solo lectura. **No se ha ejecutado una baja real**. El titular ha confirmado entrega y uso de OTP para iniciar sesión; la baja por OTP y el aislamiento entre usuarios autenticados siguen pendientes de prueba específica.
+
+
+## Mensaje de correo genérico para accesos y bajas (7/11/2026)
+
+La plantilla **Magic Link/OTP** se utiliza tanto para iniciar sesión como para solicitar el código de eliminación. Por ello, el archivo `backend/email-templates/codigo-acceso.html` emplea ahora el título **«Tu código de verificación»** y explica las tres operaciones posibles (acceso, registro, eliminación). Evita que un usuario crea que un correo solicitado para borrar su cuenta es un inicio de sesión inesperado.
+
+**Pendiente de publicación manual en Supabase:** editar Authentication → Email Templates → Magic Link, cambiar el asunto a `Tu código de verificación · Budviva` y sustituir Body por el HTML revisado en GitHub, guardando la plantilla. Los archivos del repositorio no se sincronizan automáticamente con Supabase. Mantener `{{ .Token }}`. No compartir ni registrar códigos OTP de usuarios.
