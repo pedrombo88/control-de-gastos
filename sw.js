@@ -1,7 +1,7 @@
 /* Budviva 6.9.10 — caché por ruta sin sustituir la pantalla principal. */
 const CACHE_PREFIX = 'control-de-gastos-';
 const CACHE = CACHE_PREFIX + '6.9.10';
-const CORE = ['./','./index.html','./recurring.js','./stats.js','./reconcile.js','./documents.js','./backup-crypto.js','./smart-import.js','./manifest.webmanifest','./icon.svg','./apple-touch-icon.png','./privacidad.html','./soporte.html','./compartidos.html','./compartidos.js','./shared-config.js','./shared-expenses.js'];
+const CORE = ['./','./index.html','./recurring.js','./stats.js','./reconcile.js','./documents.js','./backup-crypto.js','./smart-import.js','./manifest.webmanifest','./icon.svg','./apple-touch-icon.png','./privacidad.html','./soporte.html','./datos-y-privacidad.html','./compartidos.html','./compartidos.js','./shared-config.js','./shared-expenses.js'];
 
 function sameOrigin(request) {
   return new URL(request.url).origin === self.location.origin;
@@ -11,6 +11,7 @@ function navigationFallback(url) {
   const path = new URL(url).pathname;
   if (path.endsWith('/privacidad.html')) return './privacidad.html';
   if (path.endsWith('/soporte.html')) return './soporte.html';
+  if (path.endsWith('/datos-y-privacidad.html')) return './datos-y-privacidad.html';
   if (path.endsWith('/compartidos.html')) return './compartidos.html';
   const scopePath = new URL(self.registration.scope).pathname;
   if (path === scopePath || path === scopePath + 'index.html') return './index.html';
