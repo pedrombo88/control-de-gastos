@@ -46,6 +46,12 @@ assert(sharedHtml.includes('connect-src')&&sharedHtml.includes('https://bsvtttcu
 
 const privacyHtml=fs.readFileSync('privacidad.html','utf8');
 const supportHtml=fs.readFileSync('soporte.html','utf8');
+const privacyChoicesHtml=fs.readFileSync('datos-y-privacidad.html','utf8');
+assert(html.includes('href="./datos-y-privacidad.html"'),'Ajustes debe enlazar al control de datos');
+assert(privacyChoicesHtml.includes('href="./compartidos.html"')&&privacyChoicesHtml.includes('href="./index.html"'),'La página de privacidad debe permitir acceder al borrado de ambos tipos de datos');
+assert(privacyChoicesHtml.includes('antes de la distribución comercial'),'La versión beta debe indicar las condiciones pendientes');
+assert(privacyHtml.includes('Resend'),'La política debe indicar el proveedor real de correo');
+assert(!supportHtml.includes('el envío real y la eliminación con cuentas desechables siguen pendientes'),'Soporte no debe afirmar que la baja OTP está sin probar');
 assert(!privacyHtml.includes('aún no son autoservicio'),'Privacy policy must not contradict account deletion');
 assert(privacyHtml.includes('eliminación definitiva de tu cuenta de acceso'),'Privacy policy must explain deletion');
 assert(privacyHtml.includes('no borra los registros personales guardados localmente'),'Local data limitation must be disclosed');
@@ -53,7 +59,7 @@ assert(supportHtml.includes('Comprobar protección de mi cuenta'),'Support must 
 assert(supportHtml.includes('código de un solo uso enviado a tu correo'),'Support must explain OTP deletion');
 assert(privacyHtml.includes('código de un solo uso enviado al correo'),'Privacy must explain OTP deletion');
 
-for(const [page,source] of [['Compartidos',sharedHtml],['Privacidad',privacyHtml],['Soporte',supportHtml]]){
+for(const [page,source] of [['Compartidos',sharedHtml],['Privacidad',privacyHtml],['Soporte',supportHtml],['Datos',privacyChoicesHtml]]){
   assert(source.includes('href="./icon.svg?v='+releaseVersion+'"'),page+' must use the current Budviva logo');
 }
 
@@ -113,9 +119,10 @@ const manifest=JSON.parse(fs.readFileSync("manifest.webmanifest","utf8"));
 assert.equal(manifest.id,"./");assert.equal(manifest.short_name,"Budviva");
 assert(manifest.icons.some(x=>x.src==='icon.svg?v='+releaseVersion),'Manifest icon must match release version');
 assert(html.includes('icon.svg?v='+releaseVersion),'Favicon must match release version');
-for(const page of ["privacidad.html","soporte.html"])assert(fs.readFileSync(page,"utf8").includes("<html lang=\"es\">"),page+" must exist");
+for(const page of ["privacidad.html","soporte.html","datos-y-privacidad.html"])assert(fs.readFileSync(page,"utf8").includes("<html lang=\"es\">"),page+" must exist");
 const sw=fs.readFileSync("sw.js","utf8");
 assert(sw.includes("navigationFallback(request.url)"),"Offline navigation must be routed by page");
+assert(sw.includes("'/datos-y-privacidad.html'"),'El centro de privacidad debe funcionar sin conexión después de instalar la PWA');
 assert(sw.includes("CACHE_PREFIX + '"+releaseVersion+"'"),"Service worker cache must match release version");
 assert(sw.includes("cache.put(fallback, copy)"),"Navigations must be cached to their own route");
 assert(!sw.includes("cache.put('./index.html',copy)"),"Never overwrite home with another page");
