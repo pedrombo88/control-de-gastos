@@ -145,6 +145,8 @@ revoke all on function public.bv_create_household(text,text),public.bv_create_in
 grant execute on function public.bv_create_household(text,text),public.bv_create_invite(uuid),public.bv_join_household(text,text),public.bv_review_settlement(uuid,boolean) to authenticated;
 create index if not exists bv_expenses_household_date on public.bv_expenses(household_id,spent_on desc);
 create index if not exists bv_settlements_household_date on public.bv_settlements(household_id,created_at desc);
+-- Una sola compensación pendiente por pagador y grupo, incluso con envíos simultáneos.
+create unique index if not exists bv_settlements_one_pending_per_payer on public.bv_settlements(household_id,payer_id) where status='pending';
 
 -- 6.7: doble consentimiento para cerrar y borrar un hogar. No elimina usuarios auth.
 create table if not exists public.bv_household_closure_approvals (
