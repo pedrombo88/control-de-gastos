@@ -30,3 +30,9 @@ test('La interfaz informa sobre creación de cuentas y no exige contraseña',()=
   assert(ui.includes('id="verify-form"'));
   assert(ui.includes('Ya tengo una contraseña de acceso'),'Debe conservar acceso legado');
 });
+
+test('Plantilla de OTP apta para acceso, alta y baja sin exponer operación incorrecta',()=>{
+ assert(loginTemplate.includes('Tu código de verificación'));
+ assert(loginTemplate.includes('confirmar su eliminación'));
+ assert(loginTemplate.includes(token));
+});
