@@ -1,6 +1,6 @@
 # Budviva — Activación de soporte privado con Cloudflare
 
-**Estado (7 de noviembre de 2026):** regla de Cloudflare Email Routing creada y recepción del alias `soporte@budviva.com` confirmada por el titular; el contacto se ha activado en el frontend. **Pendiente:** comprobar explícitamente el envío OTP tras los cambios DNS y probar la respuesta saliente con la dirección comercial.  
+**Estado (7 de noviembre de 2026):** regla de Cloudflare Email Routing creada y recepción del alias `soporte@budviva.com` confirmada por el titular; el contacto se ha activado en el frontend. **OTP tras los cambios DNS comprobado por el titular:** llegó correctamente un nuevo código de Resend/Supabase después de activar Email Routing. **Pendiente:** probar la respuesta saliente con una dirección comercial y revisar los registros DNS en el panel.  
 **Objetivo:** recibir mensajes privados de clientes de Budviva a través del dominio propio `budviva.com`, sin pagar otro buzón, manteniendo el envío OTP de Supabase + Resend.
 
 ## Arquitectura
@@ -29,10 +29,10 @@
 
 - [x] Destinatario privado de Cloudflare confirmado por el titular
 - [x] Dirección de soporte del dominio creada
-- [ ] Registros DNS revisados sin afectar a los OTP de Resend
+- [x] Recepción OTP comprobada tras los cambios DNS (el titular recibió el código). La auditoría directa de los registros DNS permanece pendiente.
 - [x] Recepción del correo de prueba confirmada por el titular
 - [ ] Posibilidad de responder probada (anotar dirección del remitente real)
-- [ ] Nueva prueba de correo OTP satisfactoria
+- [x] Nueva prueba de correo OTP satisfactoria, confirmada por el titular
 - [x] `support-contact.js` activado tras confirmación del reenvío
 - [ ] Enlace de soporte privado visible en la web y en iPhone
 - [ ] Contacto de soporte publicado en la política; **identidad legal del responsable y texto RGPD definitivo aún pendientes**
@@ -46,4 +46,4 @@
 
 ## Límites de esta fase
 
-No hay acceso conectado a la zona DNS de Cloudflare desde esta sesión. La configuración y la recepción se conocen por confirmación del titular, no por lectura directa de los registros DNS. La prueba de OTP posterior a los cambios DNS, la configuración de respuestas con identidad propia y la revisión jurídica siguen pendientes.
+No hay acceso conectado a la zona DNS de Cloudflare desde esta sesión. La configuración y la recepción se conocen por confirmación del titular, no por lectura directa de los registros DNS. La entrega de un OTP posterior al cambio DNS ha sido confirmada por el titular. Siguen pendientes la auditoría DNS directa, la configuración de respuestas con identidad comercial y la revisión jurídica.
