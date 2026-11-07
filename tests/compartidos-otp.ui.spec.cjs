@@ -77,3 +77,15 @@ test('OTP móvil: respuesta de éxito simulada limpia sesión y mantiene los dat
   expect(state.session).toBeNull();
   expect(state.privateData).toBe('datos-financieros-privados');
 });
+
+test('Cerrar la sesión en una pestaña oculta los datos en otra',{timeout:30000},async({page,context})=>{
+  await setup(page);
+  const other=await context.newPage();
+  await setup(other);
+  await page.evaluate(()=>localStorage.removeItem('budviva-shared-session-v1'));
+  await expect(other.locator('#auth')).toBeVisible();
+  await expect(other.locator('#setup')).toBeHidden();
+  const token=await other.evaluate(()=>localStorage.getItem('budviva-shared-session-v1'));
+  expect(token).toBeNull();
+  await other.close();
+});
