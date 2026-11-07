@@ -60,7 +60,7 @@ test("Copias cifradas y páginas legales accesibles",async ({page})=>{
   const links=page.locator('#page-content a[href*=".html"]');
   await expect(links).toHaveCount(3);
   for(const href of ["datos-y-privacidad.html","privacidad.html","soporte.html"]){
-    await expect(page.locator('#page-content a[href*="'+href+'"]')).toBeVisible();
+    await expect(page.locator('#page-content a[href="./'+href+'"]')).toBeVisible();
   }
 });
 
