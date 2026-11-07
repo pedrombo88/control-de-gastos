@@ -104,3 +104,16 @@ El titular ha confirmado expresamente que el único grupo y todos sus registros 
 - **Limitación:** no se han probado solicitudes HTTP con JWT de cada usuario, ni escritura no autorizada, ni la transición a una compensación confirmada. Esas validaciones siguen abiertas antes de la publicación comercial.
 
 No se han insertado, modificado ni eliminado datos por las herramientas de auditoría.
+
+
+## Compensación entre los dos miembros — 7 de noviembre de 2026
+
+Prueba funcional efectuada por el titular y **confirmada mediante consultas de solo lectura en Supabase**:
+
+- Se mantienen los **dos gastos originales** (12,00 € y 8,00 €), total **20,00 €**; reparto al 50 %.
+- Se ha registrado **una compensación de 2,00 €**, desde la persona que pagó 8,00 € hacia la que pagó 12,00 €, con `status='confirmed'` y fecha de revisión registrada. **No hay compensaciones pendientes**.
+- Saldo resultante: **0,00 €**. Los gastos y la compensación siguen como asientos independientes; no se modifica el histórico de gasto.
+- Repetida la simulación RLS con `BEGIN READ ONLY` y rol `authenticated`: ambos miembros ven **2 gastos por 20,00 €** y **1 compensación confirmada por 2,00 €**; la cuenta ajena ve **0 gastos y 0 compensaciones**.
+- Añadido un test de regresión que recrea exactamente los importes y el antes/después de la compensación, sin conectarse a producción.
+
+**Limitaciones:** no se han ejecutado solicitudes HTTP de atacante usando JWT propios, ni pruebas de escrituras no autorizadas; la protección de la baja de cuenta por OTP y pruebas manuales en iPhone físico siguen pendientes. No se ha alterado ningún registro en Supabase con las herramientas de auditoría.
