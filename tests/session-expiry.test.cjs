@@ -10,7 +10,7 @@ const functionSource=match[0].slice(0,-'async function sendCode'.length);
 test('Una renovación fallida retira inmediatamente todos los datos de Compartidos',async()=>{
   let renders=0,saves=0;
   const factory=new Function('request','persist','renderRoot',
-    "let session={access_token:'expired',refresh_token:'stale',expires_at:1},user={id:'u'},household={id:'h'},"+
+    "let refreshPromise=null,session={access_token:'expired',refresh_token:'stale',expires_at:1},user={id:'u'},household={id:'h'},"+
     "members=[1],expenses=[1],settlements=[1],closureApprovals=[1],currentTransfer={},lastLoadedGeneration=9,inviteCode='secret',loadGeneration=4;"+
     functionSource+";return {run:ensureSession,state:()=>({session,user,household,members,expenses,settlements,closureApprovals,currentTransfer,lastLoadedGeneration,inviteCode,loadGeneration})};"
   );
@@ -28,7 +28,7 @@ test('Una renovación fallida retira inmediatamente todos los datos de Compartid
 test('Una sesión todavía válida no modifica los datos ni consulta el servidor',async()=>{
   let requests=0,renders=0;
   const factory=new Function('request','persist','renderRoot',
-    "let session={access_token:'live',refresh_token:'valid',expires_at:Math.floor(Date.now()/1000)+3600},"+
+    "let refreshPromise=null,session={access_token:'live',refresh_token:'valid',expires_at:Math.floor(Date.now()/1000)+3600},"+
     "user={id:'u'},household={id:'h'},members=[1],expenses=[1],settlements=[1],closureApprovals=[1],"+
     "currentTransfer={},lastLoadedGeneration=9,inviteCode='secret',loadGeneration=4;"+
     functionSource+";return {run:ensureSession,state:()=>({session,expenses})};"
@@ -39,4 +39,45 @@ test('Una sesión todavía válida no modifica los datos ni consulta el servidor
   assert.deepEqual(fixture.state().expenses,[1]);
   assert.equal(requests,0);
   assert.equal(renders,0);
+});
+
+test('Las renovaciones simultáneas comparten una única petición a Auth',async()=>{
+  let requests=0,saves=0,release;
+  const factory=new Function('request','persist','renderRoot',
+    "let refreshPromise=null,session={access_token:'old',refresh_token:'one-use',expires_at:1},"+
+    "user={id:'u'},household=null,members=[],expenses=[],settlements=[],closureApprovals=[],"+
+    "currentTransfer=null,lastLoadedGeneration=0,inviteCode='',loadGeneration=0;"+
+    functionSource+";return {run:ensureSession,state:()=>({session,refreshPromise})};"
+  );
+  const gate=new Promise(resolve=>{release=resolve;});
+  const fixture=factory(async()=>{requests++;await gate;return {
+    access_token:'new',refresh_token:'new-refresh',expires_at:Math.floor(Date.now()/1000)+3600
+  };},()=>{saves++;},()=>{});
+  const attempts=[fixture.run(),fixture.run(),fixture.run()];
+  assert.equal(requests,1,'Deben compartir la renovación en curso');
+  release();
+  await Promise.all(attempts);
+  assert.equal(requests,1);
+  assert.equal(saves,1);
+  assert.equal(fixture.state().session.access_token,'new');
+  assert.equal(fixture.state().refreshPromise,null);
+});
+
+test('Una renovación tardía no restaura la cuenta cerrada en otra pestaña',async()=>{
+  let release;
+  const gate=new Promise(resolve=>{release=resolve;});
+  const factory=new Function('request','persist','renderRoot',
+    "let refreshPromise=null,session={access_token:'old',refresh_token:'one-use',expires_at:1},"+
+    "user={id:'u'},household=null,members=[],expenses=[],settlements=[],closureApprovals=[],"+
+    "currentTransfer=null,lastLoadedGeneration=0,inviteCode='',loadGeneration=0;"+
+    functionSource+";return {run:ensureSession,clear:()=>{session=null;},state:()=>session};"
+  );
+  const fixture=factory(async()=>{await gate;return {
+    access_token:'new',refresh_token:'new-refresh',expires_at:Math.floor(Date.now()/1000)+3600
+  };},()=>{},()=>{});
+  const pending=fixture.run();
+  fixture.clear();
+  release();
+  await assert.rejects(pending,/sesión ha caducado/);
+  assert.equal(fixture.state(),null);
 });
