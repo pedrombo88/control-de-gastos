@@ -46,6 +46,11 @@ assert(sharedHtml.includes('connect-src')&&sharedHtml.includes('https://bsvtttcu
 
 const privacyHtml=fs.readFileSync('privacidad.html','utf8');
 const supportHtml=fs.readFileSync('soporte.html','utf8');
+const supportContactSource=fs.readFileSync('support-contact.js','utf8');
+new vm.Script(supportContactSource,{filename:'support-contact.js'});
+assert(supportHtml.includes('id="private-support-link"')&&supportHtml.includes('src="./support-contact.js"'),'El enlace de soporte debe estar preparado');
+assert(supportContactSource.includes('const verified=false;')&&supportContactSource.includes("const address='';"),'No publicar un correo privado no verificado');
+assert(supportContactSource.includes('@budviva\\.com'),'Los contactos deben usar solo el dominio verificado');
 const privacyChoicesHtml=fs.readFileSync('datos-y-privacidad.html','utf8');
 assert(html.includes('href="./datos-y-privacidad.html"'),'Ajustes debe enlazar al control de datos');
 assert(privacyChoicesHtml.includes('href="./compartidos.html"')&&privacyChoicesHtml.includes('href="./index.html"'),'La página de privacidad debe permitir acceder al borrado de ambos tipos de datos');
