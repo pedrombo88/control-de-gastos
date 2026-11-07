@@ -33,6 +33,8 @@ Los enlaces deben verificarse publicados por GitHub Pages en todos los navegador
 | iPhone nativo | SwiftUI beta, apertura de Compartidos con SafariServices | Firma y pruebas de iPhone físico, TestFlight, equivalencia de funciones |
 | App Store Connect | Borrador de nombre/subtítulo/descripcion | Privacidad de la app, DSA, clasificación, capturas, accesibilidad, cifrado |
 
+**Ficha comercial de la App Store preparada y comprobada por tests:** [metadatos es-ES](./APP_STORE_FICHA_ES_2026.json). Incluye descripción realista de la versión SwiftUI, subtítulo, palabras clave y direcciones de privacidad y soporte; **no está subida a App Store Connect**. La cuenta de evaluación debe tener acceso estable, sin depender de la caducidad de los códigos OTP.
+
 **Soporte privado en beta:** el titular ha confirmado la recepción de `soporte@budviva.com` a través de Cloudflare Email Routing y `support-contact.js` está activado para mostrar el alias públicamente. El correo privado de destino no figura en GitHub. Procedimiento: [Configurar soporte privado con Cloudflare](./CONFIGURAR_SOPORTE_PRIVADO.md). El titular ha recibido un nuevo OTP tras los cambios DNS, por lo que se confirma la continuidad de Resend. Continúan pendientes la respuesta saliente con identidad comercial y los procedimientos de privacidad.
 
 ## 1. Canal de soporte privado de bajo coste
