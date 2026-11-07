@@ -176,3 +176,16 @@ La eliminación resultante ha sido contrastada inmediatamente mediante una consu
 **Resultado:** cierre conjunto mediante dos autorizaciones reales verificado; las cuentas de acceso se conservan y no quedan referencias compartidas. Cumple el requisito de separar eliminación del grupo y eliminación de las cuentas.
 
 **Siguiente ensayo:** baja mediante OTP de una de las cuentas que anteriormente pertenecía al grupo. Debe pasar el control `action:'check'`, solicitar un código en la sesión auténtica y validar `ELIMINAR CUENTA` en la Edge Function. No iniciar sesión de nuevo con esa dirección tras borrarla antes de comprobar Auth, ya que `create_user:true` permitiría recrear una cuenta nueva.
+
+
+## Baja real por OTP de una cuenta anteriormente vinculada — 7/11/2026
+
+Tras el cierre real de Compartidos, el titular recibió por correo un OTP y lo introdujo en la interfaz de eliminación. La operación se completó con éxito. Verificación independiente y no destructiva en Supabase:
+
+- Las cuentas de Auth pasaron de **4 a 3**; entre las dos cuentas que anteriormente eran miembros del mismo grupo, **una ha desaparecido y la otra se conserva**.
+- En logs de Auth consta el evento **`user_deleted`**, petición DELETE al endpoint administrativo del usuario eliminado y **HTTP 200**.
+- Se mantienen a cero: `bv_households`, `bv_members`, `bv_expenses`, `bv_settlements`, `bv_invitations` y `bv_household_closure_approvals`.
+- La Edge Function desplegada `bv-delete-account` v6 sigue activa. La reautenticación OTP y las comprobaciones de referencias compartidas están implementadas; el ensayo real de baja fue satisfactorio.
+- El correo recibido se titulaba «Tu código de acceso» aunque correspondía a una baja. Se ha preparado en el repositorio una plantilla de texto general «Tu código de verificación», **pendiente de copiar manualmente en Magic Link/OTP de Supabase** para que entre en producción.
+
+**Alcance:** prueba de baja real y limpieza de referencias, no test de revocación de tokens antiguos, de todos los proveedores de correo ni certificación App Store. No se ha repetido el código recibido en los archivos ni en la documentación.
