@@ -58,8 +58,8 @@ test("Copias cifradas y páginas legales accesibles",async ({page})=>{
   await page.locator('#backup-password-dialog [data-close]').click();
   await expect(page.locator("#backup-password-dialog")).not.toBeVisible();
   const links=page.locator('#page-content a[href*=".html"]');
-  await expect(links).toHaveCount(2);
-  for(const href of ["privacidad.html","soporte.html"]){
+  await expect(links).toHaveCount(3);
+  for(const href of ["datos-y-privacidad.html","privacidad.html","soporte.html"]){
     await expect(page.locator('#page-content a[href*="'+href+'"]')).toBeVisible();
   }
 });
