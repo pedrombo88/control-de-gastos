@@ -3,6 +3,25 @@ const assert=require('node:assert/strict');
 const {calculate}=require('../shared-expenses.js');
 const couple=['ana','alex'];
 const expense=(payerId,amountCents,shareBasisPointsA)=>({type:'expense',payerId,amountCents,...(shareBasisPointsA===undefined?{}:{shareBasisPointsA})});
+test('caso real de aceptación: gastos 12 € y 8 €, compensación de 2 € confirmada',()=>{
+  const before=calculate([
+    expense('ana',1200,5000),expense('alex',800,5000)
+  ],couple);
+  assert.equal(before.totalExpensesCents,2000);
+  assert.deepEqual(before.transfer,{from:'alex',to:'ana',amountCents:200});
+  assert.equal(before.totalSettlementsCents,0);
+
+  const after=calculate([
+    expense('ana',1200,5000),expense('alex',800,5000),
+    {type:'settlement',payerId:'alex',receiverId:'ana',amountCents:200}
+  ],couple);
+  assert.equal(after.transfer,null);
+  assert.equal(after.totalExpensesCents,2000);
+  assert.equal(after.totalSettlementsCents,200);
+  assert.equal(after.netCents.ana,0);
+  assert.equal(after.netCents.alex,0);
+});
+
 test('reparto al 50 %: quien menos pagó debe la mitad de la diferencia',()=>{
   const r=calculate([expense('ana',30000),expense('alex',10000)],couple);
   assert.equal(r.totalExpensesCents,40000);
