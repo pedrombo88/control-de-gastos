@@ -52,3 +52,23 @@ test('El inicio de gastos y compensaciones exige exactamente dos participantes',
 test('solo puede haber una compensación pendiente por pagador y grupo',()=>{
  assert.match(sql,/create unique index if not exists bv_settlements_one_pending_per_payer on public\.bv_settlements\(household_id,payer_id\) where status='pending'/);
 });
+
+test('Cierre compartido: dos consentimientos, cancelación y limpieza íntegra',()=>{
+ const fStart=sql.indexOf('create or replace function public.bv_manage_household_closure');
+ assert(fStart!==-1,'Falta la función de cierre conjunto');
+ const fStop=sql.indexOf('revoke all on function public.bv_manage_household_closure',fStart);
+ assert(fStop>fStart,'Falta la limitación de acceso a la función');
+ const f=sql.slice(fStart,fStop);
+ for(const check of [
+   'if auth.uid() is null',
+   'user_id=auth.uid()',
+   "if p_action='cancel' then",
+   'delete from public.bv_household_closure_approvals',
+   'insert into public.bv_household_closure_approvals',
+   'if v_approvals=v_count then',
+   'delete from public.bv_settlements',
+   'delete from public.bv_expenses',
+   'delete from public.bv_members',
+   'delete from public.bv_households'
+ ]) assert(f.includes(check),'Falta protección de cierre: '+check);
+});
