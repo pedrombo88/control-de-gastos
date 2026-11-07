@@ -157,3 +157,12 @@ Fuentes: [App Review Guidelines](https://developer.apple.com/app-store/review/gu
 - **Control abierto:** confirmar el workflow iOS con el nuevo enlace, realizar pruebas de iPhone real, habilitar y verificar un contacto privado (sin inventar email), aportar identidad legal real del responsable y revisar la política RGPD antes de envío a Apple.
 
 La disponibilidad en GitHub Pages debe constatarse tras finalizar el despliegue. Ninguna de estas mejoras convierte la versión beta en una aplicación comercial aprobada.
+
+
+## Atención privada — 7 de noviembre de 2026
+
+El titular configuró Cloudflare Email Routing para el alias `soporte@budviva.com` y **confirmó que los mensajes de prueba llegan al buzón de destino**. Esta información procede de su verificación manual; las herramientas de esta auditoría no tienen acceso al DNS privado de Cloudflare ni al contenido del buzón.
+
+Cambios publicados en el repositorio: `support-contact.js` activa el enlace `mailto:` exclusivamente para el dominio `budviva.com`; `soporte.html` ofrece la dirección privada; `privacidad.html` y `datos-y-privacidad.html` señalan dónde dirigirse. Actualizadas las comprobaciones estáticas y móviles para garantizar que el enlace se muestra únicamente con configuración correcta.
+
+**Pendiente:** comprobar un nuevo OTP tras los cambios de MX/SPF; probar la capacidad de responder desde una identidad profesional sin revelar el buzón de destino; documentar los plazos de respuesta y el ejercicio de derechos, e identificar legalmente al responsable del tratamiento. Disponer de un alias operativo no implica por sí solo conformidad RGPD ni aprobación de Apple.
