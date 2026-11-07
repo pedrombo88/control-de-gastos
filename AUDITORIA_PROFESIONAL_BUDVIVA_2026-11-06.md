@@ -128,3 +128,20 @@ Fuentes: [App Review Guidelines](https://developer.apple.com/app-store/review/gu
 - [Seguridad de Compartidos](./AUDITORIA_SEGURIDAD_COMPARTIDOS_2026-11-06.md) · [Expediente iOS](./ios-native/RELEASE.md)
 
 **Veredicto final:** beta web útil y mejorada; **no publicar comercialmente aún**. Mantener la diferenciación entre controles confirmados, simulaciones y validaciones externas pendientes.
+
+
+## Actualización de auditoría — 7 de noviembre de 2026: sesiones y exportación
+
+**Autenticación:** tras el cierre con doble consentimiento de Compartidos y la baja mediante OTP, se verificó en la BD que no quedaban grupos, gastos ni compensaciones. La cuenta eliminada tampoco figura en `auth.users`, `auth.sessions` ni `auth.identities`. No se guardaron códigos de verificación ni claves privadas en el repositorio.
+
+**Mejoras aplicadas al cliente de Compartidos:**
+- Se serializan las renovaciones simultáneas de un mismo token dentro de cada pestaña. Un token renovado no puede sobrescribir una sesión que haya sido cerrada mientras la llamada estaba pendiente.
+- El evento `storage` sincroniza el cierre de sesión o cambio de identidad entre pestañas del mismo origen. Se limpian datos en memoria, invitaciones y borradores locales antes de mostrar otra identidad.
+- Al volver a poner en primer plano la aplicación, se verifica la identidad ante Auth incluso cuando el usuario todavía no tiene grupo. Esto limita el tiempo que una pantalla puede mostrar una sesión eliminada o caducada.
+- El cierre de sesión y la baja limpian también el estado transitorio y el borrador de Compartidos, sin tocar los gastos privados del dispositivo.
+
+**Exportación:** `JSON completo` incluye miembros, gastos y compensaciones; `CSV resumen` prioriza lectura en hojas de cálculo y no contiene todos los metadatos del JSON. La interfaz advierte de que los archivos no están cifrados. Tests de Node verifican estructura, neutralización de fórmulas de Excel, casos sin conexión y actualización previa del historial.
+
+**Pruebas de CI:** el commit de estas correcciones superó `Budviva checks`, `Verificación Budviva`, `Budviva security checks` y `Pruebas de interfaz móvil`. El despliegue de GitHub Pages es independiente.
+
+**Riesgos aún abiertos:** las sesiones se guardan en el almacenamiento web del navegador y la protección ante XSS sigue siendo crítica; un JWT antiguo puede ser válido hasta caducidad aunque se cierre sesión y requiere una comprobación adicional en servidor para revocación inmediata. La sincronización entre pestañas no alcanza otros dispositivos. Los archivos exportados no están cifrados por defecto y no se ha probado una exportación con datos reales desde un iPhone físico. La prueba de uso de un JWT antiguo desde una sesión distinta tampoco se ha ejecutado. No confundir estos tests con una auditoría externa o conformidad legal para la App Store.
