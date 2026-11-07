@@ -142,3 +142,16 @@ Se ejecutó una transacción PostgreSQL con `SET LOCAL ROLE authenticated` y dos
 El código y el permiso de ejecución confirman que solo los miembros autenticados pueden autorizar el cierre. Se añade una regresión de contrato que exige comprobación de identidad, dos consentimientos, cancelación y limpieza transaccional de entidades asociadas.
 
 **Pendiente:** ejecutar el cierre desde los dos navegadores reales y probar la baja mediante código OTP desde la interfaz. No se enviaron códigos, no se crearon usuarios ni se eliminaron datos persistentes desde las herramientas. El cierre real debe utilizar la interfaz y las decisiones de cada sesión, sin eludir su flujo de autorización.
+
+
+## Prueba de baja de una cuenta vinculada a Compartidos — 7/11/2026
+
+**Escenario elegido por el titular:** usar una de las dos cuentas existentes del grupo de ensayo, no una cuenta aislada. Las cuentas y el grupo se consideran datos desechables.
+
+**Estado inicial verificado por consulta de solo lectura:** 4 cuentas Auth, 1 grupo, 2 miembros, 2 gastos, 1 compensación confirmada, 0 autorizaciones de cierre. La deuda se liquidó, pero la cuenta aún pertenece al grupo y mantiene referencias al historial.
+
+**Control de servidor:** la función Edge desplegada `bv-delete-account` versión 6 valida la sesión y ejecuta la comprobación de pertenencia a `bv_members` **antes** de verificar contraseña/OTP o llamar a `admin.deleteUser`. Si encuentra una vinculación devuelve HTTP 409. La prueba automatizada reproduce el escenario de cuenta con grupo e historial y verifica que el modo `check`, la eliminación por contraseña y la eliminación por OTP se rechazan sin autenticar el código ni borrar usuarios.
+
+**Prueba manual end-to-end pendiente:** (1) acceder como miembro y pulsar `Comprobar protección de mi cuenta (sin borrar datos)`, esperando un bloqueo; (2) autorizar el cierre de Compartidos desde la cuenta A y desde la cuenta B, mediante la UI con las confirmaciones solicitadas; (3) verificar en Supabase 0 grupos/miembros/gastos/compensaciones; (4) desde una cuenta anteriormente vinculada, enviar y verificar un OTP de eliminación sin compartirlo; (5) comprobar que Auth reduce el número de usuarios en uno y que no queda ningún registro de esa identidad en Compartidos. No usar consultas SQL que suplanten identidades para ejecutar un borrado definitivo: eso no verificaría la autorización real del cliente.
+
+**Resultado hasta el momento:** las condiciones del backend y el aislamiento funcional se verificaron; no se ha efectuado ninguna baja real de cuenta ni cierre definitivo del grupo en esta etapa.
