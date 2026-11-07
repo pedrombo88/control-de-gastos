@@ -32,7 +32,7 @@ Para trabajar desde un Mac más adelante:
 - La identidad `com.example.budviva` es **solo una plantilla**. Cambiarla por el identificador controlado por el titular antes de firmar o publicar. No sustituirla por un identificador inventado.
 - Cuenta activa de Apple Developer Program y permisos en App Store Connect; el titular debe completar contratos, fiscalidad, pagos y datos de contacto según corresponda.
 - Confirmar disponibilidad comercial de **Budviva** en la OEPM, EUIPO y App Store.
-- Completar un canal privado de asistencia a usuarios (no solo GitHub Issues público).
+- El canal privado `soporte@budviva.com` ya recibe consultas según el titular. Probar respuesta saliente con identidad comercial y procedimiento de atención de derechos; no confiar solo en GitHub Issues público.
 - Identificar legalmente al responsable del tratamiento y revisar la política con la configuración definitiva.
 - Completar declaraciones de datos, cifrado, permisos de cámara y cualquier cuestionario de App Store Connect. El hecho de usar AES para copias exige evaluar correctamente la información de cumplimiento de exportación; **no se ha supuesto exención**.
 
@@ -62,7 +62,7 @@ Tu información financiera permanece en tu dispositivo. Puedes descargar copias 
 
 **Control de datos y solicitudes de privacidad (URL opcional en App Store Connect):** https://pedrombo88.github.io/control-de-gastos/datos-y-privacidad.html
 
-**Pendiente:** correo o formulario privado de soporte con recepción real comprobada, identidad y contacto del responsable del tratamiento, periodos de conservación, capturas reales, clasificación por edades, términos comerciales, disponibilidad de marca y revisión RGPD. No enviar a App Review hasta resolverlo.
+**Verificado en beta:** correo entrante privado de soporte por Cloudflare y entrega de OTP por Resend tras el cambio DNS, ambos confirmados por el titular. **Pendiente:** prueba de respuesta de soporte con identidad comercial, identificación legal del responsable del tratamiento, periodos de conservación, capturas reales, clasificación por edades, términos comerciales, disponibilidad de marca y revisión RGPD. No enviar a App Review hasta resolverlo.
 
 ## Pruebas de aceptación antes de TestFlight
 
