@@ -16,11 +16,11 @@ Plan gratuito de Resend: **3.000 mensajes al mes, máximo 100 al día**, sujeto 
 - Remitente: `no-reply@budviva.com`.
 - Nombre del remitente: `Budviva`.
 
-**Plantilla de acceso activa:** [codigo-acceso.html](../backend/email-templates/codigo-acceso.html) copiada manualmente en **Magic Link/OTP**. **Plantilla de alta preparada:** [confirmacion-alta.html](../backend/email-templates/confirmacion-alta.html) para **Confirm sign up**, pendiente de copiar y probar. Ambas conservan `{{ .Token }}`. El HTML del repositorio no se sincroniza automáticamente con el panel de Supabase. La función de baja también usa `/auth/v1/otp`.
+**Plantillas configuradas manualmente según el titular:** [codigo-acceso.html](../backend/email-templates/codigo-acceso.html) en **Magic Link/OTP** y [confirmacion-alta.html](../backend/email-templates/confirmacion-alta.html) en **Confirm sign up**. Ambas conservan `{{ .Token }}`. El titular ha actualizado también la redacción genérica de Magic Link/OTP el 7/11/2026. El HTML del repositorio no se sincroniza automáticamente con Supabase y no se ha repetido la prueba de entrega tras este último cambio de texto.
 
-**Plantilla Confirm sign up:** el titular ha confirmado el 7/11/2026 que ya está guardada en Supabase, aunque no se ha probado su entrega real a una cuenta nueva.
+**Confirm sign up:** guardada en Supabase. Se creó una cuenta nueva con correo y dos personas se vincularon a un grupo de ensayo; posteriormente se cerró Compartidos y se eliminó por OTP una de esas cuentas. El historial de pruebas y los logs corroboran la operativa; no se ha auditado el comportamiento de todos los proveedores de correo.
 
-**Validación pendiente:** dar de alta una dirección nueva de prueba, comprobar el mensaje de confirmación y el acceso posterior; revisar límites de correo y SPF/DKIM/DMARC, sin compartir credenciales. La URL actual de pruebas es `https://pedrombo88.github.io/control-de-gastos/compartidos.html`. El dominio `budviva.com` aún no se ha vinculado como URL principal de la PWA.
+**Validaciones pendientes:** revisar entregabilidad entre proveedores, límites de correo y SPF/DKIM/DMARC, sin compartir credenciales. La URL actual de pruebas es `https://pedrombo88.github.io/control-de-gastos/compartidos.html`. El dominio `budviva.com` aún no se ha vinculado como URL principal de la PWA.
 
 Fuentes: [Integración oficial Supabase–Resend](https://supabase.com/partners/catalog/resend), [SMTP Supabase](https://supabase.com/docs/guides/auth/auth-smtp), [Resend precios](https://resend.com/pricing).
 
@@ -56,11 +56,11 @@ Fuentes: [Integración oficial Supabase–Resend](https://supabase.com/partners/
 
 Se ha corregido la comprobación de referencias de cuenta: ahora cada consulta selecciona una columna existente de su tabla. Antes se intentaba seleccionar `id` en `bv_household_closure_approvals`, que utiliza la clave compuesta `household_id, user_id` y no dispone de `id`. Esto podía bloquear la consulta de elegibilidad con un error 503.
 
-La función v6 está desplegada y su código se ha contrastado con las columnas de producción mediante consultas de solo lectura. **No se ha ejecutado una baja real**. El titular ha confirmado entrega y uso de OTP para iniciar sesión; la baja por OTP y el aislamiento entre usuarios autenticados siguen pendientes de prueba específica.
+La función v6 está desplegada y su código se ha contrastado con las columnas de producción mediante consultas de solo lectura. **La baja real por OTP ha sido superada**: una cuenta desapareció de `auth.users` y no dejó sesiones ni identidades vinculadas, después de cerrar Compartidos con doble autorización. La prueba de abuso de un JWT antiguo ante la API sigue pendiente.
 
 
 ## Mensaje de correo genérico para accesos y bajas (7/11/2026)
 
 La plantilla **Magic Link/OTP** se utiliza tanto para iniciar sesión como para solicitar el código de eliminación. Por ello, el archivo `backend/email-templates/codigo-acceso.html` emplea ahora el título **«Tu código de verificación»** y explica las tres operaciones posibles (acceso, registro, eliminación). Evita que un usuario crea que un correo solicitado para borrar su cuenta es un inicio de sesión inesperado.
 
-**Pendiente de publicación manual en Supabase:** editar Authentication → Email Templates → Magic Link, cambiar el asunto a `Tu código de verificación · Budviva` y sustituir Body por el HTML revisado en GitHub, guardando la plantilla. Los archivos del repositorio no se sincronizan automáticamente con Supabase. Mantener `{{ .Token }}`. No compartir ni registrar códigos OTP de usuarios.
+**Publicación manual confirmada por el titular (7/11/2026):** la redacción se ha actualizado en Authentication → Email Templates → Magic Link. El archivo vigente de referencia es el HTML revisado en GitHub y conserva `{{ .Token }}`. Sigue pendiente solicitar un nuevo código para comprobar visualmente la última redacción recibida. No compartir ni registrar códigos OTP de usuarios.
