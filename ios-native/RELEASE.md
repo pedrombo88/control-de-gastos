@@ -27,6 +27,8 @@ Para trabajar desde un Mac más adelante:
 3. Ejecutar `cd ios-native && xcodegen generate --spec project.yml`.
 4. Abrir `Budviva.xcodeproj` y configurar tu Apple Development Team y el Bundle Identifier definitivo.
 
+**Plan de registro sin Mac y sin pagar hasta estar preparados:** [Apple Developer y TestFlight](../docs/APPLE_DEVELOPER_SIN_MAC.md). Confirmado que la membresía todavía no está activa; la cuenta gratuita y la cuenta de pago son pasos diferentes. Antes de inscribirse hay que elegir la titularidad: como persona física Apple muestra el nombre legal del vendedor; para mostrar la entidad jurídica, la inscripción debe ser de organización.
+
 ## Identidad y cuenta de Apple — bloqueantes
 
 - La identidad `com.example.budviva` es **solo una plantilla**. Cambiarla por el identificador controlado por el titular antes de firmar o publicar. No sustituirla por un identificador inventado.
