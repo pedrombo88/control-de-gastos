@@ -80,6 +80,8 @@ No declarar «No recopilamos datos» por el solo hecho de que los movimientos pr
 Fuentes Apple: https://developer.apple.com/app-store/app-privacy-details/  
 https://developer.apple.com/help/app-store-connect/manage-app-information/manage-app-privacy/
 
+**Ruta de Apple Developer sin Mac propio:** [guía de registro y TestFlight](./APPLE_DEVELOPER_SIN_MAC.md). No se ha contratado la membresía; recomendar cuenta gratuita primero. Antes de pagar decidir si el vendedor aparecerá como persona física (nombre legal) o como entidad jurídica (empresa válida). La compilación SwiftUI para simulador mediante GitHub Actions no requiere membresía ni permite distribuir una app nativa firmada.
+
 ## 4. Obligaciones de la distribución Apple / UE
 
 - Apple requiere **Privacy Policy URL** y política accesible dentro de la app.
