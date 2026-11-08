@@ -19,7 +19,7 @@ permissions:
 jobs:
   simulator:
     runs-on: macos-15
-    timeout-minutes: 35
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - name: Configurar Xcode
@@ -119,5 +119,50 @@ jobs:
         with:
           name: budviva-iphone-preview
           path: ios-native/capturas-simulador/
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Compilar app arm64 para iPhone físico sin firma
+        if: success()
+        timeout-minutes: 12
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcodebuild -project ios-native/Budviva.xcodeproj \
+            -scheme Budviva \
+            -configuration Debug \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath "$RUNNER_TEMP/budviva-iphone-device" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            build
+          APP="$RUNNER_TEMP/budviva-iphone-device/Build/Products/Debug-iphoneos/Budviva.app"
+          test -d "$APP"
+          test -f "$APP/Budviva"
+          test -f "$APP/Info.plist"
+          ARCHS=$(xcrun lipo -archs "$APP/Budviva")
+          echo "Arquitecturas del ejecutable iPhone: $ARCHS"
+          case " $ARCHS " in *" arm64 "*) ;; *) echo "::error::La app no contiene arm64"; exit 1 ;; esac
+          echo "Bundle ID de desarrollo (se volverá a firmar localmente):"
+          /usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP/Info.plist"
+          mkdir -p ios-native/iphone-fisico-unsigned/Payload
+          cp -R "$APP" ios-native/iphone-fisico-unsigned/Payload/
+          cd ios-native/iphone-fisico-unsigned
+          /usr/bin/zip -qry ../budviva-iphone-pruebas-sin-firma.ipa Payload
+          cd ..
+          /usr/bin/unzip -t budviva-iphone-pruebas-sin-firma.ipa > /dev/null
+          shasum -a 256 budviva-iphone-pruebas-sin-firma.ipa > budviva-iphone-pruebas-sin-firma.sha256
+          echo "IPA de prueba arm64 generada; no contiene firma ni credenciales."
+          ls -lh budviva-iphone-pruebas-sin-firma.*
+
+      - name: Publicar IPA para firmar e instalar desde Windows
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: budviva-iphone-fisico-sin-firma
+          path: |
+            ios-native/budviva-iphone-pruebas-sin-firma.ipa
+            ios-native/budviva-iphone-pruebas-sin-firma.sha256
           if-no-files-found: error
           retention-days: 14

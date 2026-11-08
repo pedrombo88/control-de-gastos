@@ -152,3 +152,10 @@ Referencia de los bloqueos y del inventario de App Privacy: [expediente de prepu
 Se corrigió un defecto de paridad financiera entre la PWA y SwiftUI: el CSV exportado por la web de Budviva incluye `Tipo=Gasto` e `Importe` positivo, que antes se importaba como ingreso porque el parser solo comprobaba el signo. El importador nativo ahora utiliza el tipo explícito, distingue categorías compatibles y descarta etiquetas de tipo desconocidas en vez de asignar silenciosamente un ingreso. Se comprueban mediante XCTest gastos, ingresos, separadores entrecomillados, importes con signo y categorías. La importación también detecta duplicados **dentro del propio lote seleccionado**, además de los existentes.
 
 Es una corrección de código; no se ha validado aún en un dispositivo iPhone físico. Se mantiene la revisión humana de las operaciones antes de guardarlas.
+
+
+## IPA para dispositivo físico sin suscripción (8 de noviembre de 2026)
+
+El workflow de macOS genera ahora, además de las pruebas de simulador, un `Budviva.app` de **arquitectura arm64 para iPhone real** y lo empaqueta como `budviva-iphone-pruebas-sin-firma.ipa`. La firma se realiza de forma opcional en **Windows**, con un programa de sideloading de terceros y una cuenta gratuita de Apple. **La IPA no viene firmada ni se puede instalar directamente en el iPhone.** No hay claves ni credenciales integradas en GitHub. Consultar el procedimiento, las limitaciones de siete días y el checklist en [Instalar en iPhone físico desde Windows](./PRUEBAS_IPHONE_FISICO.md).
+
+El control obligatorio en CI comprueba la arquitectura arm64, `Info.plist`, empaquetado ZIP válido y hash SHA-256. La prueba de instalación y uso real debe completarse manualmente; no se presenta como un test de dispositivo ya superado.
