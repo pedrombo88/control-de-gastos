@@ -67,6 +67,53 @@ final class FinanceModelTests: XCTestCase {
         XCTAssertThrowsError(try BackupCipher.decrypt(secret,password:"clave equivocada segura"))
     }
 
+    func testCSVExportedByBudvivaPreservesExpenseIncomeAndCategory() throws {
+        let csv = """
+        Fecha;Tipo;Categoría;Concepto;Importe (€);Método;Nota
+        2026-11-07;Gasto;Alimentación;Comida;"12,45";Tarjeta;
+        2026-11-07;Ingreso;Nómina;Sueldo;"1.250,00";Tarjeta;
+        2026-11-08;Gasto;Hogar;"Papel; cocina";"3,50";Tarjeta;
+        """
+        let data=NativeImportParser.parseCSV(csv)
+        XCTAssertEqual(data.count,3)
+        XCTAssertEqual(data[0].type,"expense")
+        XCTAssertEqual(data[0].category,"alimentacion")
+        XCTAssertEqual(data[0].amount,"12,45")
+        XCTAssertEqual(data[1].type,"income")
+        XCTAssertEqual(data[1].category,"nomina")
+        XCTAssertEqual(data[1].amount,"1250,00")
+        XCTAssertEqual(data[2].title,"Papel; cocina")
+        XCTAssertEqual(data[2].type,"expense")
+        XCTAssertEqual(data[2].category,"hogar")
+    }
+
+    func testCSVStatementWithoutTypeUsesSignedAmounts() throws {
+        let csv = """
+        fecha;concepto;importe
+        07/11/2026;Compra;-15,30
+        08/11/2026;Devolución;+9,50
+        09/11/2026;Ingreso;12,00
+        """
+        let data=NativeImportParser.parseCSV(csv)
+        // Los importes con prefijo '+' no se aceptan silenciosamente como cero.
+        XCTAssertEqual(data.count,2)
+        XCTAssertEqual(data[0].type,"expense")
+        XCTAssertEqual(data[0].amount,"15,30")
+        XCTAssertEqual(data[1].type,"income")
+        XCTAssertEqual(data[1].amount,"12,00")
+    }
+
+    func testCSVExplicitUnknownTypeIsNotMisclassifiedAsIncome() {
+        let csv = """
+        Fecha;Tipo;Concepto;Importe
+        2026-11-07;Pendiente;No confirmado;"10,00"
+        2026-11-08;Gasto;Sí confirmado;"10,00"
+        """
+        let data=NativeImportParser.parseCSV(csv)
+        XCTAssertEqual(data.count,1)
+        XCTAssertEqual(data[0].type,"expense")
+    }
+
     func testCSVLineParserRespectsQuotes() {
         let line="04/11/2026;\"Tienda; centro\";-21,30"
         let pieces=NativeImportParser.csvCells(line,delimiter:";")

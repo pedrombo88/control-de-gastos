@@ -66,6 +66,7 @@ enum NativeImportParser {
         func idx(_ names:[String])->Int? {header.firstIndex(where:{v in names.contains(where:{v==$0 || v.hasPrefix($0)})})}
         guard let d=idx(["fecha","date"]),let n=idx(["concepto","descripcion","detalle","movimiento","description","comercio"]) else{return []}
         let amountI=idx(["importe","amount","cantidad"]),debitI=idx(["cargo","debe","debito","debit"]),creditI=idx(["abono","haber","credito","credit"])
+        let typeI=idx(["tipo","type","sentido"]),categoryI=idx(["categoria","category"])
         if amountI==nil && (debitI==nil || creditI==nil){return []}
         return lines.dropFirst().prefix(2000).compactMap{line in
             let fields=csvCells(line,delimiter:delimiter)
@@ -78,9 +79,28 @@ enum NativeImportParser {
                 value=credit != 0 ? abs(credit):debit != 0 ? -abs(debit):nil
             }
             guard let value,value != 0 else{return nil}
-            let type=value<0 ? "expense":"income"
-            return ImportDraft(date:date,title:String(field(n).prefix(90)),amount:String(format:"%.2f",Double(abs(value))/100).replacingOccurrences(of:".",with:","),type:type,
-                category:type=="expense" ? "otros":"otros-ingresos")
+            // El CSV exportado por Budviva usa importes positivos tanto para
+            // gastos como ingresos. La columna «Tipo» prevalece sobre el signo.
+            let declared=field(typeI).folding(options:[.diacriticInsensitive,.caseInsensitive],
+                                               locale:Locale(identifier:"es_ES")).lowercased()
+                .trimmingCharacters(in:.whitespacesAndNewlines)
+            let type:String
+            switch declared {
+            case "gasto","expense","cargo","debito","debit","pago","salida":type="expense"
+            case "ingreso","income","abono","credito","credit","entrada":type="income"
+            case "":type=value<0 ? "expense":"income"
+            default:return nil // No interpretar una categoría desconocida como ingreso.
+            }
+            let categories=type=="expense" ? FinanceCategory.expense:FinanceCategory.income
+            let statedCategory=field(categoryI).folding(options:[.diacriticInsensitive,.caseInsensitive],
+                                                        locale:Locale(identifier:"es_ES")).lowercased()
+                .trimmingCharacters(in:.whitespacesAndNewlines)
+            let category=categories.first(where:{option in
+                option.0==statedCategory ||
+                option.1.folding(options:[.diacriticInsensitive,.caseInsensitive],
+                                 locale:Locale(identifier:"es_ES")).lowercased()==statedCategory
+            })?.0 ?? (type=="expense" ? "otros":"otros-ingresos")
+            return ImportDraft(date:date,title:String(field(n).prefix(90)),amount:String(format:"%.2f",Double(abs(value))/100).replacingOccurrences(of:".",with:","),type:type,category:category)
         }
     }
     static func parseTicket(_ text:String)->[ImportDraft] {
@@ -299,6 +319,7 @@ struct ImportScreen: View {
         let selected=drafts.filter{$0.selected}
         guard !selected.isEmpty else{message="Selecciona primero los movimientos que quieras guardar.";return}
         var movements=[Movement]()
+        var selectedFingerprints=Set<String>()
         for item in selected {
             guard let amount=FinanceFormat.cents(item.amount),NativeImportParser.isoDate(item.date) != nil,
                 !item.title.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty else {
@@ -306,6 +327,11 @@ struct ImportScreen: View {
             }
             if store.data.transactions.contains(where:{$0.date==item.date && $0.type==item.type && $0.amount==amount && $0.title.localizedCaseInsensitiveCompare(item.title) == .orderedSame}) {
                 message="Posible duplicado: \(item.title). Revisa el historial.";isError=true;return
+            }
+            let key="\(item.date)|\(item.type)|\(amount)|\(item.title.trimmingCharacters(in:.whitespacesAndNewlines).folding(options:[.diacriticInsensitive,.caseInsensitive],locale:Locale(identifier:"es_ES")).lowercased())"
+            guard selectedFingerprints.insert(key).inserted else {
+                message="El archivo contiene movimientos repetidos: \(item.title). Desmarca uno para continuar."
+                isError=true;return
             }
             movements.append(Movement(type:item.type,amount:amount,date:item.date,title:item.title,category:item.category,
                 method:"card",note:"Importado de documento",receiptItems:item.items.isEmpty ? nil:item.items,

@@ -145,3 +145,10 @@ Referencia de los bloqueos y del inventario de App Privacy: [expediente de prepu
 
 
 **Comprobación CI del 7/11/2026:** la ejecución [42386505387](https://github.com/pedrombo88/control-de-gastos/actions/runs/42386505387) superó **9 pruebas XCTest y 1 prueba de navegación XCUITest**, y `xcresulttool` confirmó que exportó **5 adjuntos de capturas**, sin fallos. Se ha corregido el paso de empaquetado para que el ZIP `budviva-iphone-preview` incluya también todas las imágenes de XCUITest, no solamente la pantalla inicial. La ejecución posterior debe confirmar el paquete completo.
+
+
+## Corrección de importación CSV — 8 de noviembre de 2026
+
+Se corrigió un defecto de paridad financiera entre la PWA y SwiftUI: el CSV exportado por la web de Budviva incluye `Tipo=Gasto` e `Importe` positivo, que antes se importaba como ingreso porque el parser solo comprobaba el signo. El importador nativo ahora utiliza el tipo explícito, distingue categorías compatibles y descarta etiquetas de tipo desconocidas en vez de asignar silenciosamente un ingreso. Se comprueban mediante XCTest gastos, ingresos, separadores entrecomillados, importes con signo y categorías. La importación también detecta duplicados **dentro del propio lote seleccionado**, además de los existentes.
+
+Es una corrección de código; no se ha validado aún en un dispositivo iPhone físico. Se mantiene la revisión humana de las operaciones antes de guardarlas.
