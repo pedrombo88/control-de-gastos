@@ -85,6 +85,8 @@ struct SettingsScreen: View {
                 }
             }
         }
+        .scrollContentBackground(.hidden)
+        .background(BudvivaPalette(store.theme).canvas.ignoresSafeArea())
         .navigationTitle("Ajustes")
         .fileImporter(isPresented:$importing,allowedContentTypes:[.json,.data],allowsMultipleSelection:false) {result in
             switch result {

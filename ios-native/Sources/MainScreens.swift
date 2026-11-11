@@ -6,30 +6,41 @@ struct HomeScreen: View {
     @EnvironmentObject var store: FinanceStore
     @Binding var selected: Int
     @State private var adding = false
+    private var palette:BudvivaPalette { BudvivaPalette(store.theme) }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Tu dinero, más claro").font(.subheadline).foregroundStyle(.secondary)
+                    Text("BALANCE DEL MES").font(.system(size:11,weight:.bold)).tracking(1.2).foregroundStyle(.white.opacity(0.85))
                     Text(FinanceFormat.money(store.balance))
-                        .font(.system(size: 35, weight: .bold, design: .rounded))
-                    Text("Balance de este mes").font(.caption).foregroundStyle(.secondary)
+                        .font(.system(size: 42, weight: .bold, design: .rounded)).lineLimit(1).minimumScaleFactor(0.7)
+                        .accessibilityIdentifier("home-balance")
+                    Divider().overlay(.white.opacity(0.2))
                     HStack(spacing: 20) {
                         summary("Ingresos", store.income, "arrow.down.left")
                         Spacer()
                         summary("Gastos", store.expense, "arrow.up.right")
                     }.padding(.top, 10)
                 }
-                .padding(21)
+                .padding(24)
                 .foregroundStyle(.white)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(LinearGradient(colors: [.init(red:0.08,green:0.22,blue:0.48),.init(red:0.15,green:0.40,blue:0.78)],startPoint:.topLeading,endPoint:.bottomTrailing),in:RoundedRectangle(cornerRadius:23))
+                .background(palette.hero,in:RoundedRectangle(cornerRadius:26))
+                .shadow(color:palette.accent.opacity(0.17),radius:15,y:10)
                 HStack {
-                    Button { adding = true } label: { Label("Añadir gasto", systemImage:"plus.circle.fill").frame(maxWidth:.infinity) }
-                        .buttonStyle(.borderedProminent)
-                    Button { selected=1 } label: { Label("Importar",systemImage:"doc.text.viewfinder").frame(maxWidth:.infinity) }
-                        .buttonStyle(.bordered)
+                    Button { adding = true } label: {
+                        Label("Añadir gasto",systemImage:"plus.circle.fill")
+                            .font(.subheadline.bold()).frame(maxWidth:.infinity,minHeight:52)
+                    }
+                    .buttonStyle(.plain).foregroundStyle(.white)
+                    .background(palette.accent,in:RoundedRectangle(cornerRadius:17))
+                    Button { selected=1 } label: {
+                        Label("Importar",systemImage:"doc.text.viewfinder")
+                            .font(.subheadline.bold()).frame(maxWidth:.infinity,minHeight:52)
+                    }
+                    .buttonStyle(.plain).foregroundStyle(palette.accent)
+                    .background(palette.surface,in:RoundedRectangle(cornerRadius:17))
                 }
                 let warnings = FinanceCategory.expense.filter { id,_ in
                     guard let budget=store.data.budgets[id],budget>0 else { return false }
@@ -56,7 +67,7 @@ struct HomeScreen: View {
                 }
                 VStack(alignment:.leading,spacing:12) {
                     HStack {
-                        Text("Últimos movimientos").font(.headline)
+                        Text("Últimos movimientos").font(.system(size:18,weight:.bold,design:.rounded))
                         Spacer()
                         Button("Ver todos") { selected=1 }.font(.subheadline)
                     }
@@ -66,8 +77,11 @@ struct HomeScreen: View {
                     }
                     if store.current.isEmpty { ContentUnavailableView("Sin movimientos",systemImage:"eurosign.circle",description:Text("Añade un gasto o ingreso para comenzar.")) }
                 }
+                .padding(17)
+                .background(palette.surface,in:RoundedRectangle(cornerRadius:21))
             }.padding(17)
         }
+        .background(palette.canvas.ignoresSafeArea())
         .navigationTitle("Budviva")
         .sheet(isPresented:$adding) { EntryEditor(entry:nil) }
     }
@@ -83,9 +97,12 @@ struct MovementRow: View {
     var movement: Movement
     var body: some View {
         HStack {
-            Image(systemName: movement.type=="income" ? "arrow.down.left.circle" : "arrow.up.right.circle")
-                .font(.title2)
-                .foregroundStyle(movement.type=="income" ? .green:.orange)
+            Image(systemName:movement.type=="income" ? "arrow.down.left":"arrow.up.right")
+                .font(.system(size:17,weight:.bold))
+                .foregroundStyle(movement.type=="income" ? Color.green:Color.orange)
+                .frame(width:42,height:42)
+                .background((movement.type=="income" ? Color.green:Color.orange).opacity(0.1),
+                            in:RoundedRectangle(cornerRadius:14))
                 .accessibilityHidden(true)
             VStack(alignment:.leading,spacing:3) {
                 Text(movement.title).font(.subheadline).fontWeight(.semibold)
@@ -141,9 +158,11 @@ struct MovementsScreen: View {
                     }
                     showDeleteConfirmation = !pendingDeletionIDs.isEmpty
                 }
-            }.searchable(text:$query,prompt:"Buscar concepto o categoría")
+            }.scrollContentBackground(.hidden)
+                .searchable(text:$query,prompt:"Buscar concepto o categoría")
                 .overlay { if visible.isEmpty { ContentUnavailableView.search(text:query) } }
         }
+        .background(BudvivaPalette(store.theme).canvas.ignoresSafeArea())
         .confirmationDialog("¿Eliminar los movimientos seleccionados?",
                             isPresented: $showDeleteConfirmation, titleVisibility: .visible) {
             Button("Eliminar definitivamente", role: .destructive) {
@@ -177,12 +196,16 @@ struct MovementsScreen: View {
     }
     private func tool(_ title:String,_ icon:String,_ value:Tool)->some View {
         Button { selectedTool=value } label: {
-            VStack(spacing:6) {
-                Image(systemName:icon).font(.title3)
+            HStack(spacing:9) {
+                Image(systemName:icon).font(.title3).foregroundStyle(BudvivaPalette(store.theme).accent)
+                    .frame(width:34,height:34)
+                    .background(BudvivaPalette(store.theme).soft,in:RoundedRectangle(cornerRadius:11))
                 Text(title).font(.subheadline).fontWeight(.semibold).lineLimit(1)
+                Spacer(minLength:0)
             }
-                .frame(maxWidth:.infinity).frame(height:60)
-        }.buttonStyle(.bordered)
+            .padding(.horizontal,11).frame(maxWidth:.infinity,minHeight:68)
+            .background(BudvivaPalette(store.theme).surface,in:RoundedRectangle(cornerRadius:17))
+        }.buttonStyle(.plain)
     }
 }
 
@@ -315,14 +338,16 @@ struct BudgetsScreen: View {
                             }
                             if let limit,limit>0 {
                                 ProgressView(value:min(1,Double(used)/Double(limit)))
-                                    .tint(used>=limit ? .red:.blue)
+                                    .tint(used>=limit ? .red : BudvivaPalette(store.theme).accent)
                             }
                             Text("Gastados: "+FinanceFormat.money(used)).font(.caption).foregroundStyle(.secondary)
                         }
                     }
                 }
             }
-        }.navigationTitle("Presupuestos")
+        }.scrollContentBackground(.hidden)
+         .background(BudvivaPalette(store.theme).canvas.ignoresSafeArea())
+         .navigationTitle("Presupuestos")
         .sheet(item:Binding(get:{editingCategory.map{CategoryID(id:$0)}},set:{editingCategory=$0?.id})) { chosen in
             NavigationStack {
                 Form {

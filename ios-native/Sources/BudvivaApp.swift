@@ -28,7 +28,9 @@ struct RootView: View {
             NavigationStack { SettingsScreen() }
                 .tabItem { Label("Ajustes", systemImage: "gearshape") }.tag(4)
         }
-        .tint(store.theme == "arena" ? Color.orange : store.theme == "esmeralda" ? Color.teal : Color.blue)
+        .tint(BudvivaPalette(store.theme).accent)
+        .toolbarBackground(BudvivaPalette(store.theme).surface, for:.tabBar)
+        .toolbarBackground(.visible, for:.tabBar)
         .alert("Aviso de Budviva", isPresented: Binding(get: { store.errorMessage != nil }, set: { if !$0 { store.errorMessage=nil } })) {
             Button("Aceptar") { store.errorMessage=nil }
         } message: {

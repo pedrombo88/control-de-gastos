@@ -18,12 +18,15 @@ struct SharedExpensesScreen: View {
                 VStack(alignment: .leading, spacing: 10) {
                     Image(systemName: "person.2.circle.fill")
                         .font(.system(size: 38))
-                        .foregroundStyle(.teal)
+                        .foregroundStyle(BudvivaPalette("oceano").accent)
                         .accessibilityHidden(true)
                     Text("Gastos compartidos").font(.title2).bold()
                     Text("Organiza los gastos de dos personas, consulta el saldo común y registra compensaciones sin mover dinero entre cuentas.")
                         .foregroundStyle(.secondary)
                 }
+                .padding(19)
+                .frame(maxWidth:.infinity,alignment:.leading)
+                .background(Color(.secondarySystemGroupedBackground),in:RoundedRectangle(cornerRadius:22))
 
                 Button {
                     showingShared = true
@@ -59,6 +62,7 @@ struct SharedExpensesScreen: View {
             }
             .padding(18)
         }
+        .background(Color(.systemGroupedBackground).ignoresSafeArea())
         .navigationTitle("Compartidos")
         .navigationBarTitleDisplayMode(.inline)
         .fullScreenCover(isPresented: $showingShared) {

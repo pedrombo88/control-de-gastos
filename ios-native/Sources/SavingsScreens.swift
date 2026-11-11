@@ -17,7 +17,8 @@ struct SavingsScreen: View {
                 if selected == 0 { analysis }
                 else { goals }
             }.padding(17)
-        }.navigationTitle("Ahorro")
+        }.background(BudvivaPalette(store.theme).canvas.ignoresSafeArea())
+         .navigationTitle("Ahorro")
         .toolbar {
             if selected == 1 {
                 ToolbarItem(placement:.topBarTrailing) {
@@ -53,7 +54,7 @@ struct SavingsScreen: View {
                 HStack { Text("Estimación a 12 meses");Spacer();Text(FinanceFormat.money(potential*12)).bold() }.font(.subheadline)
             }
             .padding(20).foregroundStyle(.white)
-            .background(LinearGradient(colors:[.teal,.green],startPoint:.topLeading,endPoint:.bottomTrailing),in:RoundedRectangle(cornerRadius:18))
+            .background(BudvivaPalette(store.theme).hero,in:RoundedRectangle(cornerRadius:25))
             GroupBox("Tu plan de reducción") {
                 VStack(alignment:.leading,spacing:12) {
                     Picker("Reducción",selection:$reduction) {

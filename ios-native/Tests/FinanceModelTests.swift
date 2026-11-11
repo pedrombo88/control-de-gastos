@@ -18,6 +18,12 @@ final class FinanceModelTests: XCTestCase {
         XCTAssertNil(privacy.query)
     }
 
+    func testVisualThemeIdentifiersMatchPWA() {
+        XCTAssertEqual(BudvivaPalette.themes,["oceano","esmeralda","arena","noche"])
+        XCTAssertEqual(BudvivaPalette("unknown").id,"oceano")
+        for value in BudvivaPalette.themes { XCTAssertEqual(BudvivaPalette(value).id,value) }
+    }
+
     func testEuroAmountsUseIntegerCents() {
         XCTAssertEqual(FinanceFormat.cents("1,25"),125)
         XCTAssertEqual(FinanceFormat.cents("1.234,56"),123456)

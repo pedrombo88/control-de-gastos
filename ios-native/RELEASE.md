@@ -159,3 +159,8 @@ Es una corrección de código; no se ha validado aún en un dispositivo iPhone f
 El workflow de macOS genera ahora, además de las pruebas de simulador, un `Budviva.app` de **arquitectura arm64 para iPhone real** y lo empaqueta como `budviva-iphone-pruebas-sin-firma.ipa`. La firma se realiza de forma opcional en **Windows**, con un programa de sideloading de terceros y una cuenta gratuita de Apple. **La IPA no viene firmada ni se puede instalar directamente en el iPhone.** No hay claves ni credenciales integradas en GitHub. Consultar el procedimiento, las limitaciones de siete días y el checklist en [Instalar en iPhone físico desde Windows](./PRUEBAS_IPHONE_FISICO.md).
 
 El control obligatorio en CI comprueba la arquitectura arm64, `Info.plist`, empaquetado ZIP válido y hash SHA-256. La prueba de instalación y uso real debe completarse manualmente; no se presenta como un test de dispositivo ya superado.
+
+
+## Rediseño visual nativo (11/11/2026)
+
+La paleta `BudvivaPalette` adapta la presentación SwiftUI a los cuatro temas de la PWA. Balance de Inicio, acciones, iconos de movimientos, accesos de herramientas, superficies de Presupuestos/Ahorro/Ajustes y presentación de Compartidos actualizados. Se conservan los flujos de importación, OCR, ahorro, cuentas y persistencia. Pendiente validar la instalación del nuevo IPA firmado en un iPhone real.
