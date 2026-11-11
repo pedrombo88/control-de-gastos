@@ -11,7 +11,7 @@ test('CSS del rediseño referenciado después de estilos existentes',()=>{
  assert(fs.statSync('compartidos-visual.css').size>1000);
 });
 test('Las dos hojas permanecen disponibles sin conexión',()=>{
- assert(sw.includes('6.9.10-ui1'));
+ assert(sw.includes("CACHE_PREFIX + '6.9.10'"));
  assert(sw.includes("'./budviva-visual.css'"));
  assert(sw.includes("'./compartidos-visual.css'"));
 });
