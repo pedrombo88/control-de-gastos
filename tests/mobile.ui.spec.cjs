@@ -187,3 +187,32 @@ test("Auditoría limpieza: solo un aviso de importación en ahorro sin tickets",
   await expect(page.locator('#page-content')).not.toContainText("Todavía no hay tickets");
   await expect(page.locator('#page-content')).not.toContainText("Sin productos prescindibles");
 });
+
+test("UI1 mantiene cinco secciones legibles en 320, 375 y 430px",async({page})=>{
+ for(const width of [320,375,430]){
+  await page.setViewportSize({width,height:780});
+  await page.goto('/?test=visual', {waitUntil:"domcontentloaded"});
+  for(const tab of ['home','transactions','budgets','savings','settings']){
+   await page.locator('.bottom-nav [data-tab="'+tab+'"]').click();
+   const m=await page.evaluate(()=>({documentWidth:document.documentElement.scrollWidth,viewport:innerWidth,navWidth:document.querySelector('.bottom-nav').getBoundingClientRect().width,navRadius:getComputedStyle(document.querySelector('.bottom-nav')).borderTopLeftRadius}));
+   expect(m.documentWidth).toBeLessThanOrEqual(m.viewport+1);
+   expect(m.navWidth).toBeLessThanOrEqual(m.viewport+1);
+   expect(m.navRadius).not.toBe('0px');
+  }
+ }
+});
+test("UI1 conserva los cuatro temas y el balance",async({page})=>{
+ for(const theme of ['oceano','esmeralda','arena','noche']){
+  await page.evaluate(value=>document.documentElement.dataset.appTheme=value,theme);
+  const state=await page.evaluate(()=>({hero:getComputedStyle(document.querySelector('.balance-card')).backgroundImage,nav:getComputedStyle(document.querySelector('.bottom-nav')).backgroundColor}));
+  expect(state.hero).toContain('gradient');
+  expect(state.nav).not.toBe('rgba(0, 0, 0, 0)');
+ }
+});
+test("Compartidos aplica UI1 sin ocultar el acceso",async({page})=>{
+ await page.goto('/compartidos.html');
+ await expect(page.locator('#auth')).toBeVisible();
+ const m=await page.evaluate(()=>({link:[...document.styleSheets].some(s=>s.href?.includes('compartidos-visual.css')),width:document.documentElement.scrollWidth,viewport:innerWidth}));
+ expect(m.link).toBe(true);
+ expect(m.width).toBeLessThanOrEqual(m.viewport+1);
+});

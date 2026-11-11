@@ -1,0 +1,32 @@
+/* Budviva Compartidos UI1: presentación renovada sin modificar flujos. */
+:root{--bv-bg:#f2f6fb;--bv-border:#dfe9ef;background:var(--bv-bg);color:#12283b}
+body{background:radial-gradient(ellipse 75% 320px at 50% 0,#e2f0f5,transparent 98%),var(--bv-bg);-webkit-font-smoothing:antialiased}
+header{position:relative;isolation:isolate;overflow:hidden;min-height:99px;gap:18px;background:linear-gradient(118deg,#102d48,#185e70);border-radius:0 0 28px 28px;box-shadow:0 11px 28px rgba(8,45,67,.16);padding-block:22px}
+header:after{content:"";position:absolute;z-index:-1;pointer-events:none;width:260px;height:260px;right:-150px;top:-182px;border-radius:50%;border:1px solid #ffffff33;box-shadow:0 0 0 35px #ffffff08,0 0 0 72px #ffffff05}
+header a{color:#e4f7ff;border-radius:12px;border:1px solid #ffffff36;padding:10px 13px;font-size:12px;font-weight:700;white-space:nowrap}
+header strong{font-size:22px;letter-spacing:-.75px;overflow-wrap:anywhere}
+main{max-width:720px;padding:26px 20px 112px}
+main>.eyebrow{letter-spacing:1.8px;font-size:10px;color:#187189}
+h1{font-size:clamp(25px,6vw,33px);line-height:1.12;letter-spacing:-1px;margin:9px 0 10px}
+h2{font-size:18px;letter-spacing:-.4px}main>.muted{max-width:650px;line-height:1.65}
+.muted,small{color:#52697a}
+.card{padding:22px;margin:16px 0;border-radius:22px;border:1px solid var(--bv-border);background:#fff;box-shadow:0 8px 29px rgba(17,46,70,.055)}
+.card h2{margin-bottom:12px}label{color:#24394b;font-size:13px}
+input,select{background:#fbfdff;min-height:49px;border-radius:13px;border-color:#c5d7de;padding:12px 14px;color:#1b2b3e}
+button{min-height:46px;border-radius:13px;font-weight:750}
+.actions{gap:10px}.actions button{padding:13px 15px;background:#0c776d;box-shadow:0 6px 16px rgba(12,119,109,.12)}
+.actions button.secondary,button.secondary{background:#e9f1f4;color:#25435a;box-shadow:none}
+.actions button.danger,button.danger{background:#fae8e7;color:#a1342b;box-shadow:none}
+.grid{gap:12px}.stat{background:#eaf4f7;border:1px solid #dcecf1;border-radius:17px;padding:17px;min-width:0}
+.stat b{display:block;font-size:24px;letter-spacing:-.8px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.balance{position:relative;overflow:hidden;background:linear-gradient(128deg,#164564,#116e72);border:1px solid #ffffff22;border-radius:22px;margin:17px 0;padding:24px;box-shadow:0 16px 29px rgba(11,81,95,.17)}
+.balance strong{font-size:clamp(28px,7vw,36px);letter-spacing:-1.1px;overflow-wrap:anywhere}
+.balance small{color:#e4f8f8}
+.row{gap:14px;min-height:62px;border-color:#e9f0f3}.row .amount{font-size:14px;font-variant-numeric:tabular-nums}
+.notice{border-radius:15px;padding:15px}.tab{flex-wrap:wrap;gap:9px}
+.tab button{min-height:45px;border-radius:13px;padding:11px 15px}.tab button.active{background:#134e5b}
+.status{top:10px;border:1px solid #c9e7df;box-shadow:0 8px 20px rgba(16,57,62,.08)}
+summary{min-height:44px;padding-block:12px}
+:where(button,a,input,select,summary):focus-visible{outline:3px solid #187d98;outline-offset:3px}
+@media(max-width:440px){header{gap:11px;padding-inline:14px}header a{padding:10px}header strong{font-size:19px}main{padding-inline:13px;padding-top:22px}.card{padding:17px;border-radius:19px}.actions button{min-width:0}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:340px){.grid{grid-template-columns:1fr}.actions button{flex-basis:100%}}
