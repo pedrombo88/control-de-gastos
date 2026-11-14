@@ -216,6 +216,39 @@ final class BudvivaAuth: ObservableObject {
         }
     }
 
+    /// Acceso sin contraseña: mismo flujo de código por correo que Compartidos web.
+    func sendEmailCode(address: String) async {
+        guard !isWorking else { return }
+        isWorking = true
+        errorMessage = nil
+        notice = nil
+        defer { isWorking = false }
+        do {
+            _ = try await request("/auth/v1/otp", method: "POST",
+                                  body: ["email": address.trimmingCharacters(in: .whitespacesAndNewlines),
+                                         "create_user": "true"])
+            notice = "Te hemos enviado un código por correo. Introdúcelo para acceder."
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func verifyEmailCode(address: String, code: String) async {
+        guard !isWorking else { return }
+        isWorking = true
+        errorMessage = nil
+        defer { isWorking = false }
+        do {
+            let bytes = try await request("/auth/v1/verify", method: "POST",
+                                          body: ["email": address.trimmingCharacters(in: .whitespacesAndNewlines),
+                                                 "token": code.trimmingCharacters(in: .whitespacesAndNewlines),
+                                                 "type": "email"])
+            remember(try tokenSession(JSONDecoder().decode(TokenResponse.self, from: bytes)))
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
     func recover(address: String) async {
         guard !isWorking else { return }
         isWorking = true
@@ -246,6 +279,8 @@ struct BudvivaLoginScreen: View {
     @State private var address = ""
     @State private var password = ""
     @State private var passwordVisible = false
+    @State private var otpRequested = false
+    @State private var otpCode = ""
 
     var body: some View {
         ScrollView {
@@ -330,6 +365,31 @@ struct BudvivaLoginScreen: View {
                     .buttonStyle(.borderedProminent)
                     .tint(BudvivaPalette("oceano").accent)
                     .accessibilityIdentifier("auth-submit")
+
+
+                    if !register {
+                        Divider()
+                        if otpRequested {
+                            TextField("Código recibido por correo", text: $otpCode)
+                                .keyboardType(.numberPad)
+                                .textContentType(.oneTimeCode)
+                                .textFieldStyle(.roundedBorder)
+                            Button("Validar código y entrar") {
+                                Task { await auth.verifyEmailCode(address: address, code: otpCode) }
+                            }
+                            .disabled(auth.isWorking || otpCode.count < 6)
+                            .frame(maxWidth: .infinity)
+                        } else {
+                            Button("Entrar con un código por correo") {
+                                Task {
+                                    await auth.sendEmailCode(address: address)
+                                    otpRequested = (auth.errorMessage == nil)
+                                }
+                            }
+                            .disabled(auth.isWorking || !address.contains("@"))
+                            .frame(maxWidth: .infinity)
+                        }
+                    }
 
                     Button("¿Has olvidado la contraseña?") {
                         Task { await auth.recover(address: address) }
