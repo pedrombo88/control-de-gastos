@@ -1,0 +1,53 @@
+name: Budviva IPA iPhone · compilación rápida
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/ios-ipa-unsigned.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ipa:
+    runs-on: macos-15
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '26.3'
+      - name: Instalar XcodeGen
+        run: brew install xcodegen
+      - name: Preparar icono original y proyecto
+        run: |
+          python3 ios-native/tools/generate-icon.py
+          cd ios-native
+          xcodegen generate --spec project.yml
+      - name: Compilar iPhone arm64 sin firma
+        run: |
+          set -euo pipefail
+          xcodebuild -project ios-native/Budviva.xcodeproj \
+            -scheme Budviva -configuration Debug -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath "$RUNNER_TEMP/budviva-direct-iphone" \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build
+          APP="$RUNNER_TEMP/budviva-direct-iphone/Build/Products/Debug-iphoneos/Budviva.app"
+          test -f "$APP/Budviva"
+          test -f "$APP/Info.plist"
+          ARCHS=$(xcrun lipo -archs "$APP/Budviva")
+          echo "Arquitecturas: $ARCHS"
+          case " $ARCHS " in *" arm64 "*) ;; *) exit 1 ;; esac
+          mkdir -p dist/Payload
+          cp -R "$APP" dist/Payload/
+          cd dist
+          zip -qry Budviva-v1.2-iPhone-sin-firma.ipa Payload
+          unzip -t Budviva-v1.2-iPhone-sin-firma.ipa >/dev/null
+          shasum -a 256 Budviva-v1.2-iPhone-sin-firma.ipa > Budviva-v1.2-iPhone-sin-firma.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Budviva-v1.2-IPA-AltStore
+          path: |
+            dist/Budviva-v1.2-iPhone-sin-firma.ipa
+            dist/Budviva-v1.2-iPhone-sin-firma.sha256
+          retention-days: 14
+          if-no-files-found: error
