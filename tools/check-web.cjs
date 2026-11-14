@@ -5,9 +5,9 @@ for(const f of files) new vm.Script(fs.readFileSync(f,"utf8"),{filename:f});
 const html=fs.readFileSync("index.html","utf8");
 
 // Branding: Apple icon must match the approved B + turquoise arrow identity.
-const brandSvg=fs.readFileSync('icon.svg','utf8');
+const approvedLogo=fs.readFileSync('brand-approved.png');
 const appleIcon=fs.readFileSync('apple-touch-icon.png');
-assert(html.includes('class="brand-mark"')&&html.includes('src="./brand-symbol.svg"'),'Approved in-app brand symbol missing');
+assert(html.includes('class="brand-mark"')&&html.includes('src="./brand-approved.png"'),'Approved in-app logo missing');
 assert(fs.readFileSync('brand-symbol.svg','utf8').includes('#10D8C3'),'Shared brand symbol missing');
 const releaseVersion=JSON.parse(fs.readFileSync('package.json','utf8')).version;
 assert(html.includes("const APP_VERSION = '"+releaseVersion+"'"),'Refresh version must follow release version');
@@ -20,8 +20,8 @@ assert(html.includes('dataLoadCorrupt?settingsRow(')&&html.includes("'export-eme
 assert(html.includes('Los datos cambiaron en otra pestaña. Actualiza Budviva antes de restaurar'),'Backup restore must check for concurrent edits before touching original files');
 
 
-assert(html.includes('href="./apple-touch-icon.png?v='+releaseVersion+'"'),'iPhone must load the unified icon for the current release');
-assert(brandSvg.includes('<path')&&brandSvg.includes('#10D8C3')&&!brandSvg.includes('<text'),'Favicon must use the new vector B and arrow');
+assert(html.includes('href="./brand-approved.png?v='+releaseVersion+'"'),'iPhone must load the approved icon for the current release');
+assert.equal(approvedLogo.subarray(0,8).toString('hex'),'89504e470d0a1a0a','Approved logo must be PNG');
 assert.equal(appleIcon.subarray(0,8).toString('hex'),'89504e470d0a1a0a','Apple icon must be PNG');
 assert.equal(appleIcon.readUInt32BE(16),180,'Apple icon must be 180px wide');
 assert.equal(appleIcon.readUInt32BE(20),180,'Apple icon must be 180px tall');
@@ -66,7 +66,7 @@ assert(supportHtml.includes('código de un solo uso enviado a tu correo'),'Suppo
 assert(privacyHtml.includes('código de un solo uso enviado al correo'),'Privacy must explain OTP deletion');
 
 for(const [page,source] of [['Compartidos',sharedHtml],['Privacidad',privacyHtml],['Soporte',supportHtml],['Datos',privacyChoicesHtml]]){
-  assert(source.includes('href="./icon.svg?v='+releaseVersion+'"'),page+' must use the current Budviva logo');
+  assert(source.includes('href="./brand-approved.png?v='+releaseVersion+'"'),page+' must use the approved Budviva logo');
 }
 
 
@@ -123,8 +123,8 @@ assert(html.includes("backup-password-form"),"Encrypted backup form missing");
 assert(!html.includes("Cargar datos de demostración"),"Destructive demo button must not appear");
 const manifest=JSON.parse(fs.readFileSync("manifest.webmanifest","utf8"));
 assert.equal(manifest.id,"./");assert.equal(manifest.short_name,"Budviva");
-assert(manifest.icons.some(x=>x.src==='icon.svg?v='+releaseVersion),'Manifest icon must match release version');
-assert(html.includes('icon.svg?v='+releaseVersion),'Favicon must match release version');
+assert(manifest.icons.some(x=>x.src==='brand-approved.png?v='+releaseVersion),'Manifest icon must match approved logo');
+assert(html.includes('brand-approved.png?v='+releaseVersion),'Favicon must match approved logo');
 for(const page of ["privacidad.html","soporte.html","datos-y-privacidad.html"])assert(fs.readFileSync(page,"utf8").includes("<html lang=\"es\">"),page+" must exist");
 const sw=fs.readFileSync("sw.js","utf8");
 assert(sw.includes("navigationFallback(request.url)"),"Offline navigation must be routed by page");
