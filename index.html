@@ -11,7 +11,7 @@
   <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=6.9.10">
   <link rel="manifest" href="manifest.webmanifest?v=6.9.10">
   <!-- Ahorro incluido en la página para evitar versiones mezcladas en Safari -->
-  <link rel="icon" type="image/svg+xml" href="icon.svg?v=6.9.10">
+  <link rel="icon" type="image/svg+xml" href="icon.svg?v=7.0.0">
   <meta property="og:site_name" content="Budviva">
   <meta property="og:title" content="Budviva — Tu dinero, más claro">
   <meta name="application-name" content="Budviva">
@@ -475,6 +475,7 @@ html[data-app-theme="noche"] .saving-period.selected{
 .budget-extra>summary:focus-visible{outline:3px solid var(--design-focus);outline-offset:2px}
 .budget-extra-list{margin-top:11px}
 .saving-no-tickets{margin-top:18px}
+ .brand-lockup img.brand-mark{width:44px!important;height:44px!important;object-fit:cover;padding:0!important;border:0!important;border-radius:12px!important;flex:0 0 44px!important}
 </style>
   <link rel="stylesheet" href="./budviva-visual.css?v=6.9.10-ui1">
   <title>Budviva · Tu dinero, más claro</title>
@@ -485,7 +486,7 @@ html[data-app-theme="noche"] .saving-period.selected{
   <div id="smart-import-status" class="smart-import-status" role="status" aria-live="polite" hidden></div>
   <div id="app" class="app-shell">
     <header class="site-header">
-      <div class="brand-lockup"><div class="brand-mark" aria-hidden="true">B<i class="brand-mark-dot"></i></div><div><div class="brand-name">bud<span>viva</span></div><div class="brand-caption">Tu dinero, más claro </div></div></div>
+      <div class="brand-lockup"><img class="brand-mark" src="./icon.svg?v=7.0.0" alt="" aria-hidden="true" width="44" height="44"><div><div class="brand-name">bud<span>viva</span></div><div class="brand-caption">Tu dinero, más claro </div></div></div>
       <button id="quick-add-top" class="header-add" type="button" aria-label="Añadir movimiento" title="Añadir movimiento">+</button>
     </header>
     <main id="page-content" tabindex="-1" aria-live="polite"></main>
