@@ -3,13 +3,27 @@ import XCTest
 /// Pruebas de navegación nativa sin credenciales ni datos reales.
 /// Las capturas se adjuntan al XCResult del simulador de GitHub Actions.
 final class BudvivaUITests: XCTestCase {
+    @MainActor
+    func testLoginGateOnFreshInstall() throws {
+        let app = XCUIApplication()
+        app.launch()
+        XCTAssertTrue(app.textFields["budviva-login-email"].waitForExistence(timeout: 20))
+        XCTAssertTrue(app.buttons["budviva-send-otp"].exists)
+        XCTAssertFalse(app.buttons["budviva-tab-Compartidos"].exists)
+        let shot = XCTAttachment(screenshot:app.screenshot())
+        shot.name="00-Acceso-Budviva"
+        shot.lifetime = .keepAlways
+        add(shot)
+    }
+
     override func setUpWithError() throws {
         continueAfterFailure = false
     }
 
     @MainActor
-    func testFiveTabsAreReachableAndCreateScreenshots() throws {
+    func testSixTabsAreReachableAndCreateScreenshots() throws {
         let app = XCUIApplication()
+        app.launchArguments += ["--budviva-ui-test-session"]
         app.launch()
 
         let pages: [(tab: String, navigationTitle: String, fileName: String)] = [
@@ -17,11 +31,12 @@ final class BudvivaUITests: XCTestCase {
             ("Movimientos", "Movimientos", "02-Movimientos"),
             ("Presupuestos", "Presupuestos", "03-Presupuestos"),
             ("Ahorro", "Ahorro", "04-Ahorro"),
-            ("Ajustes", "Ajustes", "05-Ajustes")
+            ("Compartidos", "Compartidos", "05-Compartidos"),
+            ("Ajustes", "Ajustes", "06-Ajustes")
         ]
 
         for page in pages {
-            let tab = app.tabBars.buttons[page.tab]
+            let tab = app.buttons["budviva-tab-\(page.tab)"]
             XCTAssertTrue(tab.waitForExistence(timeout: 15),
                           "Falta la pestaña nativa \(page.tab)")
             tab.tap()

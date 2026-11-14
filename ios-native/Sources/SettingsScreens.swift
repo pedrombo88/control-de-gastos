@@ -3,6 +3,8 @@ import UniformTypeIdentifiers
 
 struct SettingsScreen: View {
     @EnvironmentObject var store: FinanceStore
+    @EnvironmentObject private var auth: BudvivaAuth
+    @State private var confirmLogout = false
     @State private var importing = false
     @State private var exporting = false
     @State private var exportFile: BackupFile?
@@ -49,12 +51,17 @@ struct SettingsScreen: View {
                 Text("Las copias completas incluyen los movimientos, objetivos y archivos originales. Las copias sin cifrar contienen datos financieros privados. Guarda las copias en una ubicación segura.")
             }
 
+            Section("Mi cuenta") {
+                LabeledContent("Correo",value:auth.session?.email ?? "Sin sesión")
+                Button("Cerrar sesión",role:.destructive) { confirmLogout=true }
+            }
+
             Section("Apariencia") {
                 Picker("Tema",selection:Binding(get:{store.theme},set:{store.setTheme($0)})) {
-                    Text("Océano").tag("oceano")
-                    Text("Esmeralda").tag("esmeralda")
-                    Text("Arena").tag("arena")
-                    Text("Noche").tag("noche")
+                    Text("Azul polar").tag("oceano")
+                    Text("Blanco coral").tag("esmeralda")
+                    Text("Negro y oro").tag("arena")
+                    Text("Negro violeta").tag("noche")
                 }
             }
 
@@ -81,13 +88,19 @@ struct SettingsScreen: View {
                 HStack {
                     Text("Versión")
                     Spacer()
-                    Text("1.1 · beta iOS").foregroundStyle(.secondary)
+                    Text("1.2 · beta iOS").foregroundStyle(.secondary)
                 }
             }
         }
         .scrollContentBackground(.hidden)
         .background(BudvivaPalette(store.theme).canvas.ignoresSafeArea())
         .navigationTitle("Ajustes")
+        .confirmationDialog("¿Cerrar sesión en Budviva?",isPresented:$confirmLogout,titleVisibility:.visible) {
+            Button("Cerrar sesión",role:.destructive) {auth.signOut()}
+            Button("Cancelar",role:.cancel) {}
+        } message: {
+            Text("Los movimientos personales seguirán guardados en este iPhone. Los gastos de Compartidos utilizan una sesión web independiente.")
+        }
         .fileImporter(isPresented:$importing,allowedContentTypes:[.json,.data],allowsMultipleSelection:false) {result in
             switch result {
             case .success(let files):if let file=files.first {readBackup(file)}
