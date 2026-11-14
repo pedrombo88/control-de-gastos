@@ -25,8 +25,8 @@ targets:
       path: Sources/Info.plist
       properties:
         CFBundleDisplayName: Budviva
-        CFBundleShortVersionString: "1.1.0"
-        CFBundleVersion: "1"
+        CFBundleShortVersionString: "1.2.0"
+        CFBundleVersion: "2"
         NSCameraUsageDescription: "Budviva necesita la cámara para escanear tus tickets de compra."
         NSPhotoLibraryUsageDescription: "Budviva permite seleccionar fotografías de tickets."
         UISupportedInterfaceOrientations:
