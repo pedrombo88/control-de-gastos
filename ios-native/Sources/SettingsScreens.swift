@@ -3,6 +3,7 @@ import UniformTypeIdentifiers
 
 struct SettingsScreen: View {
     @EnvironmentObject var store: FinanceStore
+    @EnvironmentObject private var auth: BudvivaAuth
     @State private var importing = false
     @State private var exporting = false
     @State private var exportFile: BackupFile?
@@ -21,6 +22,16 @@ struct SettingsScreen: View {
 
     var body: some View {
         Form {
+            Section("Cuenta") {
+                LabeledContent("Correo electrónico", value: auth.email)
+                Button(role: .destructive) {
+                    Task { await auth.logout() }
+                } label: {
+                    Label("Cerrar sesión", systemImage: "rectangle.portrait.and.arrow.right")
+                }
+                Text("Tus datos personales se guardan en este iPhone, separados por cuenta. La sesión de Compartidos en Safari es independiente.")
+                    .font(.footnote).foregroundStyle(.secondary)
+            }
             if store.isCorrupt {
                 Section {
                     Button {
@@ -51,10 +62,10 @@ struct SettingsScreen: View {
 
             Section("Apariencia") {
                 Picker("Tema",selection:Binding(get:{store.theme},set:{store.setTheme($0)})) {
-                    Text("Océano").tag("oceano")
-                    Text("Esmeralda").tag("esmeralda")
-                    Text("Arena").tag("arena")
-                    Text("Noche").tag("noche")
+                    Text("Atlántico").tag("oceano")
+                    Text("Oliva").tag("esmeralda")
+                    Text("Terracota").tag("arena")
+                    Text("Grafito").tag("noche")
                 }
             }
 
@@ -81,7 +92,7 @@ struct SettingsScreen: View {
                 HStack {
                     Text("Versión")
                     Spacer()
-                    Text("1.1 · beta iOS").foregroundStyle(.secondary)
+                    Text("1.2 · beta iOS").foregroundStyle(.secondary)
                 }
             }
         }
