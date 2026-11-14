@@ -63,3 +63,8 @@ main{padding:3px 20px 35px}.view-heading{gap:14px;margin:15px 0 20px}.view-headi
 @media(max-width:360px){main{padding-left:13px;padding-right:13px}.site-header{padding-left:15px;padding-right:15px}.page-title{font-size:25px}.balance-card{padding:23px 17px 20px}.balance-main{font-size:35px}.balance-grid{gap:7px}.balance-item{gap:7px}.balance-icon{width:31px;height:31px;border-radius:11px}.balance-amount{font-size:13px}.hero-quick-actions button{padding:11px 7px;gap:6px;font-size:11.5px}.transaction-tools{gap:8px}.transaction-tools button{font-size:11px}.bottom-nav{width:calc(100% - 12px);padding-inline:4px;border-radius:19px}.bottom-nav>.nav-item{font-size:9px}}
 @media(min-width:681px){.app-shell{border-left:1px solid var(--border);border-right:1px solid var(--border)}main{padding-inline:30px}.site-header{padding-inline:30px}}
 @media(prefers-reduced-motion:reduce){.header-add,.hero-quick-actions button,.transaction-row{transition:none!important}.header-add:active,.hero-quick-actions button:active{transform:none}}
+
+/* Marca Budviva aprobada · 2026-11-14. Misma B y flecha que icon.svg e iOS. */
+.brand-lockup .brand-mark{display:grid;place-items:center;width:48px;height:48px;padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important;overflow:visible}
+.brand-lockup .brand-mark img{display:block;width:100%;height:100%;object-fit:contain}
+.site-header .brand-name,.site-header .brand-name span{color:#fff}

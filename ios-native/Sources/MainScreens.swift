@@ -83,6 +83,18 @@ struct HomeScreen: View {
         }
         .background(palette.canvas.ignoresSafeArea())
         .navigationTitle("Budviva")
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                HStack(spacing: 8) {
+                    Image("BudvivaMark")
+                        .resizable().scaledToFit()
+                        .frame(width: 30, height: 30)
+                        .clipShape(RoundedRectangle(cornerRadius: 7))
+                        .accessibilityHidden(true)
+                    Text("Budviva").font(.headline)
+                }.accessibilityElement(children: .combine)
+            }
+        }
         .sheet(isPresented:$adding) { EntryEditor(entry:nil) }
     }
     private func summary(_ name:String,_ value:Int,_ icon:String) -> some View {

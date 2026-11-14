@@ -4,10 +4,11 @@ const files=["recurring.js","stats.js","reconcile.js","smart-import.js","documen
 for(const f of files) new vm.Script(fs.readFileSync(f,"utf8"),{filename:f});
 const html=fs.readFileSync("index.html","utf8");
 
-// Branding: Apple icon must match the header's B + mint dot identity.
+// Branding: Apple icon must match the approved B + turquoise arrow identity.
 const brandSvg=fs.readFileSync('icon.svg','utf8');
 const appleIcon=fs.readFileSync('apple-touch-icon.png');
-assert(html.includes('class="brand-mark"')&&html.includes('brand-mark-dot'),'In-app logo missing');
+assert(html.includes('class="brand-mark"')&&html.includes('src="./brand-symbol.svg"'),'Approved in-app brand symbol missing');
+assert(fs.readFileSync('brand-symbol.svg','utf8').includes('#10D8C3'),'Shared brand symbol missing');
 const releaseVersion=JSON.parse(fs.readFileSync('package.json','utf8')).version;
 assert(html.includes("const APP_VERSION = '"+releaseVersion+"'"),'Refresh version must follow release version');
 const refreshPart=html.split('const refreshBudviva = async () => {')[1]?.split('const handleAction = action => {')[0];
@@ -20,7 +21,7 @@ assert(html.includes('Los datos cambiaron en otra pestaña. Actualiza Budviva an
 
 
 assert(html.includes('href="./apple-touch-icon.png?v='+releaseVersion+'"'),'iPhone must load the unified icon for the current release');
-assert(brandSvg.includes('>B</text>')&&brandSvg.includes('#6cebd0'),'Favicon must match in-app B and mint dot');
+assert(brandSvg.includes('<path')&&brandSvg.includes('#10D8C3')&&!brandSvg.includes('<text'),'Favicon must use the new vector B and arrow');
 assert.equal(appleIcon.subarray(0,8).toString('hex'),'89504e470d0a1a0a','Apple icon must be PNG');
 assert.equal(appleIcon.readUInt32BE(16),180,'Apple icon must be 180px wide');
 assert.equal(appleIcon.readUInt32BE(20),180,'Apple icon must be 180px tall');
