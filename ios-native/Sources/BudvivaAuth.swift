@@ -267,7 +267,7 @@ struct BudvivaLoginScreen: View {
                 }
                 .padding(23)
                 .background(.white,in:RoundedRectangle(cornerRadius:24))
-                .shadow(color:.black.opacity(.07),radius:18,y:8)
+                .shadow(color:.black.opacity(0.07),radius:18,y:8)
                 Text("Tus movimientos personales permanecen guardados en este iPhone. La cuenta permite acceder a Compartidos; por ahora no sincroniza el historial personal entre dispositivos.")
                     .font(.footnote).foregroundStyle(.secondary).multilineTextAlignment(.center)
                 Spacer(minLength:25)
