@@ -81,8 +81,16 @@ final class BudvivaAuth: ObservableObject {
         guard let http = response as? HTTPURLResponse else { throw AuthFailure.invalidResponse }
         guard (200...299).contains(http.statusCode) else {
             let detail = try? JSONDecoder().decode(ErrorResponse.self, from: bytes)
-            let message = detail?.error_description ?? detail?.msg ?? detail?.message ??
-                detail?.error ?? "Error de conexión con la cuenta (\(http.statusCode))."
+            var message = "Error de conexión con la cuenta."
+            if let value = detail?.error_description, !value.isEmpty {
+                message = value
+            } else if let value = detail?.msg, !value.isEmpty {
+                message = value
+            } else if let value = detail?.message, !value.isEmpty {
+                message = value
+            } else if let value = detail?.error, !value.isEmpty {
+                message = value
+            }
             throw AuthFailure.requestFailed(http.statusCode, message)
         }
         return bytes
