@@ -198,10 +198,19 @@ final class FinanceStore: ObservableObject {
     @Published var showImport = false
     @Published var theme = "oceano"
     private(set) var isCorrupt = false
+    @Published private(set) var activeAccount: String?
 
     private var supportURL: URL {
-        let url = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+        let root = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
             .appendingPathComponent("Budviva", isDirectory: true)
+        // El almacén anterior se conserva intacto; las cuentas nuevas quedan aisladas.
+        let url: URL
+        if let id = activeAccount {
+            url = root.appendingPathComponent("Cuentas", isDirectory: true)
+                .appendingPathComponent(id, isDirectory: true)
+        } else {
+            url = root
+        }
         try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         return url
     }
@@ -213,6 +222,34 @@ final class FinanceStore: ObservableObject {
 
     init() {
         theme = UserDefaults.standard.string(forKey: "budviva-theme") ?? "oceano"
+        prepareSecurity()
+        do {
+            if FileManager.default.fileExists(atPath: dataURL.path) {
+                data = try JSONDecoder().decode(FinanceData.self, from: Data(contentsOf: dataURL))
+                data.attachments = nil
+                syncRecurring()
+            }
+        } catch {
+            isCorrupt = true
+            errorMessage = LocalFinanceError.corrupted.localizedDescription
+        }
+    }
+
+    /// Cambia de almacén local después de verificar la sesión en Supabase.
+    /// No se mezcla información de diferentes cuentas en este iPhone.
+    func selectAccount(_ id: String?) {
+        let normalized = id?.lowercased()
+        guard activeAccount != normalized else { return }
+        data = FinanceData()
+        isCorrupt = false
+        errorMessage = nil
+        activeAccount = normalized
+        guard let normalized else { return }
+        guard UUID(uuidString: normalized) != nil else {
+            isCorrupt = true
+            errorMessage = "Identificador de cuenta no válido."
+            return
+        }
         prepareSecurity()
         do {
             if FileManager.default.fileExists(atPath: dataURL.path) {

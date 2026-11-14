@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-"""Icono original, 1024×1024 RGB sin transparencia. Sin AppKit ni dependencias externas."""
+"""Genera la B vectorial de Budviva en PNG 1024×1024 sin librerías externas.
+El contorno replica icon.svg y BudvivaBrandMark de SwiftUI.
+"""
 import math
 import pathlib
 import struct
@@ -8,63 +10,72 @@ import zlib
 OUT = pathlib.Path("ios-native/Sources/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png")
 SIZE = 1024
 
+def cubic(a, b, c, d, t):
+    u = 1.0 - t
+    return (u*u*u*a + 3*u*u*t*b + 3*u*t*t*c + t*t*t*d)
 
-def blend(a, b, t):
-    t = max(0.0, min(1.0, t))
-    return int(a * (1-t) + b * t)
+def path_points():
+    pts = [(0.24,0.17),(0.52,0.17)]
+    for start,c1,c2,end in [
+        ((0.52,0.17),(0.82,0.17),(0.87,0.38),(0.74,0.46)),
+        ((0.74,0.46),(0.93,0.55),(0.83,0.83),(0.55,0.83))
+    ]:
+        for i in range(1,201):
+            t = i/200
+            pts.append((cubic(start[0],c1[0],c2[0],end[0],t),
+                        cubic(start[1],c1[1],c2[1],end[1],t)))
+    pts.extend([(0.24,0.83),(0.24,0.17)])
+    return pts
 
-
-def ellipse(x, y, cx, cy, rx, ry):
-    return (math.hypot((x-cx)/rx, (y-cy)/ry)-1.0)*min(rx, ry)
-
-
-def rect(x, y, cx, cy, w, h):
-    dx = abs(x-cx)-w/2
-    dy = abs(y-cy)-h/2
-    return math.hypot(max(dx,0), max(dy,0)) + min(max(dx,dy),0)
-
-
-def coverage(distance, edge=1.3):
-    return max(0, min(1, 0.5-distance/edge))
-
-
-rows = []
+# Para cada fila, calcular el contorno izquierdo y derecho de la B.
+edges = list(zip(path_points(),path_points()[1:]))
+bounds = []
 for y in range(SIZE):
-    line = bytearray()
+    yy = (y+0.5)/SIZE
+    crosses = []
+    for (x1,y1),(x2,y2) in edges:
+        if (y1 <= yy < y2) or (y2 <= yy < y1):
+            crosses.append(x1+(yy-y1)*(x2-x1)/(y2-y1))
+    crosses.sort()
+    bounds.append((crosses[0],crosses[-1]) if len(crosses)>=2 else (1,0))
+
+def round_rect_sdf(x,y,cx,cy,w,h,r):
+    qx = abs(x-cx) - (w/2-r)
+    qy = abs(y-cy) - (h/2-r)
+    return math.hypot(max(qx,0),max(qy,0))+min(max(qx,qy),0)-r
+
+def clamp(v):
+    return 0 if v<0 else (1 if v>1 else v)
+
+def png_chunk(tag,data):
+    return struct.pack(">I",len(data))+tag+data+struct.pack(">I",zlib.crc32(tag+data)&0xffffffff)
+
+rows=[]
+for y in range(SIZE):
+    yy=(y+0.5)/SIZE
+    left,right=bounds[y]
+    row=bytearray()
     for x in range(SIZE):
-        # Fondo azul noche en suave degradado.
-        base = 0.25 * x / SIZE + 0.75 * y / SIZE
-        dark = (blend(11, 25, base), blend(35, 68, base), blend(75, 115, base))
-        # Monograma circular con acabado verde azulado.
-        dist = math.hypot(x-512, y-512)
-        circle = coverage(dist-394, 2.0)
-        accent=(blend(15, 12, y/SIZE), blend(148, 190, y/SIZE), blend(187, 150, y/SIZE))
-        bg = tuple(blend(dark[i], accent[i], circle) for i in range(3))
-
-        # B geométrica blanca con dos contraformas abiertas sobre el círculo.
-        outer = min(rect(x,y,362,512,125,495),
-                    ellipse(x,y,492,398,200,132),
-                    ellipse(x,y,503,622,214,146))
-        top_hole = ellipse(x,y,511,394,94,54)
-        bottom_hole = ellipse(x,y,516,624,103,60)
-        shape = max(outer, -min(top_hole, bottom_hole))
-        opacity = coverage(shape,2.0)
-        # Luz sutil para un acabado limpio, sin transparencias.
-        white = (247, 251, 255)
-        rgb = tuple(blend(bg[i], white[i], opacity) for i in range(3))
-        line.extend(rgb)
-    rows.append(b"\x00"+bytes(line))
-
-
-def chunk(tag, payload):
-    return struct.pack(">I",len(payload))+tag+payload+struct.pack(">I",zlib.crc32(tag+payload)&0xffffffff)
-
-
-body = b"".join(rows)
-png = b"\x89PNG\r\n\x1a\n"
-png += chunk(b"IHDR",struct.pack(">IIBBBBB",SIZE,SIZE,8,2,0,0,0))
-png += chunk(b"IDAT",zlib.compress(body,9))
-png += chunk(b"IEND",b"")
-OUT.parent.mkdir(parents=True, exist_ok=True)
+        xx=(x+0.5)/SIZE
+        # Fondo carbón con leve matiz azul; neutro y reconocible.
+        bg=(int(18+8*yy),int(35+5*xx),int(46+7*xx))
+        # B con dos contraformas, no un glifo tipográfico deformado.
+        outer=min((xx-left),(right-xx),(yy-0.17),(0.83-yy))*SIZE
+        hole1=round_rect_sdf(xx,yy,0.525,0.35,0.21,0.12,0.055)*SIZE
+        hole2=round_rect_sdf(xx,yy,0.54,0.63,0.24,0.14,0.07)*SIZE
+        glyph=clamp(outer+0.5)*clamp(min(hole1,hole2)+0.5)
+        # Punto de identidad verde salvia arriba a la derecha.
+        dot=math.hypot(xx-0.79,yy-0.20)
+        accent=clamp((0.0475-dot)*SIZE+0.5)
+        white=(250,251,249)
+        jade=(140,220,173)
+        rgb=tuple(int(bg[i]*(1-glyph)+white[i]*glyph) for i in range(3))
+        rgb=tuple(int(rgb[i]*(1-accent)+jade[i]*accent) for i in range(3))
+        row.extend(rgb)
+    rows.append(b"\x00"+bytes(row))
+body=b"".join(rows)
+png=b"\x89PNG\r\n\x1a\n"+png_chunk(b"IHDR",struct.pack(">IIBBBBB",SIZE,SIZE,8,2,0,0,0))
+png+=png_chunk(b"IDAT",zlib.compress(body,8))+png_chunk(b"IEND",b"")
+OUT.parent.mkdir(parents=True,exist_ok=True)
 OUT.write_bytes(png)
-print(f"Icono RGB {SIZE}x{SIZE} generado: {OUT} ({len(png)} bytes)")
+print(f"Budviva · icono 1024px: {OUT} ({len(png)} bytes)")

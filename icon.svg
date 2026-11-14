@@ -1,11 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Budviva: B blanca con punto turquesa">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="Budviva">
+  <rect width="100" height="100" fill="#12232e"/>
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop stop-color="#102754"/>
-      <stop offset="1" stop-color="#214789"/>
-    </linearGradient>
+    <mask id="huecos">
+      <rect width="100" height="100" fill="#fff"/>
+      <rect x="42" y="29" width="21" height="12" rx="5.5" fill="#000"/>
+      <rect x="42" y="56" width="24" height="14" rx="7" fill="#000"/>
+    </mask>
   </defs>
-  <rect width="512" height="512" fill="url(#bg)"/>
-  <text x="244" y="361" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="354" font-weight="900" fill="#ffffff">B</text>
-  <circle cx="389" cy="127" r="33" fill="#6cebd0"/>
+  <path d="M24 17 H52 C82 17 87 38 74 46 C93 55 83 83 55 83 H24 Z" fill="#fafbf9" mask="url(#huecos)"/>
+  <circle cx="79" cy="20" r="4.75" fill="#8cdcad"/>
 </svg>
