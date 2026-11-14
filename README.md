@@ -14,9 +14,11 @@
 
 La importación admite tickets en imagen y documentos PDF/CSV/TXT con revisión previa. La extracción puede equivocarse. Budviva **conserva los originales asociados a los movimientos** en IndexedDB, también al adjuntarlos manualmente desde la edición de un movimiento y permite incluirlos en copias completas o cifradas. Debes verificar la carga y restauración en Safari antes de confiar en ellos.
 
-## Avance iOS 1.1 beta
+## Avance iOS 1.2 beta
 
-El proyecto SwiftUI dispone ahora de acceso a **Compartidos** dentro de Movimientos mediante un navegador seguro de SafariServices. Permite usar la gestión común de gastos existente sin instalar otra aplicación, pero exige conexión y cuenta de Compartidos independiente. **No sincroniza el histórico financiero personal con la web** y la interfaz común aún no se ha reimplementado en SwiftUI. La compilación XCTest de la nueva revisión se comprueba en [GitHub Actions](./ios-native/RELEASE.md); TestFlight y App Store siguen pendientes.
+El proyecto SwiftUI incorpora el logotipo aprobado en la pantalla de inicio y el icono del iPhone, **seis pestañas visibles** (Inicio, Movimientos, Presupuestos, Ahorro, Compartidos y Ajustes), cuatro temas profesionales y una puerta de acceso mediante OTP de correo con Supabase Auth. **Compartidos** tiene ahora su propia pestaña y se abre con un navegador seguro de SafariServices. Permite usar la gestión común de gastos existente sin instalar otra aplicación, pero exige conexión y cuenta de Compartidos independiente. **No sincroniza el histórico financiero personal con la web** y la interfaz común aún no se ha reimplementado en SwiftUI.
+
+**Límite de esta beta nativa:** aunque el acceso se verifica por cuenta, los movimientos personales siguen guardados en el dispositivo y no están todavía separados por usuario en un mismo iPhone. No utilices dos cuentas como aislamiento de datos personales en un teléfono compartido; esta separación es un requisito antes del lanzamiento comercial. Compartidos mantiene una sesión web independiente y puede requerir iniciar sesión de nuevo. La compilación XCTest de la nueva revisión se comprueba en [GitHub Actions](./ios-native/RELEASE.md); TestFlight y App Store siguen pendientes.
 
 ## Compartidos (función opcional)
 
