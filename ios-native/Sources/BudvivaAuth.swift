@@ -66,7 +66,7 @@ final class BudvivaAuth: ObservableObject {
     }
 
     private func request(_ path: String, method: String = "GET",
-                         body: [String: String]? = nil,
+                         body: [String: Any]? = nil,
                          token: String? = nil) async throws -> Data {
         guard let url = URL(string: Self.endpoint + path) else { throw AuthFailure.invalidResponse }
         var req = URLRequest(url: url)
@@ -226,7 +226,7 @@ final class BudvivaAuth: ObservableObject {
         do {
             _ = try await request("/auth/v1/otp", method: "POST",
                                   body: ["email": address.trimmingCharacters(in: .whitespacesAndNewlines),
-                                         "create_user": "true"])
+                                         "create_user": true])
             notice = "Te hemos enviado un código por correo. Introdúcelo para acceder."
         } catch {
             errorMessage = error.localizedDescription
