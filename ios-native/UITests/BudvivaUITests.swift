@@ -55,9 +55,16 @@ final class BudvivaUITests: XCTestCase {
             app.staticTexts["Control de mis datos y cuenta"].waitForExistence(timeout: 10),
             "No se encuentra el control de datos personales"
         )
-        XCTAssertTrue(
-            app.buttons["Eliminar datos y documentos"].exists,
-            "La opción de borrar datos locales debe estar disponible"
-        )
+        // SwiftUI Form materializa secciones de forma perezosa: el botón de
+        // borrado puede estar fuera de pantalla y requiere desplazamiento.
+        let eraseButton = app.buttons["Eliminar datos y documentos"]
+        if !eraseButton.exists {
+            for _ in 0..<5 {
+                app.swipeUp()
+                if eraseButton.exists { break }
+            }
+        }
+        XCTAssertTrue(eraseButton.waitForExistence(timeout:5),
+                      "La opción de borrar datos locales debe estar disponible")
     }
 }
