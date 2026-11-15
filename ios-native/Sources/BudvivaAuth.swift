@@ -62,6 +62,7 @@ private enum BudvivaSessionKeychain {
 final class BudvivaAuth: ObservableObject {
     @Published private(set) var session: BudvivaSession?
     @Published private(set) var checking = true
+    @Published private(set) var guestMode = false
     @Published private(set) var busy = false
     @Published var error: String?
     @Published private(set) var pendingEmail: String?
@@ -187,6 +188,20 @@ final class BudvivaAuth: ObservableObject {
 
     func cancelCode() { pendingEmail=nil;error=nil }
 
+    /// Acceso sin cuenta exclusivamente a los datos guardados en BudvivaGuest.
+    /// No inicia sesión en Supabase y no reutiliza el historial de otro usuario.
+    func enterGuestMode() {
+        guestMode=true
+        pendingEmail=nil
+        error=nil
+    }
+
+    func leaveGuestMode() {
+        guestMode=false
+        pendingEmail=nil
+        error=nil
+    }
+
     func signOut() {
         let previous=session
         BudvivaSessionKeychain.remove()
@@ -244,6 +259,14 @@ struct BudvivaLoginScreen: View {
                         .buttonStyle(.borderedProminent)
                         .disabled(auth.busy)
                         .accessibilityIdentifier("budviva-send-otp")
+                        Button("Continuar sin cuenta") {
+                            auth.enterGuestMode()
+                        }
+                        .font(.subheadline)
+                        .accessibilityIdentifier("budviva-guest-entry")
+                        Text("Sin cuenta podrás gestionar tus gastos personales en este iPhone. Se guardarán en un espacio local independiente y no estarán disponibles en otros dispositivos.")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
                     } else {
                         Text("Comprueba tu correo")
                             .font(.title3.bold())

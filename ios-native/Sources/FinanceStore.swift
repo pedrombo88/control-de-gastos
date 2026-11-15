@@ -197,11 +197,12 @@ final class FinanceStore: ObservableObject {
     @Published var errorMessage: String?
     @Published var showImport = false
     @Published var theme = "oceano"
+    private let storageFolderName: String
     private(set) var isCorrupt = false
 
     private var supportURL: URL {
         let url = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("Budviva", isDirectory: true)
+            .appendingPathComponent(storageFolderName, isDirectory: true)
         try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         return url
     }
@@ -211,8 +212,9 @@ final class FinanceStore: ObservableObject {
         try? FileManager.default.setAttributes([.protectionKey:FileProtectionType.complete],ofItemAtPath:supportURL.path)
     }
 
-    init() {
-        theme = UserDefaults.standard.string(forKey: "budviva-theme") ?? "oceano"
+    init(storageFolderName: String = "Budviva") {
+        self.storageFolderName = storageFolderName == "BudvivaGuest" ? "BudvivaGuest" : "Budviva"
+        theme = UserDefaults.standard.string(forKey: storageFolderName == "BudvivaGuest" ? "budviva-guest-theme" : "budviva-theme") ?? "oceano"
         prepareSecurity()
         do {
             if FileManager.default.fileExists(atPath: dataURL.path) {
@@ -558,7 +560,7 @@ final class FinanceStore: ObservableObject {
             throw error
         }
     }
-    func setTheme(_ id: String) { theme=id;UserDefaults.standard.set(id, forKey:"budviva-theme") }
+    func setTheme(_ id: String) { theme=id;UserDefaults.standard.set(id, forKey:storageFolderName == "BudvivaGuest" ? "budviva-guest-theme" : "budviva-theme") }
 }
 
 struct BackupFile: FileDocument {

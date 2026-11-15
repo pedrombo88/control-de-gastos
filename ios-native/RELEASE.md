@@ -16,6 +16,8 @@
 - Datos: almacenamiento privado protegido en Application Support y originales de documentos asociados.
 - Copias: JSON completo importable desde la PWA, y opción cifrada AES-256-GCM/PBKDF2; vector de compatibilidad compartido con la web.
 - Apariencia: cuatro temas. **Interfaz actual en español.** Otros idiomas no están certificados como completos.
+- Desde iOS 1.3 beta: acceso a finanzas personales como invitado sin cuenta con almacenamiento local independiente; los datos originales de la cuenta registrada no se muestran en modo invitado. Compartidos continúa exigiendo su propia sesión web.
+- Desde iOS 1.3 beta: acceso directo a eliminación de cuenta desde Ajustes, con comprobación previa, OTP por correo y confirmación irreversible. Requiere prueba real con cuentas desechables antes de publicación.
 - Compartidos: acceso desde Movimientos a la web ya operativa mediante una ventana de SafariServices. Sesión y movimientos compartidos independientes del almacenamiento financiero local; no se transmiten movimientos privados en la URL.
 
 ## Cómo comprobar la compilación sin Mac propio

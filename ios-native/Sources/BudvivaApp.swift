@@ -17,6 +17,7 @@ struct BudvivaApp: App {
 struct RootView: View {
     @EnvironmentObject var store: FinanceStore
     @EnvironmentObject var auth: BudvivaAuth
+    @StateObject private var guestStore = FinanceStore(storageFolderName:"BudvivaGuest")
     @State private var selected = 0
     @State private var checkedUserID: String?
     @State private var localAccessAllowed = false
@@ -39,6 +40,9 @@ struct RootView: View {
                 }
                 .frame(maxWidth:.infinity,maxHeight:.infinity)
                 .background(Color(red:0.95,green:0.97,blue:0.99))
+            } else if auth.guestMode {
+                authenticated
+                    .environmentObject(guestStore)
             } else if auth.session == nil {
                 BudvivaLoginScreen()
             } else if checkedUserID != auth.session?.userID {
@@ -56,15 +60,18 @@ struct RootView: View {
             localAccessAllowed=BudvivaLocalAccountGuard.checkOrBind(uid)
             checkedUserID=uid
         }
+        .preferredColorScheme(["noche","arena"].contains(currentStore.theme) ? .dark : .light)
         .alert("Aviso de Budviva", isPresented: Binding(
-            get: { store.errorMessage != nil },
-            set: { if !$0 { store.errorMessage=nil } }
+            get: { currentStore.errorMessage != nil },
+            set: { if !$0 { currentStore.errorMessage=nil } }
         )) {
-            Button("Aceptar") { store.errorMessage=nil }
+            Button("Aceptar") { currentStore.errorMessage=nil }
         } message: {
-            Text(store.errorMessage ?? "")
+            Text(currentStore.errorMessage ?? "")
         }
     }
+
+    private var currentStore: FinanceStore { auth.guestMode ? guestStore : store }
 
     /// Barra propia de seis elementos: TabView mostraría «Más» y ocultaría Compartidos.
     private var authenticated: some View {
@@ -91,7 +98,7 @@ struct RootView: View {
                                 .lineLimit(1)
                                 .minimumScaleFactor(0.7)
                         }
-                        .foregroundStyle(selected==index ? BudvivaPalette(store.theme).accent:Color.secondary)
+                        .foregroundStyle(selected==index ? BudvivaPalette(currentStore.theme).accent:Color.secondary)
                         .frame(maxWidth:.infinity,minHeight:50)
                         .contentShape(Rectangle())
                     }
@@ -103,8 +110,8 @@ struct RootView: View {
             }
             .padding(.horizontal,6)
             .padding(.vertical,5)
-            .background(BudvivaPalette(store.theme).surface)
-            .overlay(alignment:.top) { Rectangle().fill(BudvivaPalette(store.theme).accent.opacity(0.13)).frame(height:1) }
+            .background(BudvivaPalette(currentStore.theme).surface)
+            .overlay(alignment:.top) { Rectangle().fill(BudvivaPalette(currentStore.theme).accent.opacity(0.13)).frame(height:1) }
         }
     }
 }

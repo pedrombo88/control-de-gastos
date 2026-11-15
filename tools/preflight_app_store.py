@@ -40,6 +40,8 @@ def run():
     check("Baja con reautenticación y confirmación",all(x in delete for x in ('email_otp','ELIMINAR CUENTA','bv-delete-account')))
     check("Protección frente a cambio de cuenta",all(x in root+guard for x in ('BudvivaLocalAccountGuard','BudvivaOtherAccountScreen','checkOrBind')))
     check("Acceso OTP compatible con el correo de 8 cifras",all(x in auth for x in ('code.count == 8','Código de 8 cifras')))
+    finance=read("ios-native/Sources/FinanceStore.swift")
+    check("Modo sin cuenta con espacio local separado",all(x in auth+root+finance for x in ('enterGuestMode','guestMode','BudvivaGuest')))
     check("Enlaces de privacidad y ayuda definidos",all(meta.get(x,"").startswith("https://") for x in ('privacyPolicyURL','supportURL','privacyChoicesURL')))
     check("Metadatos App Store dentro de límites",len(meta['appName'])<=30 and len(meta['subtitle'])<=30 and len(meta['description'])<=4000 and len(meta['promotionalText'])<=170 and len(meta['keywords'].encode('utf8'))<=100)
     check("Identificación definitiva del responsable (no texto beta)",'identificación legal del responsable' not in privacy.lower() and 'pendientes' not in privacy.lower() and 'fase beta' not in privacy.lower())

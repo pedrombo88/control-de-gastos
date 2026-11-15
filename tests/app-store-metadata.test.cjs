@@ -44,7 +44,8 @@ test('La ficha no promete funciones inexistentes ni almacena accesos a cuentas d
   assert.equal(data.availability,'DRAFT_NOT_PUBLISHED');
 });
 test('Las notas de revisión explican autenticación OTP y cuentas de prueba de forma responsable',()=>{
- assert(data.storeReview.note.includes('contraseña'));
+ assert(data.storeReview.note.includes('OTP'));
+ assert(data.storeReview.note.includes('Continuar sin cuenta'));
  assert(data.storeReview.credentials.includes('App Store Connect'));
  assert(data.blockers.some(x=>x.includes('Apple Developer')));
 });

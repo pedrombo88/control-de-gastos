@@ -9,11 +9,25 @@ final class BudvivaUITests: XCTestCase {
         app.launch()
         XCTAssertTrue(app.textFields["budviva-login-email"].waitForExistence(timeout: 20))
         XCTAssertTrue(app.buttons["budviva-send-otp"].exists)
+        XCTAssertTrue(app.buttons["budviva-guest-entry"].exists)
         XCTAssertFalse(app.buttons["budviva-tab-Compartidos"].exists)
         let shot = XCTAttachment(screenshot:app.screenshot())
         shot.name="00-Acceso-Budviva"
         shot.lifetime = .keepAlways
         add(shot)
+    }
+
+    @MainActor
+    func testGuestCanOpenLocalSectionsWithoutAccount() throws {
+        let app=XCUIApplication()
+        app.launch()
+        let guest=app.buttons["budviva-guest-entry"]
+        XCTAssertTrue(guest.waitForExistence(timeout:20))
+        guest.tap()
+        XCTAssertTrue(app.buttons["budviva-tab-Inicio"].waitForExistence(timeout:15))
+        XCTAssertTrue(app.buttons["budviva-tab-Compartidos"].exists)
+        app.buttons["budviva-tab-Ajustes"].tap()
+        XCTAssertTrue(app.buttons["Iniciar sesión o crear cuenta"].waitForExistence(timeout:10))
     }
 
     override func setUpWithError() throws {

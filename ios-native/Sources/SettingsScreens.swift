@@ -53,13 +53,19 @@ struct SettingsScreen: View {
             }
 
             Section("Mi cuenta") {
-                LabeledContent("Correo",value:auth.session?.email ?? "Sin sesión")
-                Button("Cerrar sesión",role:.destructive) { confirmLogout=true }
-                Button("Eliminar mi cuenta",role:.destructive) {
-                    showAccountDeletion=true
+                if auth.guestMode {
+                    LabeledContent("Modo",value:"Sin cuenta")
+                    Button("Iniciar sesión o crear cuenta") { auth.leaveGuestMode() }
+                    Text("Los datos de invitado se almacenan en un espacio separado del historial de las cuentas registradas. Exporta una copia si deseas trasladarlos.")
+                        .font(.footnote).foregroundStyle(.secondary)
+                } else {
+                    LabeledContent("Correo",value:auth.session?.email ?? "Sin sesión")
+                    Button("Cerrar sesión",role:.destructive) { confirmLogout=true }
+                    Button("Eliminar mi cuenta",role:.destructive) {
+                        showAccountDeletion=true
+                    }
+                    .accessibilityIdentifier("budviva-delete-account")
                 }
-                .accessibilityIdentifier("budviva-delete-account")
-
             }
 
             Section("Apariencia") {
@@ -171,7 +177,7 @@ struct SettingsScreen: View {
             Button("Eliminar definitivamente",role:.destructive) {
                 do {
                     try store.wipe()
-                    BudvivaLocalAccountGuard.releaseAfterWipe()
+                    if !auth.guestMode { BudvivaLocalAccountGuard.releaseAfterWipe() }
                     notification="Se han eliminado los datos locales."
                 }
                 catch {notification=error.localizedDescription}
