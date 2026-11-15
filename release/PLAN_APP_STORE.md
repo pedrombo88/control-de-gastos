@@ -11,7 +11,7 @@
 
 ## Bloqueantes P0 por prioridad
 1. **Identidad y protección de datos:** confirmar responsable y datos legales, tratamiento y retención, prestadores, ejercicio de derechos; revisar RGPD/LOPDGDD, permisos y política real. Los textos actuales están marcados como beta. No inventar nombres ni domicilios.
-2. **Identidad Apple:** inscribir al titular en Apple Developer Program, decidir vendedor persona física/organización; reservar Bundle ID propio antes de firmar y crear ficha App Store Connect con el mismo Bundle ID. No sustituir `com.example.budviva` por un valor inventado.
+2. **Identidad Apple:** el titular ha elegido inscribirse como **persona física (Individual)** el 15/11/2026. Sigue pendiente confirmar inscripción/membresía activa, reservar Bundle ID propio y crear ficha App Store Connect con el mismo Bundle ID. No sustituir `com.example.budviva` por un valor inventado.
 3. **QA de seguridad de cuentas:** probar OTP y caducidad, restauración, cambio de cuenta (bloqueo de exposición de datos), baja por OTP desde Ajustes, bloqueo de bajas con grupos compartidos y limpieza local. Solo cuentas ficticias y copias previas.
 4. **Acceso sin cuenta:** se ha añadido un modo de invitado separado de los datos de las cuentas registradas, para cumplir con el principio Apple 5.1.1(v). Probar que permite acceder a las funciones locales sin registro y que no lee el historial de la cuenta anterior.
 5. **TestFlight real:** completar firma Apple Distribution, certificados, provisioning y subida del archivo de distribución. No usar la IPA de AltStore para enviar a App Store Connect. Probar TestFlight en iPhone, sin exponer secretos de firma en GitHub.
@@ -47,7 +47,11 @@ python3 tools/preflight_app_store.py --strict
 - Programa Apple Developer: https://developer.apple.com/help/account/membership/program-enrollment
 
 ## Decisiones pendientes del titular
-- ¿Se publicará a nombre de una persona física o de una organización?
-- ¿Está activa la membresía de Apple Developer? ¿Qué Bundle ID definitivo se ha reservado?
+- **Decidido el 15/11/2026:** Apple Developer Program como persona física (Individual). El nombre legal del titular se mostrará públicamente como vendedor; Budviva sigue siendo el nombre comercial de la app.
+- ¿Se ha completado la inscripción y está activa la membresía Apple Developer? ¿Qué Bundle ID definitivo se ha reservado?
 - ¿La primera versión será gratuita, de pago o tendrá compras dentro de la app?
 - Identidad legal y textos de privacidad definitivos; no introducir información personal en el repositorio público.
+
+## Nota UE: comerciante (DSA)
+Apple exige declarar la condición de comerciante para distribuir en la UE. En caso de declarar actividad como comerciante, Apple verifica y muestra ciertos datos de contacto públicamente. La elección «particular» en Apple Developer no determina automáticamente el estatus DSA. Verificar el supuesto aplicable antes de dar datos de contacto a Apple y antes de publicar.
+Fuente: https://developer.apple.com/help/app-store-connect/manage-compliance-information/manage-european-union-digital-services-act-trader-requirements
