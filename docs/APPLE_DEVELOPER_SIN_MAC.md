@@ -6,10 +6,14 @@
 
 1. Entra en https://developer.apple.com/account/ con tu **propia cuenta de Apple**. Revisa que tenga autenticación de dos factores (2FA) y tus datos reales.
 2. Acepta el Apple Developer Agreement si aparece. El acceso gratuito permite registrarse como desarrollador sin pagar la cuota anual.
-3. No inicies la suscripción de pago todavía: **GitHub Actions ya puede compilar Budviva para simulador sin firma** y producir resultados de XCTest. No se instala así una app nativa firmada en un iPhone real.
+3. La membresía de pago será necesaria para TestFlight y App Store. Antes de contratarla revisa los bloqueantes legales y de QA; **GitHub Actions ya compila Budviva sin firma** para pruebas. No se instala así una app nativa firmada en un iPhone real.
 4. Para continuar las pruebas de la beta en el iPhone, utiliza la PWA instalada en Safari. Esta opción no sustituye la evaluación de la app nativa mediante TestFlight.
 
-## Decisión previa a la inscripción de pago
+## Decisión de titularidad (15/11/2026)
+
+**Confirmado por el titular: inscripción como persona física (Individual).** El nombre de vendedor visible en la App Store será su nombre legal. No se ha confirmado todavía ninguna suscripción activa a Apple Developer ni se ha asignado un Bundle ID definitivo. No publicar datos personales en GitHub.
+
+## Información sobre los tipos de cuenta
 
 **Particular / autónomo:** Apple utiliza tu **nombre legal real** como nombre del vendedor en App Store. El nombre del producto sigue siendo `Budviva`; no puedes sustituir el nombre del vendedor por el nombre de la marca registrándote como persona física.
 
@@ -24,7 +28,7 @@ En ambos casos, la inscripción de pago requiere verificar la identidad. Si se i
 Dar el paso a Apple Developer Program **cuando se den todas estas condiciones**:
 
 - El proyecto SwiftUI genera compilaciones verdes y ejecuta XCTest en el simulador de GitHub.
-- Hay una decisión sobre el nombre público de vendedor (particular frente a sociedad).
+- **Decisión resuelta:** el titular ha elegido persona física (Individual) y sabe que Apple mostrará públicamente su nombre legal como vendedor.
 - Se ha revisado la información legal del responsable, política RGPD y declaraciones de privacidad.
 - Se ha definido una cuenta de prueba de Compartidos para App Review que no dependa exclusivamente de un código OTP de vida corta, con credenciales entregadas **solo dentro de App Store Connect**, nunca por GitHub.
 - Se dispone de un iPhone para probar la compilación firmada, la cámara, documentos, accesibilidad, cierres y bajas.
