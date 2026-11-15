@@ -157,11 +157,17 @@ final class BudvivaAuth: ObservableObject {
         }
     }
 
+    /// La plantilla de correo de Budviva envía códigos OTP numéricos de 8 cifras.
+    /// Esta validación es solo de formato: el código se verifica siempre en Supabase.
+    static func isValidOTP(_ code: String) -> Bool {
+        code.count == 8 && code.allSatisfy { $0 >= "0" && $0 <= "9" }
+    }
+
     func verifyCode(_ code:String) async -> Bool {
         guard let email=pendingEmail else { return false }
         let normalized=code.trimmingCharacters(in:.whitespacesAndNewlines)
-        guard normalized.count==6,normalized.allSatisfy({$0.isNumber}) else {
-            error="Introduce el código de 6 cifras recibido por correo."
+        guard Self.isValidOTP(normalized) else {
+            error="Introduce las 8 cifras del código recibido por correo."
             return false
         }
         busy=true;error=nil
@@ -243,9 +249,13 @@ struct BudvivaLoginScreen: View {
                             .font(.title3.bold())
                         Text("Hemos enviado un código a \(auth.pendingEmail ?? "")")
                             .font(.subheadline).foregroundStyle(.secondary)
-                        TextField("Código de 6 cifras",text:$code)
+                        TextField("Código de 8 cifras",text:$code)
                             .keyboardType(.numberPad)
                             .textContentType(.oneTimeCode)
+                            .onChange(of:code) { _, newValue in
+                                let digits=String(newValue.filter { $0 >= "0" && $0 <= "9" }.prefix(8))
+                                if code != digits { code=digits }
+                            }
                             .padding(14)
                             .background(Color(.secondarySystemBackground),in:RoundedRectangle(cornerRadius:13))
                             .accessibilityIdentifier("budviva-login-code")

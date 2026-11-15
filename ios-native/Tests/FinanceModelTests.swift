@@ -2,6 +2,16 @@ import XCTest
 @testable import Budviva
 
 final class FinanceModelTests: XCTestCase {
+    @MainActor
+    func testEmailOTPMatchesEightDigitBudvivaCodes() {
+        XCTAssertTrue(BudvivaAuth.isValidOTP("12345678"))
+        XCTAssertTrue(BudvivaAuth.isValidOTP("00001234"))
+        XCTAssertFalse(BudvivaAuth.isValidOTP("123456"))
+        XCTAssertFalse(BudvivaAuth.isValidOTP("1234567"))
+        XCTAssertFalse(BudvivaAuth.isValidOTP("123456789"))
+        XCTAssertFalse(BudvivaAuth.isValidOTP("1234567A"))
+    }
+
     func testSharedExpensesEntryPointsToSecureOfficialPageWithoutPrivateData() {
         let shared=SharedExpensesService.url
         XCTAssertEqual(shared.scheme, "https")

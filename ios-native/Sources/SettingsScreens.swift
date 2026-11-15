@@ -88,7 +88,7 @@ struct SettingsScreen: View {
                 HStack {
                     Text("Versión")
                     Spacer()
-                    Text("1.2 · beta iOS").foregroundStyle(.secondary)
+                    Text("1.2.1 · beta iOS").foregroundStyle(.secondary)
                 }
             }
         }
