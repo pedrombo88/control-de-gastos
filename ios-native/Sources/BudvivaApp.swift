@@ -18,6 +18,8 @@ struct RootView: View {
     @EnvironmentObject var store: FinanceStore
     @EnvironmentObject var auth: BudvivaAuth
     @State private var selected = 0
+    @State private var checkedUserID: String?
+    @State private var localAccessAllowed = false
 
     private let tabs: [(title: String, icon: String)] = [
         ("Inicio","house.fill"),
@@ -39,9 +41,20 @@ struct RootView: View {
                 .background(Color(red:0.95,green:0.97,blue:0.99))
             } else if auth.session == nil {
                 BudvivaLoginScreen()
-            } else {
+            } else if checkedUserID != auth.session?.userID {
+                ProgressView("Protegiendo los datos del iPhone…")
+                    .frame(maxWidth:.infinity,maxHeight:.infinity)
+            } else if localAccessAllowed {
                 authenticated
+            } else {
+                BudvivaOtherAccountScreen()
             }
+        }
+        .task(id:auth.session?.userID) {
+            checkedUserID=nil
+            guard let uid=auth.session?.userID else {return}
+            localAccessAllowed=BudvivaLocalAccountGuard.checkOrBind(uid)
+            checkedUserID=uid
         }
         .alert("Aviso de Budviva", isPresented: Binding(
             get: { store.errorMessage != nil },

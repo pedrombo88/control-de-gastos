@@ -5,6 +5,12 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const data=JSON.parse(fs.readFileSync('docs/APP_STORE_FICHA_ES_2026.json','utf8'));
 const site='https://pedrombo88.github.io/control-de-gastos/';
+test('La ficha española coincide con la versión nativa SwiftUI',()=>{
+  const project=fs.readFileSync('ios-native/project.yml','utf8');
+  const match=project.match(/CFBundleShortVersionString:\s*"([^"]+)"/);
+  assert(match,'Falta la versión iOS');
+  assert.equal(data.version,match[1]+'-beta');
+});
 test('Los metadatos cumplen límites de longitud documentados por Apple',()=>{
   assert.equal(data.locale,'es-ES');
   assert.equal(data.appName,'Budviva');
@@ -31,7 +37,7 @@ test('Los enlaces de soporte y privacidad son HTTPS y apuntan a las páginas exi
 test('La ficha no promete funciones inexistentes ni almacena accesos a cuentas de prueba',()=>{
   assert(!/sincroniza automáticamente con otras personas/i.test(data.description) || data.description.includes('No se sincronizan automáticamente'));
   assert.match(data.description,/Safari integrada en la app/);
-  assert.match(data.description,/cuenta independiente/);
+  assert.match(data.description,/sesión web independiente/);
   assert.match(data.description,/no realiza operaciones bancarias/i);
   const raw=JSON.stringify(data);
   assert(!/sb_secret_|service_role|sk_live_|Bearer\s+eyJ/.test(raw));

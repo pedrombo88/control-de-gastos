@@ -49,6 +49,11 @@ final class BudvivaUITests: XCTestCase {
             add(capture)
         }
 
+        // La eliminación de cuenta debe ser visible directamente desde Ajustes.
+        XCTAssertTrue(
+            app.buttons["budviva-delete-account"].waitForExistence(timeout:10),
+            "Debe existir el acceso nativo a eliminación de cuenta"
+        )
         // Los enlaces de privacidad y la acción de borrado deben estar accesibles
         // desde Ajustes; este test NO elimina ninguna información.
         XCTAssertTrue(

@@ -5,6 +5,7 @@ struct SettingsScreen: View {
     @EnvironmentObject var store: FinanceStore
     @EnvironmentObject private var auth: BudvivaAuth
     @State private var confirmLogout = false
+    @State private var showAccountDeletion = false
     @State private var importing = false
     @State private var exporting = false
     @State private var exportFile: BackupFile?
@@ -54,6 +55,11 @@ struct SettingsScreen: View {
             Section("Mi cuenta") {
                 LabeledContent("Correo",value:auth.session?.email ?? "Sin sesión")
                 Button("Cerrar sesión",role:.destructive) { confirmLogout=true }
+                Button("Eliminar mi cuenta",role:.destructive) {
+                    showAccountDeletion=true
+                }
+                .accessibilityIdentifier("budviva-delete-account")
+
             }
 
             Section("Apariencia") {
@@ -88,7 +94,7 @@ struct SettingsScreen: View {
                 HStack {
                     Text("Versión")
                     Spacer()
-                    Text("1.2.1 · beta iOS").foregroundStyle(.secondary)
+                    Text("1.3.0 · beta iOS").foregroundStyle(.secondary)
                 }
             }
         }
@@ -100,6 +106,9 @@ struct SettingsScreen: View {
             Button("Cancelar",role:.cancel) {}
         } message: {
             Text("Los movimientos personales seguirán guardados en este iPhone. Los gastos de Compartidos utilizan una sesión web independiente.")
+        }
+        .sheet(isPresented:$showAccountDeletion) {
+            NavigationStack { BudvivaDeleteAccountScreen() }
         }
         .fileImporter(isPresented:$importing,allowedContentTypes:[.json,.data],allowsMultipleSelection:false) {result in
             switch result {
@@ -160,7 +169,11 @@ struct SettingsScreen: View {
         }
         .confirmationDialog("Eliminar todos los datos",isPresented:$confirmErase) {
             Button("Eliminar definitivamente",role:.destructive) {
-                do {try store.wipe();notification="Se han eliminado los datos locales."}
+                do {
+                    try store.wipe()
+                    BudvivaLocalAccountGuard.releaseAfterWipe()
+                    notification="Se han eliminado los datos locales."
+                }
                 catch {notification=error.localizedDescription}
             }
             Button("Cancelar",role:.cancel){}

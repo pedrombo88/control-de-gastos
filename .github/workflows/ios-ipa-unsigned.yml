@@ -41,14 +41,14 @@ jobs:
           mkdir -p dist/Payload
           cp -R "$APP" dist/Payload/
           cd dist
-          zip -qry Budviva-v1.2.1-iPhone-sin-firma.ipa Payload
-          unzip -t Budviva-v1.2.1-iPhone-sin-firma.ipa >/dev/null
-          shasum -a 256 Budviva-v1.2.1-iPhone-sin-firma.ipa > Budviva-v1.2.1-iPhone-sin-firma.sha256
+          zip -qry Budviva-v1.3.0-iPhone-sin-firma.ipa Payload
+          unzip -t Budviva-v1.3.0-iPhone-sin-firma.ipa >/dev/null
+          shasum -a 256 Budviva-v1.3.0-iPhone-sin-firma.ipa > Budviva-v1.3.0-iPhone-sin-firma.sha256
       - uses: actions/upload-artifact@v4
         with:
-          name: Budviva-v1.2.1-IPA-AltStore
+          name: Budviva-v1.3.0-IPA-AltStore
           path: |
-            dist/Budviva-v1.2.1-iPhone-sin-firma.ipa
-            dist/Budviva-v1.2.1-iPhone-sin-firma.sha256
+            dist/Budviva-v1.3.0-iPhone-sin-firma.ipa
+            dist/Budviva-v1.3.0-iPhone-sin-firma.sha256
           retention-days: 14
           if-no-files-found: error

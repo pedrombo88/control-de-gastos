@@ -1,6 +1,6 @@
 # Budviva — Tu dinero, más claro
 
-**Estado:** versión web instalable (PWA) **6.9.10 beta**, en preparación para una futura versión iOS comercial. **No publicada en App Store.**
+**Estado:** versión web instalable (PWA) **6.9.10 beta**; versión nativa iOS **1.3 beta** en preparación comercial. **No publicada en App Store.**
 
 [Probar Budviva](https://pedrombo88.github.io/control-de-gastos/) · [Privacidad](https://pedrombo88.github.io/control-de-gastos/privacidad.html) · [Ayuda](https://pedrombo88.github.io/control-de-gastos/soporte.html) · [Control de datos](https://pedrombo88.github.io/control-de-gastos/datos-y-privacidad.html) · [Configurar soporte privado](./docs/CONFIGURAR_SOPORTE_PRIVADO.md) · [Auditoría profesional 6.9.10](./AUDITORIA_PROFESIONAL_BUDVIVA_2026-11-06.md) · [Auditoría histórica](./AUDITORIA_BUDVIVA_2026-11-04.md) · [Seguridad de Compartidos](./AUDITORIA_SEGURIDAD_COMPARTIDOS_2026-11-06.md) · [Configurar correo OTP](./docs/CONFIGURACION_CORREO_OTP.md)
 
@@ -14,7 +14,7 @@
 
 La importación admite tickets en imagen y documentos PDF/CSV/TXT con revisión previa. La extracción puede equivocarse. Budviva **conserva los originales asociados a los movimientos** en IndexedDB, también al adjuntarlos manualmente desde la edición de un movimiento y permite incluirlos en copias completas o cifradas. Debes verificar la carga y restauración en Safari antes de confiar en ellos.
 
-## Avance iOS 1.2 beta
+## Avance iOS 1.3 beta
 
 El proyecto SwiftUI incorpora el logotipo aprobado en la pantalla de inicio y el icono del iPhone, **seis pestañas visibles** (Inicio, Movimientos, Presupuestos, Ahorro, Compartidos y Ajustes), cuatro temas profesionales y una puerta de acceso mediante OTP de correo con Supabase Auth. **Compartidos** tiene ahora su propia pestaña y se abre con un navegador seguro de SafariServices. Permite usar la gestión común de gastos existente sin instalar otra aplicación, pero exige conexión y cuenta de Compartidos independiente. **No sincroniza el histórico financiero personal con la web** y la interfaz común aún no se ha reimplementado en SwiftUI.
 

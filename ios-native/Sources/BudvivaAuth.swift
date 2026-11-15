@@ -4,7 +4,7 @@ import Security
 
 /// Autenticación real de Budviva mediante los códigos OTP del proyecto Supabase de Compartidos.
 /// Solo guarda los tokens en el llavero del iPhone; no utiliza contraseñas ni claves privadas.
-private enum BudvivaAuthAPI {
+enum BudvivaAuthAPI {
     static let base = URL(string:"https://bsvtttcuqamjifnpuzlj.supabase.co/auth/v1")!
     static let publicKey = "sb_publishable_vuz1EmFnMWS9PgMQVXEBjw_3F-6G1gr"
 }

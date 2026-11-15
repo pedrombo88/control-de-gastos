@@ -1,5 +1,8 @@
 # Budviva — Expediente de publicación iOS
 
+> **Actualización de publicación 1.3 (15/11/2026):** Se han incorporado controles para que una segunda cuenta no acceda al historial financiero local del primer usuario del iPhone, y una pantalla nativa de eliminación definitiva de cuenta mediante comprobación de referencias y OTP. Estos cambios están pendientes de validación funcional real y revisión legal. Consultar [plan de publicación](../release/PLAN_APP_STORE.md). Los pasos de firma y TestFlight permanecen bloqueados hasta que haya membresía Apple Developer, Bundle ID propio y metadatos aprobados.
+
+
 **Estado:** beta técnica iOS 1.1. Esta carpeta contiene un proyecto iOS nativo SwiftUI, no un contenedor WKWebView. El módulo opcional Compartidos se abre en una ventana independiente y segura de SafariServices. **No se ha enviado a App Store ni a TestFlight.** La revisión oficial de Apple, las pruebas en dispositivos reales y la firma de distribución siguen pendientes.
 
 ## Funciones implementadas
