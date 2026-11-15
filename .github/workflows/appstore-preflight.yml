@@ -1,0 +1,40 @@
+name: Preparación App Store · informe P0
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'ios-native/**'
+      - 'docs/APP_STORE_FICHA_ES_2026.json'
+      - 'tools/preflight_app_store.py'
+      - 'release/**'
+      - '.github/workflows/appstore-preflight.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'ios-native/**'
+      - 'docs/APP_STORE_FICHA_ES_2026.json'
+      - 'tools/preflight_app_store.py'
+      - 'release/**'
+      - '.github/workflows/appstore-preflight.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  preflight:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ejecutar preflight de publicación sin credenciales
+        run: |
+          set -o pipefail
+          python3 tools/preflight_app_store.py | tee preflight-appstore.txt
+          cat preflight-appstore.txt >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Aviso: este informe no confirma inscripción en Apple Developer ni sustituye App Review." >> "$GITHUB_STEP_SUMMARY"
+      - name: Guardar diagnóstico
+        uses: actions/upload-artifact@v4
+        with:
+          name: budviva-preflight-app-store
+          path: preflight-appstore.txt
+          retention-days: 14
