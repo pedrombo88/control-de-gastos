@@ -36,7 +36,7 @@ test('Los enlaces de soporte y privacidad son HTTPS y apuntan a las páginas exi
 });
 test('La ficha no promete funciones inexistentes ni almacena accesos a cuentas de prueba',()=>{
   assert(!/sincroniza automáticamente con otras personas/i.test(data.description) || data.description.includes('No se sincronizan automáticamente'));
-  assert.match(data.description,/Safari integrada en la app/);
+  assert.match(data.description,/Safari integrada en la aplicación/);
   assert.match(data.description,/sesión web independiente/);
   assert.match(data.description,/no realiza operaciones bancarias/i);
   const raw=JSON.stringify(data);
