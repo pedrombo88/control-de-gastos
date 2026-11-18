@@ -30,6 +30,26 @@ final class BudvivaUITests: XCTestCase {
         XCTAssertTrue(app.buttons["Iniciar sesión o crear cuenta"].waitForExistence(timeout:10))
     }
 
+
+    @MainActor
+    func testReceiptGalleryPickerIsAvailableAlongsideCameraAndFiles() throws {
+        let app=XCUIApplication()
+        app.launchArguments += ["--budviva-ui-test-session"]
+        app.launch()
+        let movements=app.buttons["budviva-tab-Movimientos"]
+        XCTAssertTrue(movements.waitForExistence(timeout:15))
+        movements.tap()
+        let importButton=app.buttons["Importar"].firstMatch
+        XCTAssertTrue(importButton.waitForExistence(timeout:10))
+        importButton.tap()
+        XCTAssertTrue(app.buttons["budviva-gallery-picker"].waitForExistence(timeout:10),
+                      "Falta la opción para escoger fotos directamente de la galería")
+        XCTAssertTrue(app.buttons["Hacer foto del ticket"].exists,
+                      "La opción de hacer una foto debe mantenerse")
+        XCTAssertTrue(app.buttons["Seleccionar documento"].exists,
+                      "La opción de importar desde Archivos debe mantenerse")
+    }
+
     override func setUpWithError() throws {
         continueAfterFailure = false
     }

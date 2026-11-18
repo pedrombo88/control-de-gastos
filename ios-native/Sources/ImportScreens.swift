@@ -3,6 +3,7 @@ import UniformTypeIdentifiers
 import PDFKit
 import Vision
 import UIKit
+import PhotosUI
 
 struct ImportDraft: Identifiable {
     var id = UUID()
@@ -199,6 +200,8 @@ struct ImportScreen: View {
     @EnvironmentObject var store:FinanceStore
     @State private var showingPicker=false
     @State private var showingCamera=false
+    @State private var gallerySelection:PhotosPickerItem?
+    @State private var galleryLoading=false
     @State private var cameraUnavailable=false
     @State private var mode="ticket"
     @State private var drafts=[ImportDraft]()
@@ -215,15 +218,29 @@ struct ImportScreen: View {
                 Picker("Contenido",selection:$mode){
                     Text("Ticket").tag("ticket");Text("Extracto bancario").tag("statement")
                 }.pickerStyle(.segmented)
+                    .disabled(busy || galleryLoading)
                 Button { showingPicker=true } label: { Label("Seleccionar documento",systemImage:"doc.text.viewfinder").frame(maxWidth:.infinity) }
                     .buttonStyle(.borderedProminent)
+                    .disabled(busy || galleryLoading)
                 if mode=="ticket" {
+                    PhotosPicker(selection:$gallerySelection,matching:.images) {
+                        Label("Elegir foto de la galería",systemImage:"photo.on.rectangle.angled")
+                            .frame(maxWidth:.infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    .disabled(busy || galleryLoading)
+                    .accessibilityIdentifier("budviva-gallery-picker")
                     Button {
                         if UIImagePickerController.isSourceTypeAvailable(.camera) {showingCamera=true}
                         else {cameraUnavailable=true}
-                    } label: { Label("Hacer foto del ticket",systemImage:"camera").frame(maxWidth:.infinity) }
+                    } label: {
+                        Label("Hacer foto del ticket",systemImage:"camera")
+                            .frame(maxWidth:.infinity)
+                    }
                     .buttonStyle(.bordered)
+                    .disabled(busy || galleryLoading)
                 }
+                if galleryLoading {ProgressView("Cargando foto de la galería…")}
                 if busy {ProgressView("Analizando documento…")}
                 Text(message).font(.caption).foregroundStyle(isError ? .red:.secondary)
                 if !recognizedText.isEmpty {
@@ -282,6 +299,10 @@ struct ImportScreen: View {
             }.padding(16)
         }
         .navigationTitle("Importar")
+        .onChange(of:gallerySelection) { _, selected in
+            guard let selected else {return}
+            Task {await loadGalleryPhoto(selected)}
+        }
         .fileImporter(isPresented:$showingPicker,allowedContentTypes:[.pdf,.image,.commaSeparatedText,.plainText],allowsMultipleSelection:false) {result in
             switch result {
             case .success(let files):if let first=files.first {load(first)}
@@ -299,6 +320,50 @@ struct ImportScreen: View {
         } message:{Text("La cámara no está disponible en este dispositivo o simulador. Puedes seleccionar una fotografía guardada.")}
 
     }
+    @MainActor
+    private func loadGalleryPhoto(_ selected:PhotosPickerItem) async {
+        guard !busy && !galleryLoading else {
+            gallerySelection=nil
+            return
+        }
+        galleryLoading=true
+        isError=false
+        message="Cargando foto de la galería…"
+        defer {
+            galleryLoading=false
+            gallerySelection=nil
+        }
+        do {
+            guard let bytes=try await selected.loadTransferable(type:Data.self),
+                  !bytes.isEmpty, let image=UIImage(data:bytes) else {
+                throw NSError(domain:"Budviva.Galeria",code:1,userInfo:[
+                    NSLocalizedDescriptionKey:"No se ha podido leer la fotografía. Prueba a descargarla en Fotos antes de seleccionarla."
+                ])
+            }
+            let maxBytes=15*1024*1024
+            var data=bytes
+            // Preferimos el original para conservar la imagen y sus detalles.
+            // Las fotografías excepcionales mayores de 15 MB se adaptan a JPEG.
+            var ext=selected.supportedContentTypes
+                .compactMap { $0.preferredFilenameExtension?.lowercased() }
+                .first(where:{["jpg","jpeg","png","heic","heif","tif","tiff","webp"].contains($0)}) ?? "jpg"
+            if data.count>maxBytes {
+                guard let compressed=image.jpegData(compressionQuality:0.83),
+                      compressed.count<=maxBytes else {
+                    throw NSError(domain:"Budviva.Galeria",code:2,userInfo:[
+                        NSLocalizedDescriptionKey:"La fotografía supera los 15 MB. Elige una imagen más pequeña o guárdala como JPEG."
+                    ])
+                }
+                data=compressed
+                ext="jpg"
+            }
+            analyze(data,name:"ticket-galeria-"+FinanceFormat.date()+"."+ext,ext:ext)
+        } catch {
+            message="No se ha podido cargar la foto: "+error.localizedDescription
+            isError=true
+        }
+    }
+
     private func load(_ url:URL) {
         let granted=url.startAccessingSecurityScopedResource()
         defer {if granted {url.stopAccessingSecurityScopedResource()}}

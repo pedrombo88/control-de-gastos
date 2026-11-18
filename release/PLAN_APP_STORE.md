@@ -61,3 +61,9 @@ Fuente: https://developer.apple.com/help/app-store-connect/manage-compliance-inf
 - Ordenación geométrica de observaciones de Vision, agrupación de nombres e importes que ocupan cajas diferentes, advertencia si la suma de artículos no coincide con el total y revisión manual en la importación.
 - Prueba automática con una transcripción anonimizada de 21 líneas cuyo total es 78,60 €; no se incluye en el repositorio ninguna fotografía personal del ticket.
 - En iPhone, confirmar resultados reales del OCR antes de aprobar la release: el comportamiento final puede variar por iluminación y calidad del recibo.
+
+## Importación desde la galería (iOS 1.3.2)
+- El usuario puede elegir directamente una foto del ticket desde Fotos mediante `PhotosPicker` (solo el elemento seleccionado), sin dar acceso a toda la biblioteca.
+- Se mantienen también la cámara y el selector de documentos, así como el análisis local con Vision, la revisión de artículos y el guardado del original cuando ocupa hasta 15 MB.
+- Para imágenes superiores a 15 MB se intenta comprimir una copia JPEG antes de importarla; si sigue siendo demasiado grande se informa sin guardar datos.
+- Hay una prueba de interfaz automatizada de presencia de las tres vías de entrada, pero todavía debe comprobarse el selector con fotos reales de iCloud y HEIC en un iPhone físico antes de dar la función por certificada.

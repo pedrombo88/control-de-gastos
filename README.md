@@ -157,3 +157,6 @@ Si el almacenamiento financiero local contiene datos no interpretables, aparece 
 ### Apple Developer y TestFlight (sin Mac)
 
 El proyecto continúa sin suscripción Apple Developer Program. La cuenta gratuita permite preparar las siguientes etapas y las compilaciones de simulador se realizan mediante GitHub Actions. La ruta de alta como particular/empresa y firma posterior se documenta en [Apple Developer sin Mac](./docs/APPLE_DEVELOPER_SIN_MAC.md). La publicación real requiere contratar la membresía y configurar credenciales de forma privada.
+
+### Fotos de tickets desde la galería · iOS 1.3.2
+En Movimientos → Importar → Ticket se puede hacer una foto, abrir el selector de Fotos («Elegir foto de la galería») o importar desde Archivos. Todas las imágenes se procesan localmente con Vision, requieren revisión antes de guardar y conservan el archivo asociado. El selector de Fotos solo concede acceso a la imagen elegida. El límite de archivo es 15 MB; las imágenes mayores se intentan adaptar a JPEG.
