@@ -104,34 +104,17 @@ enum NativeImportParser {
         }
     }
     static func parseTicket(_ text:String)->[ImportDraft] {
-        let rows=text.components(separatedBy:.newlines).map{$0.trimmingCharacters(in:.whitespaces)}.filter{!$0.isEmpty}
-        let priceRegex=try! NSRegularExpression(pattern:#"(-?\d{1,6}[,.]\d{2})\s*€?\s*$"#)
-        let dateRegex=try! NSRegularExpression(pattern:#"\b\d{1,2}[./-]\d{1,2}[./-]\d{2,4}\b"#)
-        let date=rows.compactMap{line->String? in
-            let range=NSRange(line.startIndex...,in:line)
-            guard let match=dateRegex.firstMatch(in:line,range:range),let sub=Range(match.range,in:line) else {return nil}
-            return isoDate(String(line[sub]))
-        }.first ?? FinanceFormat.date()
-        var items=[ReceiptProduct](),total:Int?
-        for line in rows {
-            let range=NSRange(line.startIndex...,in:line)
-            guard let match=priceRegex.firstMatch(in:line,range:range),
-                  let price=Range(match.range(at:1),in:line),let whole=Range(match.range,in:line),
-                  let value=cents(String(line[price])),value>0 else{continue}
-            if line.uppercased().contains("TOTAL") || line.uppercased().contains("A PAGAR") {
-                total=value;continue
-            }
-            let name=String(line[..<whole.lowerBound]).trimmingCharacters(in:.whitespaces)
-            if name.count>2 && !name.uppercased().contains("IVA") && !name.uppercased().contains("SUBTOTAL")
-                && !name.uppercased().contains("EFECTIVO") && !name.uppercased().contains("TARJETA") && items.count<120 {
-                items.append(ReceiptProduct(name:String(name.prefix(90)),amount:value))
-            }
-        }
-        let amount=total ?? items.reduce(0){$0+$1.amount}
-        guard amount>0 else{return []}
-        let title=rows.first(where:{$0.rangeOfCharacter(from:.letters) != nil}) ?? "Ticket"
-        return [ImportDraft(date:date,title:String(title.prefix(90)),amount:String(format:"%.2f",Double(amount)/100).replacingOccurrences(of:".",with:","),
-                            type:"expense",category:"otros",items:items)]
+        let result=NativeReceiptParser.extract(text)
+        let amount=result.total ?? result.items.reduce(0){ $0 + $1.amount }
+        guard amount>0 else {return []}
+        return [
+            ImportDraft(
+                date:result.date ?? FinanceFormat.date(),
+                title:result.merchant,
+                amount:String(format:"%.2f",Double(amount)/100).replacingOccurrences(of:".",with:","),
+                type:"expense",category:"otros",items:result.items
+            )
+        ]
     }
     static func parseStatementText(_ text:String)->[ImportDraft] {
         let rx=try! NSRegularExpression(pattern:#"^\s*(\d{1,2}[./-]\d{1,2}[./-]\d{2,4})\s+(.+?)\s+(-?\d{1,9}[,.]\d{2})\s*€?\s*$"#)
@@ -175,12 +158,40 @@ enum NativeImportParser {
         }
         return try vision(cg)
     }
-    static func vision(_ image:CGImage)throws->String{
+    static func vision(_ image:CGImage)throws->String {
         let req=VNRecognizeTextRequest()
-        req.recognitionLevel = .accurate;req.recognitionLanguages=["es-ES","en-US"]
-        req.usesLanguageCorrection=true
+        req.recognitionLevel = .accurate
+        req.recognitionLanguages = ["es-ES","en-US"]
+        req.usesLanguageCorrection = true
         try VNImageRequestHandler(cgImage:image).perform([req])
-        return (req.results ?? []).compactMap{$0.topCandidates(1).first?.string}.joined(separator:"\n")
+
+        // Vision puede entregar por separado "QUESO" y "4,20 C".
+        // Ordenamos geométricamente antes de analizarlos como renglones.
+        let observations=(req.results ?? []).compactMap { observation -> (String,CGRect)? in
+            guard let candidate=observation.topCandidates(1).first else{return nil}
+            let text=candidate.string.trimmingCharacters(in:.whitespacesAndNewlines)
+            return text.isEmpty ? nil : (text,observation.boundingBox)
+        }.sorted { a,b in
+            let delta=a.1.midY-b.1.midY
+            return abs(delta)>0.005 ? delta>0 : a.1.minX<b.1.minX
+        }
+        struct TextRow {
+            var center:CGFloat
+            var height:CGFloat
+            var chunks:[(String,CGRect)]
+        }
+        var rows:[TextRow]=[]
+        for (text,box) in observations {
+            if let last=rows.indices.last,
+               abs(rows[last].center-box.midY) < max(0.005,min(rows[last].height,box.height)*0.54) {
+                rows[last].chunks.append((text,box))
+            } else {
+                rows.append(TextRow(center:box.midY,height:box.height,chunks:[(text,box)]))
+            }
+        }
+        return rows.map { row in
+            row.chunks.sorted {$0.1.minX<$1.1.minX}.map(\.0).joined(separator:" ")
+        }.joined(separator:"\n")
     }
 }
 
@@ -191,6 +202,7 @@ struct ImportScreen: View {
     @State private var cameraUnavailable=false
     @State private var mode="ticket"
     @State private var drafts=[ImportDraft]()
+    @State private var recognizedText=""
     @State private var rawData:Data?
     @State private var name=""
     @State private var type=""
@@ -214,6 +226,13 @@ struct ImportScreen: View {
                 }
                 if busy {ProgressView("Analizando documento…")}
                 Text(message).font(.caption).foregroundStyle(isError ? .red:.secondary)
+                if !recognizedText.isEmpty {
+                    DisclosureGroup("Ver texto reconocido (OCR)") {
+                        Text(recognizedText)
+                            .font(.system(.caption,design:.monospaced))
+                            .textSelection(.enabled)
+                    }
+                }
                 if !drafts.isEmpty {
                     Text("Movimientos propuestos (\(drafts.count))").font(.headline)
                     Text("Revisa cada operación. Los importes, fechas y productos extraídos pueden ser incorrectos. Nada se guarda automáticamente.")
@@ -234,21 +253,23 @@ struct ImportScreen: View {
                                         Text(cat.1).tag(cat.0)
                                     }
                                 }
-                                if !draft.items.isEmpty {
+                                if mode=="ticket" {
+                                    let sum=draft.items.reduce(0){$0+$1.amount}
+                                    if let total=FinanceFormat.cents(draft.amount),sum != total {
+                                        Text("Revisión necesaria: los productos suman \(FinanceFormat.money(sum)), pero el ticket indica \(FinanceFormat.money(total)). Corrige lo que falte antes de guardar.")
+                                            .font(.caption)
+                                            .foregroundStyle(.orange)
+                                    }
+                                }
+                                if mode=="ticket" {
                                     DisclosureGroup("Productos (\(draft.items.count))"){
                                         ForEach($draft.items) { $item in
-                                            HStack {
-                                                VStack(alignment:.leading) {
-                                                    Text(item.name).font(.caption)
-                                                    Text(FinanceFormat.money(item.amount)).font(.caption2).foregroundStyle(.secondary)
-                                                }
-                                                Spacer()
-                                                Picker("Necesidad",selection:$item.necessity){
-                                                    Text("Pendiente").tag("pending")
-                                                    Text("Necesario").tag("necessary")
-                                                    Text("No necesario").tag("optional")
-                                                }.labelsHidden()
-                                            }
+                                            ReceiptProductEditor(product:$item)
+                                        }
+                                        Button {
+                                            draft.items.append(ReceiptProduct(name:"",amount:0))
+                                        } label: {
+                                            Label("Añadir producto que falte",systemImage:"plus.circle")
                                         }
                                     }
                                 }
@@ -293,7 +314,7 @@ struct ImportScreen: View {
             message="Máximo 15 MB por documento.";isError=true;return
         }
         rawData=data;name=filename;type=extensionName
-        busy=true;isError=false;drafts=[];message="Analizando "+filename+"…"
+        busy=true;isError=false;drafts=[];recognizedText="";message="Analizando "+filename+"…"
         let current=mode
         let ext=extensionName
         Task.detached(priority:.userInitiated) {
@@ -304,7 +325,7 @@ struct ImportScreen: View {
                 else if current=="ticket" {parsed=NativeImportParser.parseTicket(text)}
                 else {parsed=NativeImportParser.parseStatementText(text)}
                 await MainActor.run {
-                    drafts=parsed;busy=false
+                    drafts=parsed;recognizedText=(current=="ticket" ? text : "");busy=false
                     message=parsed.isEmpty ? "No se identificaron movimientos. Revisa el archivo o introduce los datos manualmente.":
                         "Se han detectado \(parsed.count) posibles movimientos. Marca solo los correctos."
                     isError=parsed.isEmpty
@@ -321,6 +342,9 @@ struct ImportScreen: View {
         var movements=[Movement]()
         var selectedFingerprints=Set<String>()
         for item in selected {
+            guard item.items.allSatisfy({ !$0.name.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty && $0.amount > 0 }) else {
+                message="Corrige los nombres e importes de todos los productos antes de guardar.";isError=true;return
+            }
             guard let amount=FinanceFormat.cents(item.amount),NativeImportParser.isoDate(item.date) != nil,
                 !item.title.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty else {
                     message="Corrige los importes, fechas o conceptos antes de guardar.";isError=true;return
@@ -340,11 +364,45 @@ struct ImportScreen: View {
         do {
             let mime=type=="pdf" ? "application/pdf":type=="csv" ? "text/csv":type=="txt" ? "text/plain":"image/"+type
             try store.importMovements(movements,withOriginal:original,name:name,type:mime)
-            drafts=[];rawData=nil
+            drafts=[];rawData=nil;recognizedText=""
             message="Guardados \(movements.count) movimientos y su documento original.";isError=false
         }catch {
             message="No se ha guardado nada: "+error.localizedDescription
             isError=true
+        }
+    }
+}
+
+
+private struct ReceiptProductEditor: View {
+    @Binding var product: ReceiptProduct
+    @State private var amountText=""
+
+    var body: some View {
+        VStack(alignment:.leading,spacing:7) {
+            TextField("Nombre del producto",text:$product.name)
+                .textInputAutocapitalization(.words)
+            HStack {
+                TextField("Importe (€)",text:$amountText)
+                    .keyboardType(.decimalPad)
+                    .onChange(of:amountText) { _, next in
+                        product.amount=NativeImportParser.cents(next) ?? 0
+                    }
+                if let count=product.quantity,count>1 {
+                    Text("\(count) uds.").font(.caption).foregroundStyle(.secondary)
+                }
+                Picker("Necesidad",selection:$product.necessity){
+                    Text("Pendiente").tag("pending")
+                    Text("Necesario").tag("necessary")
+                    Text("No necesario").tag("optional")
+                }
+                .labelsHidden()
+            }
+        }
+        .padding(.vertical,5)
+        .onAppear {
+            amountText=String(format:"%.2f",Double(product.amount)/100)
+                .replacingOccurrences(of:".",with:",")
         }
     }
 }

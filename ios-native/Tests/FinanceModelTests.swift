@@ -2,6 +2,81 @@ import XCTest
 @testable import Budviva
 
 final class FinanceModelTests: XCTestCase {
+    func testAlcampoReceiptWithTaxLettersAndQuantityRowsExtracts21Articles() {
+        // Transcripción de un ticket de prueba: ninguna fotografía personal en GitHub.
+        // Las tres líneas "2 x" indican unidades; no son productos nuevos.
+        let receipt = """
+        ALCAMPO J.P. BONET
+        FACTURA SIMPLIFICADA
+        L. ENTERA AUCHAN                         9,36 C
+        BOLSA 50X60CM                            ,12 A
+        BOLSA 50X60CM                            ,12 A
+        ROLLO DE COCINA                         2,95 A
+        COCACOLA ZERO                          11,40 A
+        LECHE ENTERA AUC                        1,71 C
+        ACEITUNAS ANCHOA                        3,09 B
+        PAN INTEGRAL S/C                        1,10 C
+        MARINADO ROLER                          4,45 B
+        JAMONCITOS 6 UDS                        4,21 B
+        PREP.CARNE 800G                         8,45 B
+        AGUJA S/HUESO                           2,69 B
+        AGUJA S/HUESO                           2,62 B
+        2 x 2,10
+        QUESO TIERNO MEZ                        4,20 C
+        2 x 2,48
+        ASADO DE POLLO                          4,96 B
+        2 x 2,50
+        PECHUGUITA POLLO                        5,00 B
+        TORTILLAS TRIGO                         1,38 C
+        Q.RALLADO 4 QUES                        1,75 C
+        ESPETEC DUPLO AU                        3,83 B
+        Q.BRIE AUCHAN                           1,65 C
+        ULTRA.SALADO*****                       3,56 B
+        €* TOT                                 78,60
+        € TARJETA                              78,60
+        € CAMBIO                                 ,00
+        NUM. TOTAL ART. VENDIDOS = 24
+        """
+        let result=NativeReceiptParser.extract(receipt)
+        XCTAssertEqual(result.items.count,21)
+        XCTAssertEqual(result.total,7860)
+        XCTAssertEqual(result.items.reduce(0) {$0+$1.amount},7860)
+        XCTAssertEqual(result.items.filter {$0.name=="BOLSA 50X60CM"}.count,2)
+        XCTAssertEqual(result.items.filter {$0.amount==12}.count,2)
+        XCTAssertEqual(result.items.first(where:{$0.name=="QUESO TIERNO MEZ"})?.quantity,2)
+        XCTAssertEqual(result.items.first(where:{$0.name=="ASADO DE POLLO"})?.quantity,2)
+        XCTAssertEqual(result.items.first(where:{$0.name=="PECHUGUITA POLLO"})?.quantity,2)
+        XCTAssertFalse(result.items.contains {$0.name.contains("TARJETA") || $0.name.hasPrefix("2 x")})
+        XCTAssertEqual(NativeImportParser.parseTicket(receipt).first?.amount,"78,60")
+    }
+
+    func testSplitOCRNamesAndPricesAreReassembled() {
+        let receipt = """
+        SUPERMERCADO
+        LECHE ENTERA
+        1,71 C
+        PAN INTEGRAL
+        1,10 C
+        TOT 2,81
+        TARJETA 2,81
+        """
+        let result=NativeReceiptParser.extract(receipt)
+        XCTAssertEqual(result.items.map(\.name),["LECHE ENTERA","PAN INTEGRAL"])
+        XCTAssertEqual(result.items.map(\.amount),[171,110])
+        XCTAssertEqual(result.total,281)
+    }
+
+    func testReceiptWithoutTotalUsesDetectedItemsAndNotThePayment() {
+        let receipt = """
+        TIENDA LOCAL
+        PAN 1,10 C
+        BOLSA ,12 A
+        """
+        let d=NativeImportParser.parseTicket(receipt).first
+        XCTAssertEqual(d?.items.count,2)
+        XCTAssertEqual(d?.amount,"1,22")
+    }
+
     @MainActor
     func testEmailOTPMatchesEightDigitBudvivaCodes() {
         XCTAssertTrue(BudvivaAuth.isValidOTP("12345678"))

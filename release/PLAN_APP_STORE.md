@@ -1,4 +1,4 @@
-# Budviva · Plan de publicación App Store (versión 1.3 beta)
+# Budviva · Plan de publicación App Store (versión 1.3.1 beta)
 **Preparado: 15 de noviembre de 2026** · Proyecto de GitHub: `pedrombo88/control-de-gastos`.
 
 ## Situación real
@@ -55,3 +55,9 @@ python3 tools/preflight_app_store.py --strict
 ## Nota UE: comerciante (DSA)
 Apple exige declarar la condición de comerciante para distribuir en la UE. En caso de declarar actividad como comerciante, Apple verifica y muestra ciertos datos de contacto públicamente. La elección «particular» en Apple Developer no determina automáticamente el estatus DSA. Verificar el supuesto aplicable antes de dar datos de contacto a Apple y antes de publicar.
 Fuente: https://developer.apple.com/help/app-store-connect/manage-compliance-information/manage-european-union-digital-services-act-trader-requirements
+
+## Mejora de tickets OCR · 1.3.1
+- Lectura de importes con letras de IVA A/B/C, artículos de 0,12 €, cantidades impresas en líneas «2 x» y totales abreviados «TOT».
+- Ordenación geométrica de observaciones de Vision, agrupación de nombres e importes que ocupan cajas diferentes, advertencia si la suma de artículos no coincide con el total y revisión manual en la importación.
+- Prueba automática con una transcripción anonimizada de 21 líneas cuyo total es 78,60 €; no se incluye en el repositorio ninguna fotografía personal del ticket.
+- En iPhone, confirmar resultados reales del OCR antes de aprobar la release: el comportamiento final puede variar por iluminación y calidad del recibo.
